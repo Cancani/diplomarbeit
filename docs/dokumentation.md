@@ -235,14 +235,12 @@ Merkblatt A verlangt die Deklaration von Abhängigkeiten und Verbindungen zwisch
 
 #### Stakeholderliste
 
-| Stakeholder | Rolle im Projekt | Interesse | Einfluss | Erwartung | Mögliche Konfliktlinie |
-| --- | --- | --- | --- | --- | --- |
-| Kuno Vogt, Leiter Informatikdienst TBZ | Firmenexperte, Auftraggebervertreter, direkter Vorgesetzter | Hoch | Hoch | Belastbare Entscheidungsgrundlage, kein Eingriff in den produktiven Betrieb | Die Projektarbeit darf das Tagesgeschäft nicht belasten |
-| Thanam Pangri, HF-Lehrgangsleitung | Schulexperte, Bewertung | Hoch | Hoch | Methodisch sauberes Vorgehen, nachvollziehbare Dokumentation, klar herausgearbeiteter Mehrwert von MCP | Technische Tiefe gegen methodische Vollständigkeit |
-| Dozierende der Module m239, m254 und m426 | Fachliche Auskunft, spätere Nutzende | Mittel | Niedrig | Lernumgebungen müssen fachlich das Gleiche leisten wie heute | Eine reduzierte Test-Lernumgebung könnte als Abwertung ihrer Module gelesen werden |
-| Informatikdienst TBZ, Team | Betroffen durch die Hardwarenutzung im HF-Labor | Niedrig | Mittel | Keine Beeinträchtigung bestehender Systeme und Netze | Hardware- und Netzbelegung im HF-Labor |
-| Lernende der TBZ | Endnutzende der Lernumgebungen | Niedrig | Niedrig | Funktionierende Übungsumgebungen | Keine, das bestehende System bleibt unverändert in Betrieb |
-| TBZ Weiterbildung, Sekretariat | Organisation von Abgabe und Kolloquium | Niedrig | Mittel | Fristgerechte Abgabe, rechtzeitige Raumreservation | Terminkollisionen bei der Raumreservation |
+| Stakeholder | Vertreten durch | Rolle im Projekt | Interesse | Einfluss | Erwartung | Mögliche Konfliktlinie |
+| --- | --- | --- | --- | --- | --- | --- |
+| HF-Weiterbildung TBZ | Thanam Pangri, HF-Lehrgangsleitung | Schulexperte, Bewertung, Eigentümer der Lernumgebungen | Hoch | Hoch | Methodisch sauberes Vorgehen, nachvollziehbare Dokumentation, klar herausgearbeiteter Mehrwert von MCP | Technische Tiefe gegen methodische Vollständigkeit |
+| Informatikdienst TBZ | Kuno Vogt, Leiter Informatikdienst | Firmenexperte, Auftraggebervertreter, direkter Vorgesetzter, betroffen durch die Nutzung der Hardware im HF-Labor | Hoch | Hoch | Belastbare Entscheidungsgrundlage, kein Eingriff in den produktiven Betrieb | Die Projektarbeit darf das Tagesgeschäft nicht belasten |
+| Dozierende HF | Dozierende der Module m239, m254 und m426 | Fachliche Auskunft, spätere Nutzende | Mittel | Niedrig | Lernumgebungen müssen fachlich das Gleiche leisten wie heute | Eine reduzierte Test-Lernumgebung könnte als Abwertung ihrer Module gelesen werden |
+| Lernende der TBZ | | Endnutzende der Lernumgebungen | Niedrig | Niedrig | Funktionierende Übungsumgebungen | Keine, das bestehende System bleibt unverändert in Betrieb |
 
 #### Einfluss-Interesse-Portfolio
 
@@ -255,11 +253,9 @@ quadrantChart
     quadrant-2 "Zufrieden halten"
     quadrant-3 "Beobachten"
     quadrant-4 "Informiert halten"
-    "Kuno Vogt": [0.88, 0.90]
-    "Thanam Pangri": [0.85, 0.86]
-    "Sekretariat WB": [0.25, 0.55]
-    "Informatikdienst": [0.30, 0.50]
-    "Dozierende": [0.60, 0.25]
+    "HF-Weiterbildung": [0.88, 0.92]
+    "Informatikdienst TBZ": [0.82, 0.78]
+    "Dozierende HF": [0.62, 0.28]
     "Lernende": [0.30, 0.15]
 ```
 
@@ -267,9 +263,8 @@ quadrantChart
 
 | Gruppe | Strategie | Konkrete Massnahme |
 | --- | --- | --- |
-| Eng einbinden: Kuno Vogt, Thanam Pangri | Aktiv einbeziehen, Entscheide gemeinsam absichern | Drei Zwischenpräsentationen als Sprint Reviews, wöchentlicher Statusbericht, Change Requests mit Zustimmung beider Experten. Die Abgrenzung des Umfangs wird beim Kickoff ausdrücklich bestätigt |
-| Zufrieden halten: Sekretariat Weiterbildung, Team Informatikdienst | Frühzeitig informieren, keine Überraschungen | Raumreservation für das Kolloquium bis Ende November, Hardwarenutzung im HF-Labor vorab angekündigt |
-| Informiert halten: Dozierende der Module | Fachlich konsultieren, Erwartungen klären | Bei der Ableitung der Test-Lernumgebung in US08 konsultieren, Abgrenzung des Proof of Concept aktiv erklären |
+| Eng einbinden: HF-Weiterbildung, Informatikdienst TBZ | Aktiv einbeziehen, Entscheide gemeinsam absichern | Drei Zwischenpräsentationen als Sprint Reviews, wöchentlicher Statusbericht, Change Requests mit Zustimmung beider Experten. Die Abgrenzung des Umfangs wird beim Kickoff ausdrücklich bestätigt. Die Nutzung der Hardware im HF-Labor wird vorab angekündigt |
+| Informiert halten: Dozierende HF | Fachlich konsultieren, Erwartungen klären | Bei der Ableitung der Test-Lernumgebung in US08 konsultieren, Abgrenzung des Proof of Concept aktiv erklären |
 | Beobachten: Lernende | Keine aktive Kommunikation nötig | Das bestehende System bleibt während der gesamten Laufzeit unverändert in Betrieb |
 
 #### Eskalationsweg
