@@ -1,0 +1,230 @@
+/* ============================================================
+   Design System: Diplomarbeit ITCNE24
+   Palette: Petrol-Navy Basis, Teal Akzent, warme Neutraltöne
+   Typografie: IBM Plex Sans (Text), IBM Plex Mono (Code)
+   ============================================================ */
+
+/* ---------- Farbschema Light ---------- */
+[data-md-color-scheme="default"] {
+  --md-primary-fg-color:        #123447;
+  --md-primary-fg-color--light: #1d4d67;
+  --md-primary-fg-color--dark:  #0b2331;
+  --md-accent-fg-color:         #0e9594;
+  --md-accent-fg-color--transparent: rgba(14, 149, 148, 0.1);
+
+  --md-default-bg-color:        #fbfbf9;
+  --md-typeset-a-color:         #0e7c7b;
+
+  --sa-surface:      #ffffff;
+  --sa-border:       #e3e6e3;
+  --sa-border-soft:  #edefec;
+  --sa-head-bg:      #f0f4f3;
+  --sa-row-hover:    #f4f8f7;
+  --sa-caption:      #6b7a77;
+}
+
+/* ---------- Farbschema Dark ---------- */
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color:        #0f2937;
+  --md-primary-fg-color--light: #1d4d67;
+  --md-primary-fg-color--dark:  #0b2331;
+  --md-accent-fg-color:         #2ec4b6;
+  --md-accent-fg-color--transparent: rgba(46, 196, 182, 0.12);
+
+  --md-default-bg-color:        #10171d;
+  --md-typeset-a-color:         #3fd0c2;
+
+  --sa-surface:      #161f27;
+  --sa-border:       #26313a;
+  --sa-border-soft:  #1e2830;
+  --sa-head-bg:      #1a2530;
+  --sa-row-hover:    #1c2831;
+  --sa-caption:      #8fa3a0;
+}
+
+/* ---------- Basis ---------- */
+html {
+  font-size: 110%;
+}
+
+.md-grid {
+  max-width: 76rem;
+}
+
+.md-typeset {
+  line-height: 1.65;
+}
+
+/* ---------- Header ---------- */
+.md-header {
+  background: linear-gradient(120deg, var(--md-primary-fg-color--dark) 0%, var(--md-primary-fg-color) 70%, #14514f 100%);
+}
+
+.md-tabs {
+  background: transparent;
+  background-color: var(--md-primary-fg-color--dark);
+}
+
+.md-tabs__link--active,
+.md-tabs__link:hover {
+  color: var(--md-accent-fg-color);
+}
+
+/* ---------- Überschriften ---------- */
+.md-typeset h1 {
+  font-size: 1.85em;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--md-default-fg-color);
+  margin-bottom: 1.2rem;
+}
+
+.md-typeset h2 {
+  font-size: 1.4em;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  padding-bottom: 0.3rem;
+  border-bottom: 2px solid var(--sa-border);
+  position: relative;
+}
+
+/* Signatur: kurzer Teal Marker unter jedem H2 */
+.md-typeset h2::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -2px;
+  width: 3.5rem;
+  height: 2px;
+  background: var(--md-accent-fg-color);
+}
+
+.md-typeset h3 {
+  font-size: 1.12em;
+  font-weight: 600;
+}
+
+.md-typeset h4 {
+  font-size: 0.95em;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+/* ---------- Tabellen als Cards ---------- */
+.md-typeset table:not([class]) {
+  font-size: 0.72rem;
+  border: 1px solid var(--sa-border);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(15, 35, 45, 0.05);
+  background: var(--sa-surface);
+}
+
+.md-typeset table:not([class]) th {
+  background-color: var(--sa-head-bg);
+  color: var(--md-default-fg-color);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  border-bottom: 2px solid var(--md-accent-fg-color);
+}
+
+.md-typeset table:not([class]) td {
+  border-top: 1px solid var(--sa-border-soft);
+}
+
+.md-typeset table:not([class]) tbody tr:hover {
+  background-color: var(--sa-row-hover);
+  box-shadow: none;
+}
+
+/* ---------- Code ---------- */
+.md-typeset code {
+  border-radius: 4px;
+  font-size: 0.78em;
+}
+
+.md-typeset pre > code {
+  padding: 1rem 1.2rem;
+  border-radius: 8px;
+  line-height: 1.55;
+}
+
+.md-typeset .highlight {
+  border-radius: 8px;
+  border: 1px solid var(--sa-border);
+}
+
+/* ---------- Bilder und Abbildungen ---------- */
+.md-typeset img {
+  border: 1px solid var(--sa-border);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(15, 35, 45, 0.07);
+}
+
+/* Badges (shields.io) ohne Rahmen und Schatten */
+.md-typeset img[src*="shields.io"] {
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+/* Bildunterschriften */
+.md-typeset small em {
+  display: block;
+  font-size: 0.72rem;
+  font-style: normal;
+  color: var(--sa-caption);
+  margin-top: 0.4rem;
+  margin-bottom: 1.4rem;
+  padding-left: 0.6rem;
+  border-left: 2px solid var(--md-accent-fg-color);
+}
+
+/* ---------- Mermaid ---------- */
+.mermaid {
+  text-align: center;
+  margin: 1.5rem auto;
+  padding: 1rem;
+  background: var(--sa-surface);
+  border: 1px solid var(--sa-border);
+  border-radius: 8px;
+}
+
+/* ---------- Navigation ---------- */
+.md-nav__item .md-nav__link--active {
+  color: var(--md-accent-fg-color);
+  font-weight: 600;
+}
+
+.md-nav__title {
+  font-weight: 600;
+}
+
+/* ---------- Admonitions ---------- */
+.md-typeset .admonition,
+.md-typeset details {
+  border-radius: 8px;
+  border-width: 1px;
+}
+
+/* ---------- Trennlinien ---------- */
+.md-typeset hr {
+  border-bottom: 1px solid var(--sa-border);
+  margin: 2.2rem 0;
+}
+
+/* ---------- Footer ---------- */
+.md-footer {
+  background-color: var(--md-primary-fg-color--dark);
+}
+
+.md-footer-meta {
+  background-color: var(--md-primary-fg-color--dark);
+}
+
+/* ---------- Reduzierte Bewegung respektieren ---------- */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+  }
+}
