@@ -1,0 +1,95 @@
+=== dl380-01 | 2026-09-14T14:34:04+02:00 ===
+--- System ---
+Ubuntu 24.04.4 LTS
+6.8.0-136-generic
+up 5 weeks, 5 days, 22 hours, 48 minutes
+--- CPU, RAM, Disk ---
+CPU(s):                                  24
+Model name:                              Intel(R) Xeon(R) CPU E5-2620 v3 @ 2.40GHz
+Thread(s) per core:                      2
+CPU(s) scaling MHz:                      43%
+               total        used        free      shared  buff/cache   available
+Mem:           125Gi       4.5Gi        87Gi       9.4Mi        34Gi       121Gi
+NAME     SIZE TYPE MOUNTPOINT
+loop0   50.1M loop 
+loop1     74M loop /snap/core22/2411
+loop2  171.1M loop /snap/microk8s/9072
+loop3   63.8M loop /snap/core20/2866
+loop4   13.5M loop /snap/kubectl/3833
+loop5   66.8M loop /snap/core24/1643
+loop7      4K loop /snap/bare/5
+loop8   91.7M loop /snap/gtk-common-themes/1535
+loop9  261.1M loop /snap/firefox/8803
+loop10   402M loop /snap/mesa-2404/1839
+loop11 614.5M loop /snap/gnome-46-2404/164
+loop12  18.8M loop /snap/k9s/155
+loop13  50.1M loop /snap/snapd/27710
+loop14  21.1M loop /snap/helm/539
+loop15  50.3M loop /snap/snapd/27738
+loop16    74M loop /snap/core22/2437
+loop17  66.8M loop /snap/core24/2124
+loop18 260.8M loop /snap/firefox/8863
+loop19  63.8M loop /snap/core20/2922
+loop20  21.6M loop /snap/helm/543
+sda      1.7T disk 
+├─sda1     1G part /boot/efi
+└─sda2   1.7T part /
+sr0     1024M rom  
+--- Virtualisierung ---
+vmx
+kvm_intel             487424  0
+kvm                  1404928  1 kvm_intel
+--- Netzwerk ---
+lo               UNKNOWN        127.0.0.1/8 ::1/128 
+eno1             UP             10.0.21.197/24 metric 100 fe80::eeb1:d7ff:fe75:28e4/64 
+eno2             DOWN           
+eno3             DOWN           
+eno4             DOWN           
+wg1.24           UNKNOWN        10.1.24.5/24 
+wg2.24           UNKNOWN        10.2.24.5/24 
+wg3.24           UNKNOWN        10.3.24.5/24 
+cali2c0c58a5749@if2 UP             fe80::ecee:eeff:feee:eeee/64 
+vxlan.calico     UNKNOWN        10.1.90.64/32 fe80::64de:e0ff:fe80:9f94/64 
+cali36d93dfd0f6@if2 UP             fe80::ecee:eeff:feee:eeee/64 
+cali7f41955e85c@if2 UP             fe80::ecee:eeff:feee:eeee/64 
+caliaaeac14dcc5@if2 UP             fe80::ecee:eeff:feee:eeee/64 
+cali108b9ae25db@if2 UP             fe80::ecee:eeff:feee:eeee/64 
+calic45ab86d7da@if2 UP             fe80::ecee:eeff:feee:eeee/64 
+cali94b6a0445b7@if2 UP             fe80::ecee:eeff:feee:eeee/64 
+cali6cfb51281b2@if2 UP             fe80::ecee:eeff:feee:eeee/64 
+calid8013c706b8@if2 UP             fe80::ecee:eeff:feee:eeee/64 
+calib64b51b4252@if2 UP             fe80::ecee:eeff:feee:eeee/64 
+calicb389f5b102@if2 UP             fe80::ecee:eeff:feee:eeee/64 
+calia097bfb7e86@if2 UP             fe80::ecee:eeff:feee:eeee/64 
+calic16fa02ae38@if2 UP             fe80::ecee:eeff:feee:eeee/64 
+cali8ba84d9df37@if2 UP             fe80::ecee:eeff:feee:eeee/64 
+cali2b4bb4a0f49@if2 UP             fe80::ecee:eeff:feee:eeee/64 
+cali364350f0ab4@if2 UP             fe80::ecee:eeff:feee:eeee/64 
+cali8147e475831@if2 UP             fe80::ecee:eeff:feee:eeee/64 
+cali61555bb1e36@if2 UP             fe80::ecee:eeff:feee:eeee/64 
+cali2b15007a78f@if2 UP             fe80::ecee:eeff:feee:eeee/64 
+cali5ab094d0615@if2 UP             fe80::ecee:eeff:feee:eeee/64 
+califa9fdf54768@if2 UP             fe80::ecee:eeff:feee:eeee/64 
+calie301c0e3340@if2 UP             fe80::ecee:eeff:feee:eeee/64 
+default via 10.0.21.1 dev eno1 proto dhcp src 10.0.21.197 metric 100 
+10.0.21.0/24 dev eno1 proto kernel scope link src 10.0.21.197 metric 100 
+10.0.21.1 dev eno1 proto dhcp scope link src 10.0.21.197 metric 100 
+10.1.24.0/24 dev wg1.24 proto kernel scope link src 10.1.24.5 
+blackhole 10.1.90.64/26 proto 80 
+--- Laufende VMs ---
+kein libvirt
+--- Relevante Dienste ---
+snap.microk8s.daemon-containerd.service
+snap.microk8s.daemon-kubelite.service
+kubectl            1.36.3                          3833   latest/stable  canonical**    classic
+--- Belegung ---
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/sda2       1.8T   41G  1.6T   3% /
+/dev/sda2       1.8T   41G  1.6T   3% /
+ubuntu   pts/0        10.1.24.130      Mon Sep 14 14:33   still logged in
+ubuntu   pts/0        10.3.24.120      Mon Sep 14 14:23 - 14:23  (00:00)
+ubuntu   pts/0        10.3.24.120      Mon Sep  7 09:01 - 09:04  (00:02)
+ubuntu   pts/0        10.3.24.120      Sun Sep  6 16:01 - 18:15  (02:14)
+ubuntu   pts/0        10.3.24.120      Sat Aug 29 15:53 - 16:00  (00:07)
+
+wtmp begins Tue Aug  4 15:45:46 2026

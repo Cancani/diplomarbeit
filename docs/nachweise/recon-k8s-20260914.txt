@@ -1,0 +1,86 @@
+=== MicroK8s auf dl380-01 | 2026-09-14T14:38:06+02:00 ===
+microk8s is running
+high-availability: no
+  datastore master nodes: 127.0.0.1:19001
+  datastore standby nodes: none
+addons:
+  enabled:
+    cert-manager         # (core) Cloud native certificate management
+    dns                  # (core) CoreDNS
+    ha-cluster           # (core) Configure high availability on the current node
+    helm                 # (core) Helm - the package manager for Kubernetes
+    helm3                # (core) Helm 3 - the package manager for Kubernetes
+    hostpath-storage     # (core) Storage class; allocates storage from host directory
+    metrics-server       # (core) K8s Metrics Server for API access to service metrics
+    rbac                 # (core) Role-Based Access Control for authorisation
+    storage              # (core) Alias to hostpath-storage add-on, deprecated
+  disabled:
+    cis-hardening        # (core) Apply CIS K8s hardening
+    community            # (core) The community addons repository
+    dashboard            # (core) The Kubernetes dashboard
+    gpu                  # (core) Alias to nvidia add-on
+--- Nodes ---
+NAME       STATUS   ROLES                  AGE   VERSION   INTERNAL-IP   EXTERNAL-IP   OS-IMAGE             KERNEL-VERSION      CONTAINER-RUNTIME
+dl380-01   Ready    control-plane,master   20d   v1.35.6   10.0.21.197   <none>        Ubuntu 24.04.4 LTS   6.8.0-136-generic   containerd://2.1.6
+--- Namespaces ---
+NAME              STATUS   AGE
+cdi               Active   20d
+cert-manager      Active   7d5h
+default           Active   20d
+kube-node-lease   Active   20d
+kube-public       Active   20d
+kube-system       Active   20d
+kubevirt          Active   20d
+--- Pods, alle Namespaces ---
+NAMESPACE      NAME                                        READY   STATUS    RESTARTS      AGE
+cdi            cdi-apiserver-667f6b8587-6kx7s              1/1     Running   1 (20d ago)   20d
+cdi            cdi-deployment-598569d4f9-nsc7p             1/1     Running   0             20d
+cdi            cdi-operator-7cd596d4d7-stggp               1/1     Running   0             20d
+cdi            cdi-uploadproxy-bf9fcb59d-shg9v             1/1     Running   0             20d
+cert-manager   cert-manager-5957746d66-2ggn2               1/1     Running   0             7d5h
+cert-manager   cert-manager-cainjector-567c6b47ff-dbnfs    1/1     Running   0             7d5h
+cert-manager   cert-manager-webhook-7cc5c588cb-f7ztq       1/1     Running   0             7d5h
+kube-system    calico-kube-controllers-676854dc5d-b9xw8    1/1     Running   0             20d
+kube-system    calico-node-56bxl                           1/1     Running   0             20d
+kube-system    coredns-78894c95f4-dzkz5                    1/1     Running   0             20d
+kube-system    headlamp-5b987d5657-9tpww                   1/1     Running   0             20d
+kube-system    hostpath-provisioner-7f665d64f6-xf4s7       1/1     Running   0             20d
+kube-system    metrics-server-65556bc7f8-t57rn             1/1     Running   0             20d
+kubevirt       virt-api-664bb5c6d5-8cbqq                   1/1     Running   1 (20d ago)   20d
+kubevirt       virt-controller-6cf6cdcb4c-bhjzz            1/1     Running   1 (20d ago)   20d
+kubevirt       virt-controller-6cf6cdcb4c-ztbz5            1/1     Running   1 (20d ago)   20d
+kubevirt       virt-exportproxy-669cdd4b8d-7w2bz           1/1     Running   0             20d
+kubevirt       virt-exportproxy-669cdd4b8d-g46rm           1/1     Running   0             20d
+kubevirt       virt-handler-g8jn9                          1/1     Running   0             20d
+kubevirt       virt-operator-69b8b5c87-dkkz6               1/1     Running   0             20d
+kubevirt       virt-operator-69b8b5c87-fxhg9               1/1     Running   0             20d
+kubevirt       virt-template-apiserver-7d94cc9679-jbr8j    1/1     Running   0             20d
+kubevirt       virt-template-controller-77985f976d-lx7sr   1/1     Running   0             20d
+--- Workloads ausserhalb der Systemnamespaces ---
+NAMESPACE      NAME                                       READY   UP-TO-DATE   AVAILABLE   AGE
+cdi            deployment.apps/cdi-apiserver              1/1     1            1           20d
+cdi            deployment.apps/cdi-deployment             1/1     1            1           20d
+cdi            deployment.apps/cdi-operator               1/1     1            1           20d
+cdi            deployment.apps/cdi-uploadproxy            1/1     1            1           20d
+cert-manager   deployment.apps/cert-manager               1/1     1            1           7d5h
+cert-manager   deployment.apps/cert-manager-cainjector    1/1     1            1           7d5h
+cert-manager   deployment.apps/cert-manager-webhook       1/1     1            1           7d5h
+kubevirt       deployment.apps/virt-api                   1/1     1            1           20d
+kubevirt       deployment.apps/virt-controller            2/2     2            2           20d
+kubevirt       deployment.apps/virt-exportproxy           2/2     2            2           20d
+kubevirt       deployment.apps/virt-operator              2/2     2            2           20d
+kubevirt       deployment.apps/virt-template-apiserver    1/1     1            1           20d
+kubevirt       deployment.apps/virt-template-controller   1/1     1            1           20d
+
+NAMESPACE     NAME                          DESIRED   CURRENT   READY   UP-TO-DATE   AVAILABLE   NODE SELECTOR            AGE
+kubevirt      daemonset.apps/virt-handler   1         1         1       1            1           kubernetes.io/os=linux   20d
+--- WireGuard ---
+interface: wg1.24
+peer: TML7IdQe2TM1JThzWxB86mwPuh2sRp3msbuq1LkL224=
+  latest handshake: 1 minute, 24 seconds ago
+interface: wg2.24
+peer: H4f52oXdgdgxzCP1f+OxtIQYdBiwywNsiZIM2sJ81CM=
+  latest handshake: 1 minute, 32 seconds ago
+interface: wg3.24
+peer: 9oPJT4ihEF42HlKYeIUHmujMwIaXC/MMZyDzsJVR4VE=
+  latest handshake: 38 seconds ago

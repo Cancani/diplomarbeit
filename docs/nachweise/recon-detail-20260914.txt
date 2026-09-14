@@ -1,0 +1,28 @@
+=== Detail dl380-01 | 2026-09-14T14:39:56+02:00 ===
+/usr/local/bin/virtctl
+--- KubeVirt Phase ---
+Deployed  Version: v1.9.0
+--- VMs und PVCs ---
+No resources found
+NAMESPACE   NAME         STATUS   VOLUME       CAPACITY   ACCESS MODES   STORAGECLASS    VOLUMEATTRIBUTESCLASS   AGE
+default     data-claim   Bound    rwm-volume   50Gi       RWX            local-storage   <unset>                 20d
+--- StorageClasses ---
+NAME                          PROVISIONER                    RECLAIMPOLICY   VOLUMEBINDINGMODE      ALLOWVOLUMEEXPANSION   AGE
+local-storage                 kubernetes.io/no-provisioner   Delete          Immediate              false                  20d
+microk8s-hostpath (default)   microk8s.io/hostpath           Delete          WaitForFirstConsumer   false                  20d
+--- Services ausserhalb kube-system ---
+NAMESPACE      NAME                                               TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)                  AGE
+cdi            cdi-api                                            ClusterIP   10.152.183.216   <none>        443/TCP                  20d
+cdi            cdi-prometheus-metrics                             ClusterIP   10.152.183.178   <none>        8443/TCP                 20d
+cdi            cdi-uploadproxy                                    ClusterIP   10.152.183.226   <none>        443/TCP                  20d
+cert-manager   cert-manager                                       ClusterIP   10.152.183.196   <none>        9402/TCP                 7d5h
+cert-manager   cert-manager-cainjector                            ClusterIP   10.152.183.203   <none>        9402/TCP                 7d5h
+cert-manager   cert-manager-webhook                               ClusterIP   10.152.183.20    <none>        443/TCP,9402/TCP         7d5h
+default        kubernetes                                         ClusterIP   10.152.183.1     <none>        443/TCP                  20d
+kubevirt       kubevirt-operator-webhook                          ClusterIP   10.152.183.206   <none>        443/TCP                  20d
+kubevirt       kubevirt-prometheus-metrics                        ClusterIP   None             <none>        443/TCP                  20d
+kubevirt       virt-api                                           ClusterIP   10.152.183.45    <none>        443/TCP                  20d
+kubevirt       virt-exportproxy                                   ClusterIP   10.152.183.57    <none>        443/TCP                  20d
+kubevirt       virt-template-api-service                          ClusterIP   10.152.183.67    <none>        443/TCP                  20d
+kubevirt       virt-template-controller-manager-metrics-service   ClusterIP   10.152.183.124   <none>        8443/TCP                 20d
+kubevirt       virt-template-webhook-service                      ClusterIP   10.152.183.155   <none>        443/TCP                  20d

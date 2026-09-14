@@ -1,0 +1,91 @@
+=== Cluster von kvcontrol | 2026-09-14T14:36:43+02:00 ===
+microk8s is running
+high-availability: no
+  datastore master nodes: 127.0.0.1:19001
+  datastore standby nodes: none
+addons:
+  enabled:
+    dns                  # (core) CoreDNS
+    ha-cluster           # (core) Configure high availability on the current node
+    helm                 # (core) Helm - the package manager for Kubernetes
+    helm3                # (core) Helm 3 - the package manager for Kubernetes
+    hostpath-storage     # (core) Storage class; allocates storage from host directory
+    metrics-server       # (core) K8s Metrics Server for API access to service metrics
+    rbac                 # (core) Role-Based Access Control for authorisation
+    storage              # (core) Alias to hostpath-storage add-on, deprecated
+  disabled:
+    cert-manager         # (core) Cloud native certificate management
+    cis-hardening        # (core) Apply CIS K8s hardening
+    community            # (core) The community addons repository
+    dashboard            # (core) The Kubernetes dashboard
+    gpu                  # (core) Alias to nvidia add-on
+    host-access          # (core) Allow Pods connecting to Host services smoothly
+    ingress              # (core) Ingress controller for external access
+    kube-ovn             # (core) An advanced network fabric for Kubernetes
+    mayastor             # (core) OpenEBS MayaStor
+    metallb              # (core) Loadbalancer for your Kubernetes cluster
+--- Nodes ---
+NAME        STATUS   ROLES                  AGE   VERSION   INTERNAL-IP   EXTERNAL-IP   OS-IMAGE             KERNEL-VERSION      CONTAINER-RUNTIME
+kvcontrol   Ready    control-plane,master   48d   v1.35.6   10.0.21.219   <none>        Ubuntu 24.04.4 LTS   6.8.0-137-generic   containerd://2.1.6
+--- Namespaces ---
+NAME              STATUS   AGE
+cdi               Active   48d
+default           Active   48d
+kube-node-lease   Active   48d
+kube-public       Active   48d
+kube-system       Active   48d
+kubevirt          Active   48d
+--- Pods ---
+NAMESPACE     NAME                                       READY   STATUS    RESTARTS   AGE   IP             NODE        NOMINATED NODE   READINESS GATES
+cdi           cdi-apiserver-59876fdc55-jhpfd             1/1     Running   8          48d   10.1.182.122   kvcontrol   <none>           <none>
+cdi           cdi-deployment-d6ff6857c-sfj78             1/1     Running   7          48d   10.1.182.124   kvcontrol   <none>           <none>
+cdi           cdi-operator-55cd9d648-85mjf               1/1     Running   7          48d   10.1.182.115   kvcontrol   <none>           <none>
+cdi           cdi-uploadproxy-7bc7f64b7b-57n86           1/1     Running   7          48d   10.1.182.113   kvcontrol   <none>           <none>
+kube-system   calico-kube-controllers-676854dc5d-5nmdx   1/1     Running   7          48d   10.1.182.116   kvcontrol   <none>           <none>
+kube-system   calico-node-kxtxz                          1/1     Running   9          48d   10.0.21.219    kvcontrol   <none>           <none>
+kube-system   coredns-78894c95f4-g74lk                   1/1     Running   7          48d   10.1.182.127   kvcontrol   <none>           <none>
+kube-system   headlamp-5b987d5657-srg2t                  1/1     Running   6          48d   10.1.182.121   kvcontrol   <none>           <none>
+kube-system   hostpath-provisioner-7f665d64f6-b2fw9      1/1     Running   7          48d   10.1.182.111   kvcontrol   <none>           <none>
+kube-system   metrics-server-65556bc7f8-qss55            1/1     Running   8          48d   10.1.182.70    kvcontrol   <none>           <none>
+kubevirt      virt-api-798f8f965c-ssk4k                  1/1     Running   8          48d   10.1.182.118   kvcontrol   <none>           <none>
+kubevirt      virt-controller-b554b9cb4-65ksf            1/1     Running   8          48d   10.1.182.126   kvcontrol   <none>           <none>
+kubevirt      virt-controller-b554b9cb4-cd4qc            1/1     Running   9          48d   10.1.182.114   kvcontrol   <none>           <none>
+kubevirt      virt-handler-g4lw9                         1/1     Running   7          48d   10.1.182.123   kvcontrol   <none>           <none>
+kubevirt      virt-operator-798876d8cb-4hz2l             1/1     Running   7          48d   10.1.182.119   kvcontrol   <none>           <none>
+kubevirt      virt-operator-798876d8cb-b9pvl             1/1     Running   7          48d   10.1.182.117   kvcontrol   <none>           <none>
+--- KubeVirt CRDs vorhanden? ---
+cdiconfigs.cdi.kubevirt.io                                    2026-07-28T11:39:23Z
+cdis.cdi.kubevirt.io                                          2026-07-28T11:39:17Z
+dataimportcrons.cdi.kubevirt.io                               2026-07-28T11:39:23Z
+datasources.cdi.kubevirt.io                                   2026-07-28T11:39:23Z
+datavolumes.cdi.kubevirt.io                                   2026-07-28T11:39:23Z
+kubevirts.kubevirt.io                                         2026-07-28T11:37:26Z
+migrationpolicies.migrations.kubevirt.io                      2026-07-28T11:38:04Z
+objecttransfers.cdi.kubevirt.io                               2026-07-28T11:39:23Z
+openstackvolumepopulators.forklift.cdi.kubevirt.io            2026-07-28T11:39:23Z
+ovirtvolumepopulators.forklift.cdi.kubevirt.io                2026-07-28T11:39:23Z
+storageprofiles.cdi.kubevirt.io                               2026-07-28T11:39:23Z
+virtualmachinebackups.backup.kubevirt.io                      2026-07-28T11:38:04Z
+virtualmachinebackuptrackers.backup.kubevirt.io               2026-07-28T11:38:04Z
+virtualmachineclones.clone.kubevirt.io                        2026-07-28T11:38:04Z
+virtualmachineclusterinstancetypes.instancetype.kubevirt.io   2026-07-28T11:38:03Z
+virtualmachineclusterpreferences.instancetype.kubevirt.io     2026-07-28T11:38:04Z
+virtualmachineexports.export.kubevirt.io                      2026-07-28T11:38:04Z
+virtualmachineinstancemigrations.kubevirt.io                  2026-07-28T11:38:03Z
+virtualmachineinstancepresets.kubevirt.io                     2026-07-28T11:38:03Z
+virtualmachineinstancereplicasets.kubevirt.io                 2026-07-28T11:38:03Z
+virtualmachineinstances.kubevirt.io                           2026-07-28T11:38:03Z
+virtualmachineinstancetypes.instancetype.kubevirt.io          2026-07-28T11:38:03Z
+virtualmachinepools.pool.kubevirt.io                          2026-07-28T11:38:03Z
+virtualmachinepreferences.instancetype.kubevirt.io            2026-07-28T11:38:04Z
+virtualmachinerestores.snapshot.kubevirt.io                   2026-07-28T11:38:03Z
+virtualmachines.kubevirt.io                                   2026-07-28T11:38:03Z
+virtualmachinesnapshotcontents.snapshot.kubevirt.io           2026-07-28T11:38:03Z
+virtualmachinesnapshots.snapshot.kubevirt.io                  2026-07-28T11:38:03Z
+volumeclonesources.cdi.kubevirt.io                            2026-07-28T11:39:23Z
+volumeimportsources.cdi.kubevirt.io                           2026-07-28T11:39:23Z
+volumeuploadsources.cdi.kubevirt.io                           2026-07-28T11:39:23Z
+--- StorageClasses ---
+NAME                          PROVISIONER                    RECLAIMPOLICY   VOLUMEBINDINGMODE      ALLOWVOLUMEEXPANSION   AGE
+local-storage                 kubernetes.io/no-provisioner   Delete          Immediate              false                  48d
+microk8s-hostpath (default)   microk8s.io/hostpath           Delete          WaitForFirstConsumer   false                  48d

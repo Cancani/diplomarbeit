@@ -1,0 +1,27 @@
+=== Test-VM Nachweis | 2026-09-14T14:52:41+02:00 ===
+NAME                                     PHASE       PROGRESS   RESTARTS   AGE
+datavolume.cdi.kubevirt.io/testvm-disk   Succeeded   100.0%                5m27s
+
+NAME                                AGE     STATUS    READY
+virtualmachine.kubevirt.io/testvm   5m29s   Running   True
+
+NAME                                        AGE     PHASE     IP            NODENAME   READY   LIVE-MIGRATABLE   PAUSED
+virtualmachineinstance.kubevirt.io/testvm   5m28s   Running   10.1.90.110   dl380-01   True    False             
+
+NAME                  TYPE       CLUSTER-IP       EXTERNAL-IP   PORT(S)          AGE     SELECTOR
+service/testvm-http   NodePort   10.152.183.150   <none>        8080:30080/TCP   5m29s   app=testvm
+
+NAME                                STATUS   VOLUME                                     CAPACITY      ACCESS MODES   STORAGECLASS        VOLUMEATTRIBUTESCLASS   AGE     VOLUMEMODE
+persistentvolumeclaim/testvm-disk   Bound    pvc-9ca21268-a078-4338-9a17-df8323edfd88   11381663335   RWO            microk8s-hostpath   <unset>                 5m28s   Filesystem
+--- Readiness ---
+testvm bereit
+--- Ressourcen des Laufs testlauf-01 ---
+Warning: kubevirt.io/v1 VirtualMachineInstancePresets is now deprecated and will be removed in v2.
+NAMESPACE      NAME                             READY   STATUS    RESTARTS   AGE
+diplomarbeit   pod/virt-launcher-testvm-b2pqc   2/2     Running   0          4m14s
+
+NAMESPACE      NAME                                        AGE     PHASE     IP            NODENAME   READY
+diplomarbeit   virtualmachineinstance.kubevirt.io/testvm   5m28s   Running   10.1.90.110   dl380-01   True
+
+NAMESPACE      NAME                                AGE     STATUS    READY
+diplomarbeit   virtualmachine.kubevirt.io/testvm   5m29s   Running   True
