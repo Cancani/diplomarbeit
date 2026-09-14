@@ -29,13 +29,6 @@ Statusberichte und Journal liegen bewusst ausserhalb der Hauptdatei. Sie wachsen
 
 Repository, Dokumentation und Project Board sind öffentlich. Die Dokumentation wird bei jedem Push auf `main` automatisch neu gebaut und veröffentlicht.
 
-## Lokale Vorschau
-
-```bash
-pip install mkdocs-material
-mkdocs serve
-# http://127.0.0.1:8000
-```
 
 ## Arbeitsweise
 

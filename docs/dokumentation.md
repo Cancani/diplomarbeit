@@ -105,31 +105,31 @@ Die Dokumentation richtet sich an die beiden Experten, an den Informatikdienst d
 
 ## 2 Projektmanagement
 
-> Folgt in Stufe 4. Enthält: theoretische Grundlagen mit Bezug auf das Modul PRJ, Projektorganisation und RACI, Stakeholderanalyse, Kommunikationsplan, Projektstrukturplan, Termin- und Meilensteinplan, Sprintstruktur, Anforderungsmanagement, Aufwandschätzung und Velocity, Priorisierung, Definition of Ready und Definition of Done, Qualitätssicherung, Projektcontrolling, Änderungsmanagement, Risikomanagement, Wirtschaftlichkeitsmethode, Projektjournal.
+
 
 ## 3 Analyse und Konzept
 
-> Wird in Sprint 1 erarbeitet. Enthält: IST-Analyse der heutigen Bereitstellung, Ableitung der Test-Lernumgebung aus den Profilen m239, m254 und m426, Messkonzept, Ausgangsmessung, Auswahl der Public-Cloud-Plattform als Nutzwertanalyse, Zielarchitektur, Architekturentscheide als ADRs.
+
 
 ## 4 Umsetzung
 
-> Wird in Sprint 1 bis 3 erarbeitet. Enthält: On-Prem-Plattform mit Kubernetes und KubeVirt, Fachmodell und JSON-Schema, Agent mit Zustandsführung, MCP-Schnittstelle, Adapter für KubeVirt und für die Public Cloud.
+
 
 ## 5 Tests und Messungen
 
-> Wird in Sprint 3 erarbeitet. Enthält: Testkonzept mit positiven und negativen Anwendungsfällen, Readiness-Check, Protokolle der sechs vollständigen Durchläufe, Nachweis des vollständigen Abbaus, Messwerte.
+
 
 ## 6 Bewertung und Vergleich
 
-> Wird in Sprint 3 erarbeitet. Enthält: Vorher-Nachher-Vergleich mit identischen Start- und Endkriterien, Nutzwertanalyse MCP-Adapter gegen direkte API-Anbindung, SWOT-Analyse, Wirtschaftlichkeitsbetrachtung, Beurteilung der Übertragbarkeit auf einen produktiven Betrieb.
+
 
 ## 7 Betrieb und Schulung
 
-> Wird in Sprint 3 erarbeitet. Enthält: Runbook für Aufbau, Bedienung, Fehleranalyse und vollständigen Abbau, Schulungsunterlage und Einführung für Dozierende.
+
 
 ## 8 Projektverlauf
 
-> Folgt in Stufe 4 und wächst über die Sprints. Enthält: Sprintplanungen, Sprint Reviews mit Expertenrückmeldungen, Retrospektiven, Verlauf der Risikobewertung. Verlinkt auf die wöchentlichen Statusberichte und das Projektjournal.
+
 
 ## 9 Reflexion
 
