@@ -303,7 +303,7 @@ flowchart TB
     P --> C["Plattform"]
     P --> D["Lösung"]
     P --> E["Nachweis"]
-    P --> F["Abschluss"]
+    P --> F["Architektur und Abschluss"]
 
     A --> E1["E1 Projektinitialisierung"]
     B --> E2["E2 IST-Aufnahme und Ausgangsmessung"]
@@ -315,7 +315,7 @@ flowchart TB
     E --> E8["E8 Validierung und Messung"]
     E --> E9["E9 Bewertung und Vergleich"]
     F --> E10["E10 Betrieb und Schulung"]
-    F --> E11["E11 Projektabschluss"]
+    F --> E11["E11 Architektur und Projektabschluss"]
 ```
 
 Die Zuordnung der Epics zu Sprints, Stories und Story Points steht in Kapitel 2.8.
@@ -353,7 +353,7 @@ gantt
     E2 IST und Ausgangsmessung       :2026-09-16, 25d
     E3 On-Prem Plattform             :2026-09-14, 14d
     E4 Public Cloud Smoke-Test       :2026-10-05, 10d
-    E11 Architekturkonzept           :2026-10-05, 14d
+    E11 Zielarchitektur und ADRs     :2026-10-05, 14d
     M1 Zwischenpräsentation 1        :milestone, 2026-10-19, 0d
 
     section Sprint 2
@@ -449,7 +449,7 @@ Jede Anforderung wird als GitHub Issue nach dem Schema `Als <Rolle> möchte ich 
 | E8 | Validierung und Messung | 4 | 10 | 3 |
 | E9 | Bewertung und Vergleich | 4 | 12 | 3 |
 | E10 | Betrieb und Schulung | 2 | 5 | 3 |
-| E11 | Projektabschluss | 3 | 9 | 1, 3 |
+| E11 | Architektur und Projektabschluss | 3 | 9 | 1, 3 |
 
 #### Standards pro Issue
 
@@ -756,7 +756,7 @@ Nachweise werden grundsätzlich in der Dokumentation platziert, an der Stelle, d
 
 | Epic | Story Points | Priorität | Sprint |
 | --- | --- | --- | --- |
-| E11 Projektabschluss | 3 | Must | 1 |
+| E11 Architektur und Projektabschluss | 3 | Must | 1 |
 
 **Akzeptanzkriterien**
 
@@ -1113,7 +1113,7 @@ Nachweise werden grundsätzlich in der Dokumentation platziert, an der Stelle, d
 
 | Epic | Story Points | Priorität | Sprint |
 | --- | --- | --- | --- |
-| E11 Projektabschluss | 3 | Must | 3 |
+| E11 Architektur und Projektabschluss | 3 | Must | 3 |
 
 **Akzeptanzkriterien**
 
@@ -1130,7 +1130,7 @@ Nachweise werden grundsätzlich in der Dokumentation platziert, an der Stelle, d
 
 | Epic | Story Points | Priorität | Sprint |
 | --- | --- | --- | --- |
-| E11 Projektabschluss | 3 | Must | 3 |
+| E11 Architektur und Projektabschluss | 3 | Must | 3 |
 
 **Akzeptanzkriterien**
 
