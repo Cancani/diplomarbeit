@@ -1,0 +1,24 @@
+=== Parallellauf parallel01, Mi 16 Sep 2026 15:07:05 CEST ===
+--- createvms ---
+15:07:05
+{
+    "name": "m254-parallel01",
+    "description": "",
+    "id": 15,
+    "resource_uri": "/MAAS/api/2.0/resourcepool/15/"
+}maas ubuntu pod compose 7 memory=2048 cores=2 storage=12 pool=15 hostname=m254-01-parallel01
+{
+    "system_id": "kcdb4e",
+    "resource_uri": "/MAAS/api/2.0/machines/kcdb4e/"
+}maas ubuntu pod compose 9 memory=2048 cores=2 storage=12 pool=15 hostname=m254-02-parallel01
+Unable to compose machine because: Failed talking to pod: Virsh command ['vol-create-as', 'maas', 'd2e935e2-fd96-4f22-9449-6fd32d13ebd1', '12000000000', '--allocation', '0', '--format', 'raw'] failed: Failed to create vol d2e935e2-fd96-4f22-9449-6fd32d13ebd1
+error: Failed to create file '/var/lib/libvirt/maas-images/d2e935e2-fd96-4f22-9449-6fd32d13ebd1': Input/output error15:07:28
+--- Fehlschlag beim zweiten compose ---
+Pod 9, Input/output error beim Anlegen des Datentraegers
+m254-01-parallel01  kcdb4e  Commissioning
+7  cloud-au-32
+9  cloud-au-36
+10  cloud-au-34
+11  cloud-au-35
+12  cloud-au-33
+13  cloud-au-31

@@ -1,0 +1,62 @@
+=== Messlauf mess01, Mi 16 Sep 2026 14:52:05 CEST ===
+--- createvms ---
+14:52:11
+{
+    "name": "m254-mess01",
+    "description": "",
+    "id": 14,
+    "resource_uri": "/MAAS/api/2.0/resourcepool/14/"
+}maas ubuntu pod compose 7 memory=2048 cores=2 storage=12 pool=14 hostname=m254-01-mess01
+{
+    "system_id": "gcxy64",
+    "resource_uri": "/MAAS/api/2.0/machines/gcxy64/"
+}14:52:31
+--- Readiness ---
+15:05:28
+Adresse: 10.0.45.74
+lernumgebung bereit
+
+--- Ereignisse ---
+Wed, 16 Sep. 2026 14:52:25  Commissioning  
+Wed, 16 Sep. 2026 14:52:36  Performing PXE boot  
+Wed, 16 Sep. 2026 14:52:42  Loading ephemeral  
+Wed, 16 Sep. 2026 14:52:54  Gathering information  
+Wed, 16 Sep. 2026 14:54:53  Running test  smartctl-validate on vda
+Wed, 16 Sep. 2026 14:55:00  Ready  
+Wed, 16 Sep. 2026 14:57:58  Deploying  
+Wed, 16 Sep. 2026 14:58:12  Performing PXE boot  
+Wed, 16 Sep. 2026 14:58:18  Loading ephemeral  
+Wed, 16 Sep. 2026 12:59:16  Configuring storage  
+Wed, 16 Sep. 2026 12:59:23  Installing OS  
+Wed, 16 Sep. 2026 13:00:01  Configuring OS  
+Wed, 16 Sep. 2026 15:02:58  Rebooting  
+Wed, 16 Sep. 2026 15:03:24  Image Deployed  deployed ubuntu/noble/amd64/generic
+Wed, 16 Sep. 2026 15:03:24  Deployed  
+--- Abbau ---
+15:06:46
+Pod vorher:
+{
+  "cores": 10,
+  "memory": 10240,
+  "local_storage": 60000000000
+}
+{
+  "cores": -2,
+  "memory": 21743,
+  "local_storage": 190902839296
+}
+15:06:51
+Pod nachher:
+{
+  "cores": 8,
+  "memory": 8192,
+  "local_storage": 48000000000
+}
+{
+  "cores": 0,
+  "memory": 23791,
+  "local_storage": 202902839296
+}
+0  default
+3  m437-ICT23d
+15:06:56
