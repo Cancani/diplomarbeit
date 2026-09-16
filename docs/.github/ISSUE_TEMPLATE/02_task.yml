@@ -1,0 +1,36 @@
+name: "Task"
+description: "Technische oder organisatorische Teilaufgabe ohne eigenen Nutzerwert"
+title: "TASK: "
+labels: ["task"]
+body:
+  - type: textarea
+    id: ziel
+    attributes:
+      label: Ziel
+      description: "Was soll am Ende erledigt sein"
+    validations:
+      required: true
+
+  - type: input
+    id: parent
+    attributes:
+      label: Gehört zu
+      description: "Issue-Nummer der übergeordneten User Story, falls vorhanden"
+      placeholder: "#12"
+
+  - type: dropdown
+    id: points
+    attributes:
+      label: Story Points
+      options: ["1", "2", "3", "5", "8"]
+    validations:
+      required: true
+
+  - type: textarea
+    id: dod
+    attributes:
+      label: Definition of Done
+      value: |
+        - [ ] Aufgabe erledigt und verifiziert
+        - [ ] Ergebnis dokumentiert oder Nachweis abgelegt
+        - [ ] Issue im Board auf Done verschoben

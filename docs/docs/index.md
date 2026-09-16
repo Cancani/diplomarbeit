@@ -31,7 +31,7 @@ Dieser Block wird mit jedem Statusbericht nachgeführt, damit die Experten den S
 | Die Arbeit von vorne lesen | [Dokumentation](dokumentation.md) |
 | Die Projektführung nachvollziehen | [Kapitel 2 Projektmanagement](dokumentation.md#2-projektmanagement) |
 | Den Umfang und die Planung sehen | [Product Backlog im Repository](https://github.com/Cancani/diplomarbeit/issues) |
-| Den Projektstand verfolgen | [Project Board](https://github.com/Cancani/diplomarbeit) |
+| Den Projektstand verfolgen | [Project Board](https://github.com/users/Cancani/projects/7) |
 
 ## Über diese Arbeit
 

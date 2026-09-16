@@ -115,8 +115,7 @@
       overlay.classList.remove("dia-zieht");
     });
  
-    /* Nur ein echter Klick auf den Hintergrund schliesst, ein Ziehen nicht. */
-    overlay.addEventListener("click", function (e) {
+        overlay.addEventListener("click", function (e) {
       if (bewegt) { bewegt = false; return; }
       if (e.target === overlay) schliesse();
     });
@@ -135,9 +134,7 @@
     male();
   }
  
-  /* Mermaid wird je nach Version unterschiedlich eingehängt. Deshalb wird das
-     erzeugte SVG über mehrere Merkmale gesucht und nicht über eine feste Klasse. */
-  function findeDiagramme() {
+    function findeDiagramme() {
     var wahl = [
       ".mermaid svg",
       "pre.mermaid svg",
