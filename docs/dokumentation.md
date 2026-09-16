@@ -2009,9 +2009,89 @@ Diese Einschränkungen werden offen ausgewiesen und bei der Bewertung in Kapitel
 3. **Dieselbe ausführende Person.** Alle Durchläufe werden von derselben Person ausgeführt, die das heutige Verfahren kennt. Ein Einarbeitungseffekt zugunsten der neuen Lösung ist damit weitgehend ausgeschlossen, ein Routineeffekt zugunsten des heutigen Verfahrens besteht dagegen.
 4. **Reduzierte Test-Lernumgebung.** Gemessen wird nicht eine vollständige Unterrichtsumgebung, sondern die reduzierte Umgebung nach Kapitel 3.3.
 
-### 3.5 Ausgangsmessung am heutigen Vorgehen
+### 3.5 Ausgangsaufnahme des heutigen Verfahrens
 
-> Wird in Sprint 1 erarbeitet, User Story US10.
+#### 3.5.1 Gegenstand und Abgrenzung
+
+Dieser Abschnitt hält fest, wie sich das heutige Verfahren im Betrieb tatsächlich verhält. Er ist bewusst **nicht** als Vorher-Nachher-Vergleich angelegt. Ein solcher Vergleich setzt voraus, dass beide Seiten in ihrer vorgesehenen Form vorliegen, und die neue Seite entsteht erst in Sprint 2. Der Vergleich erfolgt deshalb in Kapitel 6, auf Grundlage der Durchläufe aus US28 und US30.
+
+Was hier erhoben wird:
+
+| Erhoben | Nicht erhoben |
+| --- | --- |
+| Anzahl und Art der manuellen Schritte je Lernumgebung | Ein Zeitvergleich zwischen altem und neuem Verfahren |
+| Verhalten des Verfahrens im Fehlerfall | Werte für eine Lernumgebung in Klassengrösse |
+| Zeitanteile innerhalb des heutigen Verfahrens | Aussagen über die Leistungsfähigkeit der Hardware |
+
+Die Läufe wurden am 16.09.2026 in der Zone `10-1-45-0` auf `cloud-au-30` durchgeführt, mit dem Profil m254 und je einer Maschine. Die Protokolle liegen unter `docs/messungen/`.
+
+#### 3.5.2 Durchgeführte Läufe
+
+| Kennung | Zweck | Ergebnis |
+| --- | --- | --- |
+| `lernmaas-00` | Lernlauf zur Ermittlung des Ablaufs | vollständig, Aufbau 569 s, Abbau 76 s |
+| `mess01` | Aufnahme mit vollständigem Protokoll | vollständig, Aufbau 673 s |
+| `parallel01` | Versuch mit zwei Maschinen gleichzeitig | **abgebrochen**, eine von zwei Maschinen entstanden |
+
+#### 3.5.3 Manuelle Schritte je Lernumgebung
+
+Das wichtigste Ergebnis dieser Aufnahme ist keine Zeit, sondern eine Anzahl. Der Grund steht in Kapitel 3.4.1: die Anzahl der manuellen Schritte ist die einzige Messgrösse, die von der eingesetzten Hardware unabhängig ist.
+
+Entscheidend ist dabei die Bezugsgrösse. **Die dreizehn manuellen Schritte aus Kapitel 3.2.5 fallen je Lernumgebung an, nicht je virtueller Maschine.** Ob eine Umgebung aus einer oder aus vierundzwanzig Maschinen besteht, ändert daran nichts: `createvms` wird einmal aufgerufen, die Maschinen werden gemeinsam einer Zone zugeordnet, gemeinsam markiert und gemeinsam bereitgestellt, die Erstkonfiguration wird einmal eingefügt.
+
+Daraus folgt eine Einordnung, die für die Bewertung in Kapitel 6 wesentlich ist: Der Aufwand des heutigen Verfahrens ist ein **fixer Aufwand je Umgebung**. Der Nutzen einer Automatisierung liegt deshalb nicht darin, Arbeit pro Maschine zu sparen, sondern darin, diesen fixen Block zu ersetzen und die darin enthaltenen fehleranfälligen Handgriffe zu beseitigen.
+
+#### 3.5.4 Zeitanteile innerhalb des heutigen Verfahrens
+
+Die folgenden Werte beschreiben den Ablauf für **eine** Maschine. Sie sind nicht mit Werten einer anderen Plattform vergleichbar, weil die Hardware unterschiedlich ist und weil die Grösse der Umgebung die automatischen Anteile beeinflusst.
+
+| Abschnitt | `lernmaas-00` | `mess01` | Art |
+| --- | --- | --- | --- |
+| Aufruf von `createvms` | 21 s | 20 s | manuell |
+| Commissioning bis `Ready` | 157 s | 155 s | automatisch |
+| Von `Ready` bis `Deploying` | 53 s | 178 s | Liegezeit und Bedienung |
+| Bereitstellung bis `Deployed` | 343 s | 326 s | automatisch |
+| **Aufbau gesamt** | **569 s** | **673 s** | |
+
+Die automatischen Abschnitte sind über beide Läufe stabil, die Abweichung liegt unter vier Prozent. Die Spanne zwischen `Ready` und `Deploying` schwankt dagegen stark, weil sie zwei verschiedene Dinge enthält: die Zeit, bis die bedienende Person überhaupt bemerkt, dass die Maschine bereit ist, und die eigentliche Bedienung. Die bedienende Person schätzt den Bedienanteil auf 60 bis 90 Sekunden. Für künftige Läufe wird der Beginn der Bedienung als eigener Zeitstempel erfasst, damit beide Anteile getrennt ausgewiesen werden können.
+
+Der Abbau dauerte in beiden Läufen unter zwei Minuten und besteht aus drei getrennten Vorgängen, siehe Kapitel 3.2.6.
+
+#### 3.5.5 Verhalten im Fehlerfall
+
+Der Lauf `parallel01` sollte zwei Maschinen gleichzeitig anlegen. Die erste entstand auf `cloud-au-32`, die zweite scheiterte auf `cloud-au-36`:
+
+```text
+maas ubuntu pod compose 9 memory=2048 cores=2 storage=12 pool=15 hostname=m254-02-parallel01
+Unable to compose machine because: Failed talking to pod: Virsh command
+['vol-create-as', 'maas', 'd2e935e2-...', '12000000000', ...] failed
+error: Failed to create file '/var/lib/libvirt/maas-images/d2e935e2-...':
+Input/output error
+```
+
+Die Ursache liegt ausserhalb dieser Arbeit: `cloud-au-36` meldet in MAAS einen Datenträgerfehler. Der Befund wurde dem Betreiber gemeldet.
+
+Aufschlussreich ist nicht die Ursache, sondern die Reaktion des Verfahrens:
+
+| Beobachtung | Folge |
+| --- | --- |
+| Der Resource Pool war bereits angelegt und blieb bestehen | Ein Rest, den niemand aufräumt |
+| Die erste Maschine blieb bestehen und lief weiter | Eine halbe Umgebung |
+| Es wurde kein anderer Host versucht | Fünf freie Hosts blieben ungenutzt |
+| Es gab keine zusammenfassende Meldung | Der Fehler steht mitten in der Ausgabe |
+| Es gab keine Prüfung, ob das Ergebnis der Anforderung entspricht | Bestellt waren zwei Maschinen, entstanden ist eine |
+
+Der letzte Punkt ist der schwerwiegendste. Bei zwei Maschinen fällt eine fehlende auf. Bei einer Klasse mit vierundzwanzig Maschinen fällt sie erst auf, wenn Lernende ohne Umgebung dastehen.
+
+Damit ist an einem tatsächlichen Vorfall belegt, was die Befunde B3, B5 und B6 aus Kapitel 3.2.7 beschreiben: es fehlt eine Prüfung der Eingabe, eine Zustandsführung und eine verlässliche Rückmeldung. Genau diese drei Eigenschaften sind Gegenstand des Agenten in Kapitel 4.3.
+
+#### 3.5.6 Was diese Aufnahme nicht leistet
+
+1. **Kein Zeitvergleich.** Die Gegenseite existiert noch nicht. Der Vergleich erfolgt in Kapitel 6.
+2. **Keine Klassengrösse.** Gemessen wurde mit einer Maschine. Dass der manuelle Aufwand bei grösseren Umgebungen gleich bleibt, ist aus dem Ablauf begründet, aber noch nicht an einem Lauf belegt. Ein einzelner Lauf in Klassengrösse ist dafür vorgesehen und mit dem Betreiber abzustimmen.
+3. **Keine Stichprobe.** Zwei vollständige Läufe erlauben keine Aussage über Streuung.
+
+Diese Einschränkungen werden in Kapitel 6 erneut aufgegriffen.
 
 ### 3.6 Auswahl der Public-Cloud-Plattform
 
@@ -2115,7 +2195,7 @@ Der Lauf wurde mit einem einzigen `apply` gestartet und anschliessend beobachtet
 | Zustandsfolge `VirtualMachineInstance` | `Scheduling`, `Scheduled`, `Running` |
 | Prüfung des Endzustands | HTTP-Antwort des Testdienstes über NodePort |
 
-Die 324 Sekunden sind kein Zielwert, sondern ein Ausgangswert. Sie werden im Messkonzept in Kapitel 3.4 als Bezugsgrösse aufgenommen. Wichtig für den späteren Vergleich ist, dass der Abbildimport den grössten Teil dieser Zeit ausmacht. Das Messkonzept muss deshalb festlegen, ob der Import bei jedem Durchlauf neu erfolgt oder ob ein zwischengespeichertes Abbild verwendet wird. Beide Vorgehensweisen sind vertretbar, sie müssen nur bei beiden verglichenen Verfahren gleich gehandhabt werden, sonst ist der Vergleich wertlos.
+Die 324 Sekunden sind kein Vergleichswert. Der Lauf war ein Machbarkeitsnachweis mit einem von Hand geschriebenen Manifest, nicht der Ablauf, den die fertige Lösung nehmen wird. Er wird deshalb in keinem Vergleich mit dem heutigen Verfahren verwendet. Festzuhalten ist lediglich, dass der Abbildimport den grössten Teil dieser Zeit ausmacht. Das Messkonzept muss deshalb festlegen, ob der Import bei jedem Durchlauf neu erfolgt oder ob ein zwischengespeichertes Abbild verwendet wird. Beide Vorgehensweisen sind vertretbar, sie müssen nur bei beiden verglichenen Verfahren gleich gehandhabt werden, sonst ist der Vergleich wertlos.
 
 Die beobachtete Zustandsfolge ist zugleich der erste Entwurf der Zustandsführung des Agenten. Der Agent muss nicht raten, ob eine Umgebung bereit ist; er kann denselben Zustandsübergängen folgen, die die Plattform ohnehin meldet, und erst am Ende den fachlichen Readiness-Check durchführen.
 
