@@ -1706,9 +1706,11 @@ Belegung in Rack 5 zum Erhebungszeitpunkt:
 
 Für die Ausgangsmessung wird die Zone `10-1-45-0` verwendet. Sie ist nachweislich leer, und die Zuordnung macht jederzeit unterscheidbar, welche Objekte aus dieser Arbeit stammen.
 
-**Offener Punkt**
+**Abweichung zwischen Reservationsliste und Systemzustand**
 
-Die zentrale Reservationsliste weist für Rack 5 alle vier Umgebungen als frei aus. In MAAS stehen jedoch 24 Maschinen mit dem Merkmal `m437-ICT23d` in der Zone `10-4-45-0`. Ob es sich um eine genutzte, aber nicht eingetragene Umgebung oder um Überbleibsel einer abgeschlossenen Klasse handelt, ist mit dem Firmenexperten zu klären. Beide Fälle sind für diese Arbeit aufschlussreich und werden in Kapitel 3.2 aufgegriffen.
+Die zentrale Reservationsliste weist für Rack 5 alle vier Umgebungen als frei aus. In MAAS stehen jedoch 24 bereitgestellte Maschinen des Moduls m437 mit dem Merkmal `m437-ICT23d` in der Zone `10-4-45-0`, die meisten davon eingeschaltet, mit Ubuntu 24.04 LTS und Adressen von 10.0.45.75 aufwärts.
+
+Ob diese Umgebung derzeit im Unterricht verwendet wird, ist für diesen Befund unerheblich. Entscheidend ist, dass die Liste sie in keinem der beiden Fälle führt: weder als belegt noch als abgeräumt. Die Belegung der Umgebungen wird damit ausserhalb des Systems geführt, und der geführte Stand weicht vom tatsächlichen ab. Dieser Punkt wird in Kapitel 3.2.7 als Befund B8 aufgenommen.
 
 **Umgang mit Zugangsdaten**
 
@@ -1795,30 +1797,66 @@ Genau diese drei Punkte, fehlende Vollständigkeit, fehlende Validierung und feh
 
 #### 3.2.5 Ablauf und Zählung der manuellen Schritte
 
-> Die folgende Aufstellung ist aus der Anleitung des Projekts, dem Skript selbst und der Erhebung vom 14.09.2026 abgeleitet. Sie ist mit dem Firmenexperten zu bestätigen.
+Die folgende Aufstellung ist nicht aus der Anleitung abgeleitet, sondern an einem vollständigen Durchlauf beobachtet. Dieser Lernlauf wurde am 16.09.2026 auf `cloud-au-30` in der Zone `10-1-45-0` durchgeführt, mit dem Profil m254 und einer Maschine. Er diente ausdrücklich der Ermittlung des Ablaufs und ist nicht Teil der Ausgangsmessung. Das Protokoll liegt als `docs/nachweise/lernlauf-lernmaas-00-20260916.txt` im Repository.
 
-| Nr | Schritt | Art | Nur bei Ersteinrichtung |
-| --- | --- | --- | --- |
-| 1 | WireGuard-Verbindung zum Rack aufbauen | manuell | |
-| 2 | Per SSH auf den MAAS-Controller verbinden | manuell | |
-| 3 | MAAS-Anmeldung und Umgebungsvariable `PROFILE` setzen | manuell | |
-| 4 | Availability Zone anlegen, da die Kommandozeile dies nicht unterstützt | manuell | ja |
-| 5 | WireGuard-Schlüssel mit `updateaz` erzeugen | manuell | ja |
-| 6 | Erzeugtes Archiv base64-kodiert in der Zonenbeschreibung ablegen | manuell | ja |
-| 7 | `createvms` mit Profil und Anzahl aufrufen | manuell | |
-| 8 | Maschinen in der Oberfläche der Zone zuordnen | manuell | |
-| 9 | Maschinen markieren und Deploy auslösen | manuell | |
-| 10 | Betriebssystem wählen und bestätigen | manuell | |
-| 11 | Warten, bis die Maschinen bereitgestellt sind | automatisch | |
-| 12 | Client-Liste in der Tabellenkalkulation um die Lernenden ergänzen | manuell | ja |
-| 13 | Zugangsdateien an die Lernenden verteilen | manuell | ja |
-| 14 | Reservationsliste nachführen | manuell | ja |
+| Nr | Schritt | Art |
+| --- | --- | --- |
+| 1 | WireGuard-Verbindung zum Rack aufbauen | manuell |
+| 2 | Per SSH auf den MAAS-Controller verbinden | manuell |
+| 3 | `createvms` mit Profil und Anzahl aufrufen | manuell |
+| 4 | Commissioning abwarten | automatisch |
+| 5 | Zone in der Oberfläche setzen | manuell |
+| 6 | Deploy-Dialog öffnen | manuell |
+| 7 | Betriebssystem wählen | manuell |
+| 8 | Erstkonfiguration in das Textfeld einfügen | manuell |
+| 9 | Bereitstellung bestätigen | manuell |
+| 10 | Bereitstellung abwarten | automatisch |
+| 11 | Adresse der Maschine ermitteln | manuell |
+| 12 | Testdienst prüfen | manuell |
+| 13 | Maschine freigeben | manuell |
+| 14 | Maschine löschen | manuell |
+| 15 | Resource Pool löschen | manuell |
 
-Daraus ergeben sich **13 manuelle Schritte bei der Ersteinrichtung einer Umgebung** und **sieben manuelle Schritte für eine weitere Bereitstellung in einer bestehenden Umgebung**. Sechs dieser Schritte laufen in einer grafischen Oberfläche und sind damit weder skriptfähig noch protokollierbar.
+**Dreizehn manuelle Schritte, davon fünf in einer grafischen Oberfläche.** Zwei Schritte laufen ohne Zutun.
+
+Zeitlicher Verlauf des beobachteten Laufs:
+
+| Abschnitt | Von | Bis | Dauer | Art |
+| --- | --- | --- | --- | --- |
+| Aufruf von `createvms` | 13:05:19 | 13:05:40 | 21 s | manuell |
+| Commissioning bis `Ready` | 13:05:35 | 13:08:12 | 157 s | automatisch |
+| Bedienung in der Oberfläche | 13:08:12 | 13:09:05 | 53 s | manuell |
+| Bereitstellung bis `Deployed` | 13:09:05 | 13:14:48 | 343 s | automatisch |
+| **Aufbau gesamt** | **13:05:19** | **13:14:48** | **569 s** | |
+| Abbau gesamt | 13:19:30 | 13:20:46 | 76 s | überwiegend manuell |
+
+Die Bearbeitungszeit einer Person betrug damit rund 74 Sekunden beim Aufbau und rund 40 Sekunden beim Abbau. Der weitaus grösste Teil der Gesamtdauer ist Wartezeit des Systems.
+
+Drei Beobachtungen aus diesem Lauf waren in der Anleitung nicht beschrieben:
+
+**Das Commissioning läuft nach `createvms` selbsttätig an** und dauerte 157 Sekunden. Der Zustand `Ready` wird also nicht unmittelbar erreicht, und die Bereitstellung kann erst danach ausgelöst werden.
+
+**Die Adresse der Maschine wechselt.** Während des Commissionings lautete sie `10.0.45.250`, nach der Bereitstellung `10.0.45.56`. Eine automatisierte Prüfung darf die Adresse deshalb nicht annehmen, sondern muss sie aus der Plattform auslesen.
+
+**Die Erstkonfiguration wird bei jedem Lauf von Hand eingefügt.** Der Bereitstellungsdialog enthält ein Textfeld für cloud-init. Dessen Inhalt ist nicht Teil des Modulprofils, wird nicht versioniert und nicht geprüft. Ein Tippfehler fällt erst auf, wenn die Maschine später nicht das tut, was sie soll.
+
+Der Lauf belegt zugleich, dass sich über dieses Textfeld derselbe prüfbare Dienst einrichten lässt wie auf der Zielplattform dieser Arbeit. Damit ist das in Kapitel 3.4.2 verlangte einheitliche Endkriterium auf beiden Seiten herstellbar. Die Prüfung ergab die erwartete Antwort des Testdienstes über Port 8080. Die Zeichenkette der Antwort wurde nach dem Lernlauf auf beiden Plattformen auf `lernumgebung bereit` vereinheitlicht, damit die Prüfung auf beiden Seiten mit demselben Befehl erfolgen kann.
 
 #### 3.2.6 Abbau
 
-Ein dem Aufbau entsprechender Abbaubefehl existiert nicht. Maschinen werden in der Oberfläche freigegeben und gelöscht. Ob danach Reste zurückbleiben, etwa Resource Pools, Zoneneinträge oder Einträge in der Reservationsliste, wird nicht geprüft. Die 24 Maschinen in der als frei geführten Zone `10-4-45-0` sind ein möglicher Beleg dafür, siehe den offenen Punkt in Kapitel 3.1.7.
+Ein dem Aufbau entsprechender Abbaubefehl existiert nicht. Der Abbau wurde im selben Lauf beobachtet und besteht aus drei getrennten Vorgängen.
+
+| Vorgang | Wirkung | Dauer |
+| --- | --- | --- |
+| Freigeben | Die Maschine wechselt zurück nach `Ready`. Sie bleibt bestehen | 5 s |
+| Maschine löschen | Die Maschine verschwindet, die Ressourcen des Hosts werden freigegeben | 6 s |
+| Resource Pool löschen | Der beim Aufbau angelegte Pool wird entfernt | eigener Vorgang |
+
+Der wesentliche Befund: **Freigeben ist kein Abbau.** Nach dem Freigeben war die Maschine weiterhin vorhanden, die Gesamtzahl unverändert bei 31, und der beim Aufbau angelegte Resource Pool `m254-da01` bestand weiter. Erst das Löschen der Maschine gab die Ressourcen des Virtualisierungshosts zurück, nachweisbar an den Werten von 10 auf 8 Kernen, von 10240 auf 8192 MB und von 60 auf 48 GB. Der Resource Pool blieb auch danach bestehen und musste getrennt entfernt werden.
+
+Ob nach einem Abbau etwas zurückbleibt, prüft im heutigen Vorgehen niemand. Es gibt keinen Befehl, der den Endzustand feststellt, und keine Meldung, die Vollständigkeit bestätigt.
+
+Eine weitere Beobachtung betrifft die Nachweisführung selbst: Die Ereignisabfrage von MAAS löst über den Hostnamen auf. Nach dem Löschen der Maschine lieferte sie keine Daten mehr. Nachweise müssen deshalb erhoben werden, solange die Objekte bestehen. Diese Regel wurde in die Messprotokollvorlage übernommen.
 
 #### 3.2.7 Zusammenfassung der Befunde
 
@@ -1833,8 +1871,13 @@ Ein dem Aufbau entsprechender Abbaubefehl existiert nicht. Maschinen werden in d
 | B7 | Die Konfiguration liegt in fünf unabhängigen Kopien | gleiche Prüfsumme auf fünf Controllern, einzeln nachgezogen |
 | B8 | Die Belegung wird ausserhalb des Systems von Hand geführt | Reservationsliste, Abweichung zur Zone `10-4-45-0` |
 | B9 | Virtuelle Maschinen sind steuerbar, die Hosts darunter nicht | Stromsteuerung `Manual` auf den Bare-Metal-Maschinen |
+| B10 | Zwischen Aufruf und Bereitstellung liegt ein automatischer Zwischenschritt von rund 157 Sekunden | Commissioning im Lernlauf vom 16.09.2026 |
+| B11 | Die Adresse der Maschine steht erst nach der Bereitstellung fest | Wechsel von 10.0.45.250 auf 10.0.45.56 |
+| B12 | Die Erstkonfiguration ist nicht Teil des Profils und wird von Hand eingefügt | Textfeld im Bereitstellungsdialog |
+| B13 | Freigeben ist kein Abbau, der vollständige Abbau besteht aus drei Vorgängen | Kapitel 3.2.6 |
+| B14 | Der Resource Pool bleibt nach dem Löschen der Maschine bestehen | Kapitel 3.2.6 |
 
-Die Befunde B2, B3, B5 und B6 adressiert diese Arbeit unmittelbar. B1 und B7 werden im Ausblick aufgegriffen. B9 bleibt ausserhalb des Umfangs, weil er die Hardware betrifft.
+Die Befunde B2, B3, B5, B6, B11, B12, B13 und B14 adressiert diese Arbeit unmittelbar. B1 und B7 werden im Ausblick aufgegriffen. B9 bleibt ausserhalb des Umfangs, weil er die Hardware betrifft, B10 ist eine Eigenschaft der Plattform und wird lediglich in der Messung berücksichtigt.
 
 #### 3.2.8 Quellen und Umgang mit internen Unterlagen
 
@@ -1887,8 +1930,8 @@ Der Proof of Concept verwendet eine einzige, technisch reduzierte Lernumgebung. 
 | Arbeitsspeicher | 2048 MB |
 | Datenträger | 12 GB |
 | Zugang | SSH, öffentlicher Schlüssel |
-| Prüfbarer Dienst | HTTP auf Port 8080, Antwort mit festgelegtem Inhalt |
-| Endzustand | Die Umgebung gilt als bereit, wenn der Dienst antwortet |
+| Prüfbarer Dienst | HTTP auf Port 8080, Antwort mit der Zeichenkette `lernumgebung bereit` |
+| Endzustand | Die Umgebung gilt als bereit, wenn der Dienst diese Zeichenkette liefert |
 
 Diese Festlegung deckt sich weitgehend mit der in Kapitel 4.1 aufgebauten Referenz-Lernumgebung, die mit zwei Kernen, 2 GB und 10 GB betrieben wurde. Der Datenträger wird von 10 auf 12 GB angehoben, damit er dem im Betrieb vorgefundenen Wert entspricht.
 
@@ -1921,7 +1964,7 @@ Beide Vorgehensweisen werden am selben Punkt gestartet und am selben Punkt als f
 | | Kriterium |
 | --- | --- |
 | **Start** | Die Anforderung einer Lernumgebung liegt vor, die Zielumgebung ist leer, keine Vorarbeit ist geleistet |
-| **Ende Aufbau** | Der in der Test-Lernumgebung definierte Testdienst antwortet über das Netz. Nicht: die Maschine läuft, nicht: der Befehl ist abgesetzt |
+| **Ende Aufbau** | Der Testdienst liefert über das Netz auf Port 8080 die Zeichenkette `lernumgebung bereit`. Nicht: die Maschine läuft, nicht: der Befehl ist abgesetzt |
 | **Ende Abbau** | Keine dem Lauf zugeordnete Ressource ist mehr vorhanden, einschliesslich des PersistentVolume. Nicht: der Löschbefehl ist abgesetzt |
 
 Das Endkriterium des Abbaus ist bewusst so streng formuliert. Der Referenzlauf in Kapitel 4.1.3 hat gezeigt, dass zwischen dem abgesetzten Befehl und dem tatsächlichen Verschwinden aller Ressourcen Zeit vergeht. Wer den Befehl misst, misst zu kurz.
@@ -1997,7 +2040,7 @@ Die Umgebung besteht aus vier Bausteinen, die zusammen in einer einzigen Manifes
 | `VirtualMachine` | Beschreibt die Maschine selbst: Kerne, Arbeitsspeicher, Datenträger, Netzwerk, Erstkonfiguration |
 | `Service` vom Typ NodePort | Macht den Testdienst in der Maschine von aussen prüfbar, siehe ADR-002 |
 
-Die wesentlichen Teile des Manifests im Überblick:
+Die wesentlichen Teile des Manifests im Überblick, gekürzt um die Abschnitte `volumes` und `Service`, die vollständige Datei liegt als `docs/nachweise/testvm.yaml` im Repository:
 
 ```yaml
 apiVersion: kubevirt.io/v1
@@ -2011,14 +2054,15 @@ spec:
   runStrategy: Always
   dataVolumeTemplates:
     - metadata:
-        name: testvm-volume
+        name: testvm-disk
       spec:
         storage:
-          accessModes: [ReadWriteOnce]
           resources:
             requests:
               storage: 10Gi
           storageClassName: microk8s-hostpath
+          accessModes:
+            - ReadWriteOnce
         source:
           http:
             url: https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img
@@ -2026,14 +2070,14 @@ spec:
     metadata:
       labels:
         kubevirt.io/domain: testvm
+        app: testvm
         lauf: testlauf-01
     spec:
       domain:
         cpu:
           cores: 2
-        resources:
-          requests:
-            memory: 2Gi
+        memory:
+          guest: 2Gi
         devices:
           disks:
             - name: rootdisk
@@ -2043,10 +2087,10 @@ spec:
               disk:
                 bus: virtio
           interfaces:
-            - name: standard
+            - name: default
               masquerade: {}
       networks:
-        - name: standard
+        - name: default
           pod: {}
 ```
 

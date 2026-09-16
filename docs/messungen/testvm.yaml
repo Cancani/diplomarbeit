@@ -80,7 +80,7 @@ spec:
                     WantedBy=multi-user.target
               runcmd:
                 - mkdir -p /var/www
-                - echo "testvm bereit" > /var/www/index.html
+                - echo "lernumgebung bereit" > /var/www/index.html
                 - systemctl daemon-reload
                 - systemctl enable --now testdienst.service
 ---

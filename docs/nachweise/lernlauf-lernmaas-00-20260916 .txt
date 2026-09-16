@@ -1,0 +1,261 @@
+Nachweis Lernlauf lernmaas-00
+=============================
+
+Datum:        16.09.2026
+System:       cloud-au-30, MAAS 3.5.3, Rack au-05, Netz 10.0.45.0/24
+Zone:         10-1-45-0
+Maschine:     m254-01-da01, system_id xfpbn3
+Profil:       m254 aus ~/lernmaas/config.yaml, 2 Kerne, 2048 MB, 12 GB
+Zweck:        Lernlauf, nicht Teil der Ausgangsmessung. Ziel war die Ermittlung
+              des tatsächlichen Ablaufs und der manuellen Schritte.
+
+Hinweis:      Die Konsolenausgaben wurden während des Laufs erfasst. Die
+              Ereignisabfrage nach dem Abbau lieferte keine Daten mehr, weil
+              MAAS die Ereignisse über den Hostnamen auflöst und die Maschine
+              zu diesem Zeitpunkt bereits gelöscht war.
+
+
+1. Vorbedingungen
+-----------------
+
+PROFILE=ubuntu
+MAAS-Version: 3.5.3
+
+Lokal vorhandene Betriebssystem-Abbilder:
+  ubuntu/jammy  amd64/ga-22.04
+  ubuntu/jammy  amd64/hwe-22.04
+  ubuntu/noble  amd64/ga-24.04
+  ubuntu/noble  amd64/hwe-24.04
+  (sowie die zugehörigen lowlatency- und edge-Varianten)
+
+KVM-Hosts (Pods):
+  cloud-au-31, cloud-au-32, cloud-au-33, cloud-au-34, cloud-au-35, cloud-au-36
+
+
+2. Anlegen der Maschine
+-----------------------
+
+13:05:19
+$ createvms config.yaml m254 1 da01 0
+
+Success.
+Machine-readable output follows:
+{
+    "name": "m254-da01",
+    "description": "",
+    "id": 13,
+    "resource_uri": "/MAAS/api/2.0/resourcepool/13/"
+}
+maas ubuntu pod compose 7 memory=2048 cores=2 storage=12 pool=13 hostname=m254-01-da01
+Success.
+Machine-readable output follows:
+{
+    "system_id": "xfpbn3",
+    "resource_uri": "/MAAS/api/2.0/machines/xfpbn3/"
+}
+13:05:40
+
+Dauer des Befehls: 21 Sekunden. Es entstand genau eine Maschine.
+
+
+3. Ereignisfolge laut MAAS
+--------------------------
+
+Wed, 16 Sep. 2026 13:05:35  Commissioning
+Wed, 16 Sep. 2026 13:05:46  Performing PXE boot
+Wed, 16 Sep. 2026 13:05:52  Loading ephemeral
+Wed, 16 Sep. 2026 13:06:05  Gathering information
+Wed, 16 Sep. 2026 13:08:04  Running test  smartctl-validate on vda
+Wed, 16 Sep. 2026 13:08:12  Ready
+Wed, 16 Sep. 2026 13:09:05  Deploying
+Wed, 16 Sep. 2026 13:09:19  Performing PXE boot
+Wed, 16 Sep. 2026 13:09:25  Loading ephemeral
+Wed, 16 Sep. 2026 11:10:24  Configuring storage
+Wed, 16 Sep. 2026 11:10:30  Installing OS
+Wed, 16 Sep. 2026 11:11:11  Configuring OS
+Wed, 16 Sep. 2026 13:14:22  Rebooting
+Wed, 16 Sep. 2026 13:14:48  Image Deployed  deployed ubuntu/noble/amd64/generic
+Wed, 16 Sep. 2026 13:14:48  Deployed
+Wed, 16 Sep. 2026 13:19:34  Releasing
+Wed, 16 Sep. 2026 13:19:39  Released
+
+Anmerkung zu den Zeitstempeln: drei Ereignisse werden in UTC ausgegeben
+(11:10:24, 11:10:30, 11:11:11), die übrigen in Lokalzeit. Umgerechnet
+entsprechen sie 13:10:24, 13:10:30 und 13:11:11.
+
+
+4. Erstkonfiguration
+--------------------
+
+Beim Deploy wurde im Dialogfeld "Cloud-init user-data" folgende Konfiguration
+von Hand eingefügt:
+
+#cloud-config
+write_files:
+  - path: /var/www/index.html
+    content: |
+      testdienst bereit
+  - path: /etc/systemd/system/testdienst.service
+    content: |
+      [Unit]
+      Description=Testdienst der Diplomarbeit
+      After=network.target
+
+      [Service]
+      ExecStart=/usr/bin/python3 -m http.server 8080 --directory /var/www
+      Restart=always
+
+      [Install]
+      WantedBy=multi-user.target
+runcmd:
+  - systemctl daemon-reload
+  - systemctl enable --now testdienst.service
+
+
+5. Prüfung des Endzustands
+---------------------------
+
+Während des Commissionings lautete die Adresse 10.0.45.250, nach dem Deploy
+10.0.45.56. Die Adresse steht erst nach der Bereitstellung fest.
+
+$ curl -sS -m 5 http://10.0.45.250:8080; echo
+curl: (28) Connection timed out after 5001 milliseconds
+
+$ curl -sS -m 5 http://10.0.45.56:8080; echo
+testdienst bereit
+
+Das Endkriterium ist damit erfüllt: der definierte Testdienst antwortet.
+
+
+6. Abbau
+--------
+
+13:19:30  Release über die Oberfläche ausgelöst
+13:19:34  Releasing
+13:19:39  Released
+
+13:19:57
+$ maas ubuntu machine read xfpbn3 | jq -r '.status_name, .hostname'
+Ready
+m254-01-da01
+
+$ maas ubuntu resource-pools read | jq -r '.[] | "\(.id)  \(.name)"'
+0  default
+13  m254-da01
+3  m437-ICT23d
+
+$ maas ubuntu machines read | jq -r 'length'
+31
+
+Die Maschine existiert nach dem Release weiter, ebenso der Resource Pool.
+
+13:20:27
+$ maas ubuntu pod read 7 | jq -r '.used, .available'
+{
+  "cores": 10,
+  "memory": 10240,
+  "local_storage": 60000000000
+}
+{
+  "cores": -2,
+  "memory": 21743,
+  "local_storage": 190902839296
+}
+
+$ maas ubuntu machine delete xfpbn3
+Success.
+13:20:33
+
+$ maas ubuntu machines read | jq -r 'length'
+30
+
+$ maas ubuntu resource-pools read | jq -r '.[] | "\(.id)  \(.name)"'
+0  default
+13  m254-da01
+3  m437-ICT23d
+
+$ maas ubuntu pod read 7 | jq -r '.used, .available'
+{
+  "cores": 8,
+  "memory": 8192,
+  "local_storage": 48000000000
+}
+{
+  "cores": 0,
+  "memory": 23791,
+  "local_storage": 202902839296
+}
+
+Der Resource Pool bleibt nach dem Löschen der Maschine bestehen und muss
+getrennt entfernt werden.
+
+$ maas ubuntu resource-pool delete 13
+Success.
+
+$ maas ubuntu resource-pools read | jq -r '.[] | "\(.id)  \(.name)"'
+0  default
+3  m437-ICT23d
+13:20:46
+
+Der Abbau ist damit vollständig.
+
+
+7. Auswertung
+-------------
+
+Aufbau von 13:05:19 bis 13:14:48                        569 Sekunden
+  davon Befehl createvms                                 21 Sekunden, manuell
+  davon Commissioning, automatisch                      157 Sekunden
+  davon Bedienung in der Oberfläche                     53 Sekunden, manuell
+  davon Bereitstellung, automatisch                     343 Sekunden
+
+Abbau von 13:19:30 bis 13:20:46                          76 Sekunden
+  Release                                                 5 Sekunden
+  Löschen der Maschine                                   6 Sekunden
+  Löschen des Resource Pools                   separater Vorgang
+
+Bearbeitungszeit einer Person, geschätzt aus den obigen Abschnitten:
+rund 74 Sekunden beim Aufbau und rund 40 Sekunden beim Abbau.
+
+Ressourcenrückgabe: 2 Kerne, 2048 MB und 12 GB wurden vollständig
+freigegeben.
+
+
+8. Beobachtete Schritte
+-----------------------
+
+Nr  Schritt                                             Art
+ 1  WireGuard-Verbindung zum Rack                       manuell
+ 2  SSH auf den MAAS-Controller                         manuell
+ 3  createvms mit Profil und Anzahl aufrufen            manuell
+ 4  Commissioning abwarten                              automatisch
+ 5  Zone in der Oberfläche setzen                      manuell
+ 6  Deploy-Dialog öffnen                               manuell
+ 7  Betriebssystem wählen                              manuell
+ 8  cloud-init in das Textfeld einfügen                manuell
+ 9  Deploy bestätigen                                  manuell
+10  Bereitstellung abwarten                             automatisch
+11  Adresse der Maschine ermitteln                      manuell
+12  Testdienst prüfen                                  manuell
+13  Release auslösen                                   manuell
+14  Maschine löschen                                   manuell
+15  Resource Pool löschen                              manuell
+
+Dreizehn manuelle Schritte, davon fünf in einer grafischen Oberfläche.
+
+
+9. Befunde aus diesem Lauf
+--------------------------
+
+B10  Nach createvms läuft das Commissioning selbsttätig an und dauert rund
+     157 Sekunden. Der Zustand Ready wird nicht unmittelbar erreicht.
+B11  Die IP-Adresse wechselt zwischen Commissioning und Betrieb. Ein
+     Readiness-Check darf sie nicht annehmen, sondern muss sie aus MAAS lesen.
+B12  Die Erstkonfiguration wird bei jedem Lauf von Hand in ein Textfeld
+     eingefügt. Sie ist nicht Teil des Profils und nicht versioniert.
+B13  Release gibt die Maschine zurück, baut sie aber nicht ab. Der
+     vollständige Abbau besteht aus drei getrennten Vorgängen.
+B14  Der Resource Pool bleibt nach dem Löschen der Maschine bestehen.
+B15  Nachweise müssen erhoben werden, solange die Objekte existieren. Die
+     Ereignisabfrage löst über den Hostnamen auf und liefert nach dem
+     Löschen keine Daten mehr.
