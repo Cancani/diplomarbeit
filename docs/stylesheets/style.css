@@ -228,3 +228,149 @@ html {
     transition: none !important;
   }
 }
+
+/* ---------------------------------------------------------------
+   Vergrösserbare Diagramme
+   --------------------------------------------------------------- */
+
+.dia-host {
+  position: relative;
+  overflow-x: auto;
+  padding-top: 0.2rem;
+}
+
+.dia-host > svg {
+  max-width: 100%;
+  height: auto;
+}
+
+.dia-oeffnen {
+  position: absolute;
+  top: 0.4rem;
+  right: 0.4rem;
+  z-index: 2;
+  border: 1px solid var(--md-default-fg-color--lighter);
+  border-radius: 0.2rem;
+  background: var(--md-default-bg-color);
+  color: var(--md-default-fg-color--light);
+  font-size: 0.62rem;
+  line-height: 1;
+  padding: 0.32rem 0.5rem;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 120ms ease, color 120ms ease, border-color 120ms ease;
+}
+
+.dia-host:hover .dia-oeffnen,
+.dia-oeffnen:focus-visible {
+  opacity: 1;
+}
+
+.dia-oeffnen:hover {
+  color: var(--md-accent-fg-color);
+  border-color: var(--md-accent-fg-color);
+}
+
+body.dia-offen {
+  overflow: hidden;
+}
+
+.dia-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--md-default-bg-color);
+  cursor: grab;
+  touch-action: none;
+  overscroll-behavior: contain;
+}
+
+.dia-overlay.dia-zieht {
+  cursor: grabbing;
+}
+
+.dia-buehne {
+  transform-origin: center center;
+  will-change: transform;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dia-buehne svg {
+  max-width: none;
+}
+
+.dia-leiste {
+  position: fixed;
+  top: 0.8rem;
+  right: 0.8rem;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.3rem;
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 0.3rem;
+  background: var(--md-default-bg-color);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  cursor: default;
+}
+
+.dia-leiste button {
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 0.2rem;
+  background: transparent;
+  color: var(--md-default-fg-color--light);
+  font-size: 0.68rem;
+  line-height: 1;
+  padding: 0.35rem 0.55rem;
+  cursor: pointer;
+}
+
+.dia-leiste button:hover {
+  color: var(--md-accent-fg-color);
+  border-color: var(--md-accent-fg-color);
+}
+
+.dia-wert {
+  min-width: 3.6rem;
+  text-align: center;
+  font-size: 0.66rem;
+  color: var(--md-default-fg-color--light);
+  font-variant-numeric: tabular-nums;
+}
+
+.dia-hinweis {
+  position: fixed;
+  bottom: 0.9rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.62rem;
+  color: var(--md-default-fg-color--light);
+  background: var(--md-default-bg-color);
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 0.3rem;
+  padding: 0.3rem 0.6rem;
+  pointer-events: none;
+}
+
+@media screen and (max-width: 44.9em) {
+  .dia-oeffnen {
+    opacity: 1;
+  }
+  .dia-hinweis {
+    display: none;
+  }
+}
+
+@media print {
+  .dia-oeffnen,
+  .dia-overlay {
+    display: none !important;
+  }
+}
