@@ -6,7 +6,7 @@ write_files:
   - path: /etc/systemd/system/testdienst.service
     content: |
       [Unit]
-      Description=Testdienst fuer den Readiness-Check
+      Description=Testdienst für den Readiness-Check
       After=network-online.target
 
       [Service]

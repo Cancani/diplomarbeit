@@ -1,3 +1,5 @@
+# Manifest des Laufs testlauf-01 vom 14.09.2026 auf dl380-01. Das Wegwerf-Kennwort des
+# Testbenutzers wurde vor der Veröffentlichung entfernt, die Maschine am selben Tag abgebaut.
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -65,13 +67,13 @@ spec:
                 - name: ubuntu
                   sudo: ALL=(ALL) NOPASSWD:ALL
                   lock_passwd: false
-                  plain_text_passwd: diplomarbeit
+                  plain_text_passwd: <vor der Veröffentlichung entfernt>
                   shell: /bin/bash
               write_files:
                 - path: /etc/systemd/system/testdienst.service
                   content: |
                     [Unit]
-                    Description=Testdienst fuer den Readiness-Check
+                    Description=Testdienst für den Readiness-Check
                     After=network-online.target
                     [Service]
                     ExecStart=/usr/bin/python3 -m http.server 8080 --directory /var/www
