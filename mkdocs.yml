@@ -81,6 +81,7 @@ markdown_extensions:
 nav:
   - Start: index.md
   - Dokumentation: dokumentation.md
+  - Journal: journal.md
 
 extra:
   social:
