@@ -1,7 +1,7 @@
 # Diplomarbeit: Agentenbasierte Hybrid-Cloud-Bereitstellung von Lernumgebungen mit Kubernetes, KubeVirt und MCP
 
 !!! info "Lesehinweis"
-    Diese Dokumentation entsteht laufend während der Projektlaufzeit vom 14.09.2026 bis 18.12.2026. Sie ist sequentiell lesbar aufgebaut: Kapitel 1 ordnet das Problem ein, Kapitel 2 beschreibt, wie das Projekt geführt wird, die Kapitel 3 bis 7 folgen dem fachlichen Weg von der Analyse über die Umsetzung bis zur Bewertung, die Kapitel 8 bis 10 schliessen die Arbeit ab. Wöchentliche Statusberichte und das Projektjournal liegen in eigenen Bereichen und werden aus Kapitel 2 heraus verlinkt.
+    Diese Dokumentation entsteht laufend während der Projektlaufzeit vom 14.09.2026 bis 18.12.2026. Sie ist sequentiell lesbar aufgebaut, von der Einordnung des Problems über die Projektführung und den fachlichen Weg von der Analyse bis zur Bewertung hin zum Abschluss. Die wöchentlichen Statusberichte und das Projektjournal liegen in eigenen Bereichen.
 
 | | |
 | --- | --- |
@@ -61,13 +61,13 @@ Die Ziele Z1 bis Z3 beschreiben die zu erstellenden Bestandteile, Z4 und Z5 bezi
 
 Der Proof of Concept gilt als erfolgreich, wenn die folgenden Kriterien des verbindlichen Kernumfangs nachgewiesen sind. Sie stammen unverändert aus der bewilligten Projektbeschreibung und bilden zugleich die projektweite Definition of Done.
 
-- [ ] Das YAML-Modell und das zugehörige JSON-Schema sind versioniert. Das Modell deckt die ausgewählten Konfigurationsmerkmale der LernMAAS-Profile m239, m254 und m426 ab. Eine gültige Definition wird akzeptiert, eine bewusst ungültige wird abgewiesen, und die technisch reduzierte Test-Lernumgebung ist festgelegt.
-- [ ] Der Agent validiert die Definition, speichert den Zustand persistent und führt create, status, reset und delete über festgelegte Zustandsübergänge aus. reset löscht die Umgebung und erstellt sie aus derselben Definition neu.
-- [ ] Die gemeinsame Definition wird über die MCP-basierten Adapter lokal auf einem Kubernetes-Cluster mit KubeVirt und auf genau einer Public-Cloud-Plattform bereitgestellt. Auf beiden Zielplattformen erreicht die VM den festgelegten Zustand und der definierte Testdienst besteht den Readiness-Check.
-- [ ] Auf jeder Zielplattform werden drei aufeinanderfolgende vollständige Durchläufe durchgeführt, insgesamt sechs. Alle Durchläufe funktionieren ohne manuelle Korrektur.
-- [ ] Nach jedem delete sind keine dem Testlauf zugeordneten Ressourcen mehr vorhanden.
-- [ ] Bereitstellungszeit und manuelle Eingriffe sind für das heutige Vorgehen und den Proof of Concept protokolliert. Der Vorher-Nachher-Vergleich sowie die Bewertung der MCP-basierten Architektur gegenüber einer direkten API-Anbindung sind dokumentiert.
-- [ ] Die gewonnenen Erkenntnisse und die erarbeiteten technischen Komponenten sind hinsichtlich ihrer Übertragbarkeit auf eine mögliche zukünftige produktive Umgebung beurteilt und dokumentiert.
+- Das YAML-Modell und das zugehörige JSON-Schema sind versioniert. Das Modell deckt die ausgewählten Konfigurationsmerkmale der LernMAAS-Profile m239, m254 und m426 ab. Eine gültige Definition wird akzeptiert, eine bewusst ungültige wird abgewiesen, und die technisch reduzierte Test-Lernumgebung ist festgelegt.
+- Der Agent validiert die Definition, speichert den Zustand persistent und führt create, status, reset und delete über festgelegte Zustandsübergänge aus. reset löscht die Umgebung und erstellt sie aus derselben Definition neu.
+- Die gemeinsame Definition wird über die MCP-basierten Adapter lokal auf einem Kubernetes-Cluster mit KubeVirt und auf genau einer Public-Cloud-Plattform bereitgestellt. Auf beiden Zielplattformen erreicht die VM den festgelegten Zustand und der definierte Testdienst besteht den Readiness-Check.
+- Auf jeder Zielplattform werden drei aufeinanderfolgende vollständige Durchläufe durchgeführt, insgesamt sechs. Alle Durchläufe funktionieren ohne manuelle Korrektur.
+- Nach jedem delete sind keine dem Testlauf zugeordneten Ressourcen mehr vorhanden.
+- Bereitstellungszeit und manuelle Eingriffe sind für das heutige Vorgehen und den Proof of Concept protokolliert. Der Vorher-Nachher-Vergleich sowie die Bewertung der MCP-basierten Architektur gegenüber einer direkten API-Anbindung sind dokumentiert.
+- Die gewonnenen Erkenntnisse und die erarbeiteten technischen Komponenten sind hinsichtlich ihrer Übertragbarkeit auf eine mögliche zukünftige produktive Umgebung beurteilt und dokumentiert.
 
 ### 1.6 Abgrenzung
 
@@ -85,7 +85,7 @@ Der Umfang ist bewusst so festgelegt, dass der vollständige und messbare Nachwe
 | Hochverfügbarkeit, verteilter Storage, produktive Skalierung | Betriebsthemen, die erst bei einer produktiven Einführung relevant werden |
 | Hardwarebeschaffung und betriebliche Netzwerkumstellungen | Es wird ausschliesslich vorhandene, freigegebene Hardware verwendet |
 
-Diese Punkte werden im Ausblick in Kapitel 10 behandelt.
+Diese Punkte werden im Ausblick behandelt.
 
 ### 1.7 Zielgruppe und Lesehinweise
 
@@ -122,7 +122,7 @@ Von den drei Grössen Leistung, Zeit und Kosten sind zwei von aussen vorgegeben 
 | Kosten | Fix | Vorhandene Hardware der TBZ, maximal CHF 50 Cloud-Guthaben des Diplomanden, keine Beschaffung |
 | Leistung | Variabel | Der Funktionsumfang ist die einzige echte Stellgrösse |
 
-Daraus ergibt sich die Steuerungsregel dieses Projekts: Bei Abweichungen wird der Umfang reduziert, der Termin wird nicht verschoben und die Qualität wird nicht gesenkt. In welcher Reihenfolge reduziert wird, ist über die MoSCoW-Priorisierung in Kapitel 2.10 vorab festgelegt, damit dieser Entscheid nicht erst unter Zeitdruck fällt.
+Daraus ergibt sich die Steuerungsregel dieses Projekts: Bei Abweichungen wird der Umfang reduziert, der Termin wird nicht verschoben und die Qualität wird nicht gesenkt. In welcher Reihenfolge reduziert wird, ist über die MoSCoW-Priorisierung vorab festgelegt, damit dieser Entscheid nicht erst unter Zeitdruck fällt.
 
 #### 2.1.2 Wahl des Vorgehensmodells
 
@@ -147,10 +147,10 @@ Scrum ist für ein Team von drei bis neun Personen konzipiert, diese Arbeit ist 
 | Product Owner | Der Firmenexperte nimmt die Priorisierungsrolle wahr, der Diplomand schlägt vor | Keine tägliche Verfügbarkeit, Abstimmung an den Reviews und bei Bedarf im Teams-Kanal |
 | Scrum Master | Entfällt als eigene Rolle | Der Diplomand moderiert seinen eigenen Prozess, die Retrospektive ersetzt die externe Prozessbeobachtung |
 | Development Team | Der Diplomand allein | Einzelprojekt gemäss Merkblatt A, die Arbeit muss selbständig durchgeführt werden |
-| Product Backlog | Vollständig geführt als GitHub Issues, siehe Kapitel 2.8 | Keine |
+| Product Backlog | Vollständig geführt als GitHub Issues | Keine |
 | Sprint Backlog | Sprintzuordnung im Project Board über das Feld Sprint und über Milestones | Keine |
 | Sprint Planning | Zu Sprintbeginn, Ergebnis ist ein dokumentiertes Sprintziel mit Story-Point-Budget | Keine |
-| Daily Scrum | Ersetzt durch einen Journaleintrag pro Arbeitseinheit | Ein tägliches Abstimmungstreffen setzt mehrere Beteiligte voraus, der Journaleintrag erfüllt denselben Zweck der Transparenz |
+| Daily Scrum | Ersetzt durch einen wöchentlichen Journaleintrag, der die Arbeitstage einzeln ausweist | Ein tägliches Abstimmungstreffen setzt mehrere Beteiligte voraus. Der Journaleintrag erfüllt denselben Zweck der Transparenz, der wöchentliche Statusbericht ergänzt ihn gegenüber den Experten |
 | Sprint Review | Die Zwischenpräsentationen mit den Experten sind die Sprint Reviews | Keine, dies ist in der Projektbeschreibung so vereinbart |
 | Sprint Retrospektive | Nach jedem Sprint mit dem Starfish-Modell | Keine |
 | Increment | Am Ende jedes Sprints existiert ein demonstrierbarer Stand | Keine |
@@ -161,6 +161,8 @@ Scrum ist für ein Team von drei bis neun Personen konzipiert, diese Arbeit ist 
 Die Projektorganisation umfasst vier Beteiligte.
 
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 400" width="720" height="400" role="img" aria-label="Projektorganisation mit vier Beteiligten" class="dia-svg"><style>.dia-svg text{font-family:IBM Plex Sans,system-ui,sans-serif;fill:var(--md-default-fg-color,#1a1a1a)}.dia-svg .k{font-size:14px}.dia-svg .kb{font-size:15px;font-weight:600}.dia-svg rect{fill:var(--md-default-bg-color,#fff);stroke:var(--md-default-fg-color--lighter,#bbb)}.dia-svg rect.w{fill:var(--md-code-bg-color,#f2f2f2)}.dia-svg path{fill:none;stroke:var(--md-default-fg-color--lighter,#bbb);stroke-width:1.3}</style><defs><marker id="sp" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M 0 1 L 9 5 L 0 9 z" fill="var(--md-default-fg-color--lighter,#bbb)" stroke="none"/></marker></defs><path d="M 170.0 82 L 170.0 116.0 L 170.0 116.0 L 170.0 143" marker-end="url(#sp)"/><path d="M 550.0 82 L 550.0 116.0 L 550.0 116.0 L 550.0 143" marker-end="url(#sp)"/><path d="M 170.0 212 L 170.0 256.0 L 360.0 256.0 L 360.0 293" marker-end="url(#sp)"/><path d="M 550.0 212 L 550.0 256.0 L 360.0 256.0 L 360.0 293" marker-end="url(#sp)"/><rect class="" x="20" y="20" width="300" height="62" rx="6"/><text class="kb" x="170.0" y="46" text-anchor="middle">Auftraggeber</text><text class="k" x="170.0" y="66" text-anchor="middle">TBZ Informatikdienst</text><rect class="" x="400" y="20" width="300" height="62" rx="6"/><text class="kb" x="550.0" y="46" text-anchor="middle">HF-Lehrgangsleitung</text><text class="k" x="550.0" y="66" text-anchor="middle">TBZ Weiterbildung</text><rect class="" x="20" y="150" width="300" height="62" rx="6"/><text class="kb" x="170.0" y="176" text-anchor="middle">Firmenexperte</text><text class="k" x="170.0" y="196" text-anchor="middle">Kuno Vogt</text><rect class="" x="400" y="150" width="300" height="62" rx="6"/><text class="kb" x="550.0" y="176" text-anchor="middle">Schulexperte</text><text class="k" x="550.0" y="196" text-anchor="middle">Thanam Pangri</text><rect class="w" x="210" y="300" width="300" height="62" rx="6"/><text class="kb" x="360.0" y="326" text-anchor="middle">Diplomand und Projektleiter</text><text class="k" x="360.0" y="346" text-anchor="middle">Efekan Demirci</text></svg>
+
+_Abbildung 1: Projektorganisation und Berichtswege_
 
 **RACI-Matrix**
 
@@ -178,7 +180,7 @@ Die Verantwortlichkeiten sind je Aufgabe mit einer RACI-Matrix zugeordnet. R ste
 | Bereitstellung von Hardware und Zugängen | C | C | I | A |
 | Dokumentation und Abgabe | R, A | I | I | I |
 
-In der Zeile Änderung von Zielen oder Fokus ist A zweimal vergeben. Das ist beabsichtigt, weil Merkblatt A für grössere Projektänderungen die Zustimmung beider Experten verlangt. Der zugehörige Prozess ist in Kapitel 2.14 beschrieben.
+In der Zeile Änderung von Zielen oder Fokus ist A zweimal vergeben. Das ist beabsichtigt, weil Merkblatt A für grössere Projektänderungen die Zustimmung beider Experten verlangt.
 
 **Deklaration von Abhängigkeiten**
 
@@ -190,7 +192,7 @@ Merkblatt A verlangt die Deklaration von Abhängigkeiten und Verbindungen zwisch
 | Diplomand und Thanam Pangri | Ausschliesslich schulisches Verhältnis als Dozent und Lehrgangsleitung | Keine besondere Massnahme nötig |
 | Ausserhalb der Arbeitszeit | Keine Verbindungen zwischen Diplomand und Experten | Keine |
 
-Die Offenlegung des Vorgesetztenverhältnisses erfolgte beim Kickoff gegenüber beiden Experten. Weitere Abhängigkeiten bestehen nicht.
+Das Vorgesetztenverhältnis ist im bewilligten Antrag und in dieser Dokumentation offengelegt. Beim Kickoff wird es gegenüber beiden Experten ausdrücklich angesprochen. Weitere Abhängigkeiten bestehen nicht.
 
 ### 2.3 Stakeholder
 
@@ -212,6 +214,8 @@ Die Dozierenden und die Lernenden sind vom Proof of Concept nicht unmittelbar be
 Die Einordnung nach Einfluss und Interesse bildet die Grundlage für die Umgangsstrategie.
 
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 780 540" width="780" height="540" role="img" aria-label="Stakeholder nach Einfluss und Interesse" class="dia-svg"><style>.dia-svg text{font-family:IBM Plex Sans,system-ui,sans-serif;fill:var(--md-default-fg-color,#1a1a1a)}.dia-svg .kb{font-size:15px;font-weight:600}.dia-svg .ax{font-size:13px;fill:var(--md-default-fg-color--light,#666)}.dia-svg .qt{font-size:13px;font-weight:600;fill:var(--md-default-fg-color--light,#888)}.dia-svg rect{fill:none;stroke:var(--md-default-fg-color--lighter,#bbb)}.dia-svg rect.f{fill:var(--md-code-bg-color,#f4f4f4);stroke:none}.dia-svg line{stroke:var(--md-default-fg-color--lighter,#bbb);stroke-width:1}.dia-svg circle{fill:var(--md-default-fg-color,#1a1a1a)}</style><rect class="f" x="450.0" y="64.0" width="280.0" height="200.0"/><rect x="170" y="64" width="560" height="400" rx="4"/><line x1="450.0" y1="64" x2="450.0" y2="464"/><line x1="170" y1="264.0" x2="730" y2="264.0"/><text class="qt" x="186.8" y="248.0">Zufrieden halten</text><text class="qt" x="466.8" y="248.0">Eng einbinden</text><text class="qt" x="186.8" y="448.0">Beobachten</text><text class="qt" x="466.8" y="448.0">Informiert halten</text><circle cx="662.8" cy="96.0" r="6"/><text class="kb" x="649.8" y="101.0" text-anchor="end">HF-Weiterbildung</text><circle cx="629.2" cy="152.0" r="6"/><text class="kb" x="616.2" y="157.0" text-anchor="end">Informatikdienst TBZ</text><circle cx="517.2" cy="352.0" r="6"/><text class="kb" x="530.2" y="357.0">Dozierende HF</text><circle cx="338.0" cy="404.0" r="6"/><text class="kb" x="351.0" y="409.0">Lernende</text><text class="ax" x="170" y="490">geringes Interesse</text><text class="ax" x="730" y="490" text-anchor="end">hohes Interesse</text><text class="ax" x="152" y="464" text-anchor="start" transform="rotate(-90 152 464)">geringer Einfluss</text><text class="ax" x="152" y="64" text-anchor="end" transform="rotate(-90 152 64)">hoher Einfluss</text><text class="kb" x="170" y="40">Stakeholder nach Einfluss und Interesse</text></svg>
+
+_Abbildung 2: Stakeholder nach Einfluss und Interesse_
 
 #### Abgeleitete Umgangsstrategie
 
@@ -239,10 +243,10 @@ Der Kommunikationsplan legt fest, welche Information welchen Empfänger zu welch
 | Was | An wen | Wann | Kanal | Zweck |
 | --- | --- | --- | --- | --- |
 | Wöchentlicher Statusbericht | Beide Experten | Jeden Freitag bis 18:00 | Markdown im Repository, veröffentlicht über GitHub Pages, zusätzlich kurzer Post mit Link im Teams-Kanal | Fortschritt, Abweichungen, nächste Schritte |
-| Projektjournal | Jederzeit einsehbar | Laufend, mindestens pro Arbeitseinheit | Repository und GitHub Pages | Nachvollziehbarkeit von Ereignissen und Entscheiden |
+| Projektjournal | Jederzeit einsehbar | Wöchentlich, jeweils sonntags | Repository und GitHub Pages | Nachvollziehbarkeit von Ereignissen und Entscheiden |
 | Einladung zu Meilensteinen | Beide Experten | Mindestens 10 Arbeitstage vorher | Outlook-Termin mit Teams-Link | Terminsicherung |
 | Zwischenpräsentation und Sprint Review | Beide Experten | Wochen vom 19.10., 16.11. und 14.12.2026 | Online-Meeting, Präsentation und Demo | Abnahme des Sprintergebnisses, Steuerungsfeedback |
-| Change Request | Beide Experten | Bei Bedarf, spätestens 5 Arbeitstage vor Wirksamkeit | Teams-Kanal, dokumentiert in Kapitel 2.14 | Zustimmung zu Änderungen an Zielen oder Fokus |
+| Change Request | Beide Experten | Bei Bedarf, spätestens 5 Arbeitstage vor Wirksamkeit | Teams-Kanal | Zustimmung zu Änderungen an Zielen oder Fokus |
 | Kurze Fachfrage | Firmenexperte | Bei Bedarf | Teams-Chat | Klärung, Antwort innerhalb von zwei Arbeitstagen erwartet |
 | Eskalation bei Blockade | Firmenexperte, bei Ausbleiben Schulexperte | Innerhalb von 24 Stunden nach Erkennen | Teams-Chat, bei Dringlichkeit Telefon | Auflösung von Blockaden bei Hardware, Zugriff oder Netzwerk |
 | Abgabebestätigung | admin.wb@tbz.zh.ch | Nach Abgabe, spätestens 18.12.2026 | E-Mail | Bestätigung gemäss Merkblatt A |
@@ -256,7 +260,9 @@ Das Projekt ist in elf Arbeitspakete zerlegt, die im Folgenden als Epics bezeich
 
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 746 592" width="746" height="592" role="img" aria-label="Projektstrukturplan mit elf Epics" class="dia-svg"><style>.dia-svg text{font-family:IBM Plex Sans,system-ui,sans-serif;fill:var(--md-default-fg-color,#1a1a1a)}.dia-svg .k{font-size:14px}.dia-svg .kb{font-size:14px;font-weight:600}.dia-svg rect{fill:var(--md-default-bg-color,#fff);stroke:var(--md-default-fg-color--lighter,#bbb)}.dia-svg rect.w{fill:var(--md-code-bg-color,#f2f2f2)}.dia-svg path{fill:none;stroke:var(--md-default-fg-color--lighter,#bbb);stroke-width:1.2}</style><rect class="" x="400" y="16" width="330" height="40" rx="5"/><text class="k" x="412" y="41.0">E1  Projektinitialisierung</text><rect class="w" x="200" y="16.0" width="150" height="40" rx="5"/><text class="kb" x="212" y="41.0">Projektführung</text><path d="M 350 36.0 H 375.0 V 36.0 H 400"/><rect class="" x="400" y="68" width="330" height="40" rx="5"/><text class="k" x="412" y="93.0">E2  IST-Aufnahme und Ausgangsmessung</text><rect class="w" x="200" y="68.0" width="150" height="40" rx="5"/><text class="kb" x="212" y="93.0">Analyse</text><path d="M 350 88.0 H 375.0 V 88.0 H 400"/><rect class="" x="400" y="120" width="330" height="40" rx="5"/><text class="k" x="412" y="145.0">E3  On-Prem-Plattform</text><rect class="" x="400" y="172" width="330" height="40" rx="5"/><text class="k" x="412" y="197.0">E4  Public Cloud</text><rect class="w" x="200" y="146.0" width="150" height="40" rx="5"/><text class="kb" x="212" y="171.0">Plattform</text><path d="M 350 166.0 H 375.0 V 140.0 H 400"/><path d="M 350 166.0 H 375.0 V 192.0 H 400"/><rect class="" x="400" y="224" width="330" height="40" rx="5"/><text class="k" x="412" y="249.0">E5  Fachmodell</text><rect class="" x="400" y="276" width="330" height="40" rx="5"/><text class="k" x="412" y="301.0">E6  Agent</text><rect class="" x="400" y="328" width="330" height="40" rx="5"/><text class="k" x="412" y="353.0">E7  MCP-Adapter</text><rect class="w" x="200" y="276.0" width="150" height="40" rx="5"/><text class="kb" x="212" y="301.0">Lösung</text><path d="M 350 296.0 H 375.0 V 244.0 H 400"/><path d="M 350 296.0 H 375.0 V 296.0 H 400"/><path d="M 350 296.0 H 375.0 V 348.0 H 400"/><rect class="" x="400" y="380" width="330" height="40" rx="5"/><text class="k" x="412" y="405.0">E8  Validierung und Messung</text><rect class="" x="400" y="432" width="330" height="40" rx="5"/><text class="k" x="412" y="457.0">E9  Bewertung und Vergleich</text><rect class="w" x="200" y="406.0" width="150" height="40" rx="5"/><text class="kb" x="212" y="431.0">Nachweis</text><path d="M 350 426.0 H 375.0 V 400.0 H 400"/><path d="M 350 426.0 H 375.0 V 452.0 H 400"/><rect class="" x="400" y="484" width="330" height="40" rx="5"/><text class="k" x="412" y="509.0">E10  Betrieb und Schulung</text><rect class="" x="400" y="536" width="330" height="40" rx="5"/><text class="k" x="412" y="561.0">E11  Architektur und Abschluss</text><rect class="w" x="200" y="510.0" width="150" height="40" rx="5"/><text class="kb" x="212" y="535.0">Abschluss</text><path d="M 350 530.0 H 375.0 V 504.0 H 400"/><path d="M 350 530.0 H 375.0 V 556.0 H 400"/><rect class="w" x="8" y="237.0" width="150" height="40" rx="5"/><text class="kb" x="20" y="262.0">Diplomarbeit</text><path d="M 158 257.0 H 179.0 V 36.0 H 200"/><path d="M 158 257.0 H 179.0 V 88.0 H 200"/><path d="M 158 257.0 H 179.0 V 166.0 H 200"/><path d="M 158 257.0 H 179.0 V 296.0 H 200"/><path d="M 158 257.0 H 179.0 V 426.0 H 200"/><path d="M 158 257.0 H 179.0 V 530.0 H 200"/></svg>
 
-Die Gliederung folgt dem fachlichen Ablauf des Projekts, von der Analyse über den Aufbau der Plattformen und die Entwicklung der Lösung bis zum Nachweis und zum Abschluss. Die Zuordnung der Epics zu Sprints, Stories und Story Points steht in Kapitel 2.8.
+_Abbildung 3: Projektstrukturplan mit elf Epics_
+
+Die Gliederung folgt dem fachlichen Ablauf des Projekts, von der Analyse über den Aufbau der Plattformen und die Entwicklung der Lösung bis zum Nachweis und zum Abschluss. Die Zuordnung der Epics zu Sprints, Stories und Story Points steht im Product Backlog.
 
 ### 2.6 Termin- und Meilensteinplan
 
@@ -268,7 +274,7 @@ Das Projekt läuft über 14 Kalenderwochen, von KW38 bis KW51 2026. Die Sprintgr
 | Sprint 2 | 19.10.2026 bis 15.11.2026 | KW43 bis KW46 | 4 Wochen | Fachmodell, Agent und der erste vollständige End-to-End-Durchlauf lokal stehen |
 | Sprint 3 | 16.11.2026 bis 18.12.2026 | KW47 bis KW51 | 5 Wochen | Beide Plattformen sind validiert, Vergleich und Bewertung sind abgeschlossen, die Abgabe ist erfolgt |
 
-Jeder Sprint endet mit einer Zwischenpräsentation, die zugleich als Sprint Review dient. Die unterschiedliche Länge der Sprints ergibt sich aus den fixen Terminen und ist in Kapitel 2.6.1 begründet.
+Jeder Sprint endet mit einer Zwischenpräsentation, die zugleich als Sprint Review dient. Die unterschiedliche Länge der Sprints ergibt sich aus den fixen Terminen und ist nachfolgend begründet.
 
 **Meilensteine**
 
@@ -288,6 +294,8 @@ Der Scope-Freeze M3 liegt bewusst zwei Wochen vor der Abgabe, damit die verbleib
 
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 902 728" width="902" height="728" role="img" aria-label="Terminplan der Diplomarbeit" class="dia-svg"><style>.dia-svg text{font-family:IBM Plex Sans,system-ui,sans-serif;fill:var(--md-default-fg-color,#1a1a1a)}.dia-svg .k{font-size:13px}.dia-svg .kb{font-size:13px;font-weight:600}.dia-svg .ax{font-size:11px;fill:var(--md-default-fg-color--light,#666)}.dia-svg .bar{fill:var(--md-primary-fg-color,#4051b5);opacity:.85}.dia-svg .ms{fill:var(--md-accent-fg-color,#526cfe)}.dia-svg .grid{stroke:var(--md-default-fg-color--lightest,#e3e3e3);stroke-width:1}.dia-svg .band{fill:var(--md-code-bg-color,#f5f5f5)}</style><rect class="band" x="16" y="42" width="870" height="222" rx="4"/><text class="kb" x="24" y="62">Sprint 1, 14.09. bis 18.10.2026</text><text class="k" x="32" y="93.0">E1  Projektinitialisierung</text><rect class="bar" x="266.0" y="79" width="44.7" height="20" rx="4"/><text class="k" x="32" y="125.0">E2  IST-Aufnahme</text><rect class="bar" x="278.8" y="111" width="159.8" height="20" rx="4"/><text class="k" x="32" y="157.0">E3  On-Prem-Plattform</text><rect class="bar" x="266.0" y="143" width="89.5" height="20" rx="4"/><text class="k" x="32" y="189.0">E4  Public Cloud</text><rect class="bar" x="400.2" y="175" width="63.9" height="20" rx="4"/><text class="k" x="32" y="221.0">E11 Zielarchitektur</text><rect class="bar" x="400.2" y="207" width="89.5" height="20" rx="4"/><text class="k" x="32" y="253.0">Zwischenpräsentation 1</text><path class="ms" d="M 489.7 240 l 8 9.0 l -8 9.0 l -8 -9.0 Z"/><text class="kb" x="24" y="284">Sprint 2, 19.10. bis 15.11.2026</text><text class="k" x="32" y="315.0">E5  Fachmodell</text><rect class="bar" x="489.7" y="301" width="63.9" height="20" rx="4"/><text class="k" x="32" y="347.0">E6  Agent</text><rect class="bar" x="534.5" y="333" width="89.5" height="20" rx="4"/><text class="k" x="32" y="379.0">E7  Adapter KubeVirt</text><rect class="bar" x="579.2" y="365" width="83.1" height="20" rx="4"/><text class="k" x="32" y="411.0">Zwischenpräsentation 2</text><path class="ms" d="M 668.7 398 l 8 9.0 l -8 9.0 l -8 -9.0 Z"/><rect class="band" x="16" y="422" width="870" height="286" rx="4"/><text class="kb" x="24" y="442">Sprint 3, 16.11. bis 18.12.2026</text><text class="k" x="32" y="473.0">E7  Adapter Public Cloud</text><rect class="bar" x="668.7" y="459" width="89.5" height="20" rx="4"/><text class="k" x="32" y="505.0">E8  Validierung und Messung</text><rect class="bar" x="713.4" y="491" width="89.5" height="20" rx="4"/><text class="k" x="32" y="537.0">E9  Bewertung und Vergleich</text><rect class="bar" x="758.2" y="523" width="76.7" height="20" rx="4"/><text class="k" x="32" y="569.0">E10 Betrieb und Schulung</text><rect class="bar" x="764.6" y="555" width="63.9" height="20" rx="4"/><text class="k" x="32" y="601.0">E11 Dokumentation und Abschluss</text><rect class="bar" x="783.7" y="587" width="89.5" height="20" rx="4"/><text class="k" x="32" y="633.0">Scope-Freeze</text><path class="ms" d="M 783.7 620 l 8 9.0 l -8 9.0 l -8 -9.0 Z"/><text class="k" x="32" y="665.0">Zwischenpräsentation 3</text><path class="ms" d="M 847.6 652 l 8 9.0 l -8 9.0 l -8 -9.0 Z"/><text class="k" x="32" y="697.0">Abgabe</text><path class="ms" d="M 873.2 684 l 8 9.0 l -8 9.0 l -8 -9.0 Z"/><line class="grid" x1="374.7" y1="40" x2="374.7" y2="712"/><text class="ax" x="374.7" y="34" text-anchor="middle">01.10.</text><line class="grid" x1="572.8" y1="40" x2="572.8" y2="712"/><text class="ax" x="572.8" y="34" text-anchor="middle">01.11.</text><line class="grid" x1="764.6" y1="40" x2="764.6" y2="712"/><text class="ax" x="764.6" y="34" text-anchor="middle">01.12.</text><text class="ax" x="266.0" y="34">14.09.</text><text class="ax" x="873.2" y="34" text-anchor="end">18.12.</text></svg>
 
+_Abbildung 4: Terminplan mit Sprints, Epics und Meilensteinen_
+
 #### 2.6.1 Begründung der unterschiedlichen Sprintlängen
 
 Die drei Sprints sind mit fünf, vier und fünf Wochen unterschiedlich lang. Diese Abweichung von der üblichen Gleichmässigkeit ist beabsichtigt und wird nachfolgend begründet.
@@ -297,11 +305,15 @@ Die drei Zwischenpräsentationen sind in Merkblatt A auf die Wochen vom 19.10., 
 1. Gleich lange Sprints von zwei Wochen. Dann fallen die Reviews mitten in einen Sprint und die wichtigsten Steuerungstermine des Projekts sind von den Sprintgrenzen entkoppelt.
 2. Sprints entlang der fixen Termine. Dann sind die Sprints unterschiedlich lang, dafür ist jeder Review ein echter Sprintabschluss mit einem demonstrierbaren Increment.
 
-Gewählt wurde Variante 2, weil ein Review mit Steuerungswirkung für das Projekt mehr Nutzen bringt als die formale Gleichmässigkeit der Sprintlänge. Die Vergleichbarkeit der Sprints wird auf anderem Weg sichergestellt. Die Planung erfolgt nicht pauschal pro Sprint, sondern über ein konstantes Story-Point-Budget pro Woche, wie in Kapitel 2.9 beschrieben. Ein fünfwöchiger Sprint erhält damit fünf Wochenbudgets und ein vierwöchiger vier, wodurch die Velocity über die Sprints hinweg vergleichbar bleibt.
+Gewählt wurde Variante 2, weil ein Review mit Steuerungswirkung für das Projekt mehr Nutzen bringt als die formale Gleichmässigkeit der Sprintlänge. Die Vergleichbarkeit der Sprints wird auf anderem Weg sichergestellt. Die Planung erfolgt nicht pauschal pro Sprint, sondern über ein konstantes Story-Point-Budget pro Woche. Ein fünfwöchiger Sprint erhält damit fünf Wochenbudgets und ein vierwöchiger vier, wodurch die Velocity über die Sprints hinweg vergleichbar bleibt.
 
 Zusätzlich wird in den längeren Sprints nach der Hälfte der Laufzeit ein Zwischenabgleich durchgeführt und im jeweiligen Statusbericht dokumentiert. Damit bleibt die Kontrolldichte auch in einem Fünfwochensprint erhalten.
 
 ### 2.7 Sprintstruktur und Events
+
+> Platzhalter Abbildung 5: Project Board mit Spalten, Sprint-Feld und Story Points
+
+> Platzhalter Abbildung 6: Milestones Sprint 1 bis 3
 
 Jeder Sprint folgt demselben Ablauf aus Planung, Durchführung, Review und Retrospektive.
 
@@ -317,17 +329,17 @@ Jeder Sprint folgt demselben Ablauf aus Planung, Durchführung, Review und Retro
 **Sprint Execution, laufend**
 
 - Work in Progress Limit: maximal zwei Issues gleichzeitig in der Spalte In Progress
-- Journaleintrag pro Arbeitseinheit
+- Journaleintrag je Kalenderwoche, sonntags geschrieben
 - Nachweise entstehen mit der Umsetzung, nicht nachträglich
 - Wöchentlicher Statusbericht jeden Freitag
-- Arbeitsweise und Branching siehe Kapitel 2.12
+- Arbeitsweise und Branching
 
 **Sprint Review, am Sprintende, zugleich Zwischenpräsentation**
 
 Ablauf, 45 bis 60 Minuten:
 
 1. Sprintziel und was daraus wurde, 5 Minuten
-2. Abgleich gegen die Zieltabelle aus Kapitel 1.4, 5 Minuten
+2. Abgleich gegen die Zieltabelle der SMART-Ziele, 5 Minuten
 3. Demo des lauffähigen Standes, 15 Minuten
 4. Herausforderungen, Entscheide und Abweichungen, 10 Minuten
 5. Risikolage und Ausblick auf den nächsten Sprint, 5 Minuten
@@ -341,7 +353,7 @@ Die Reflexion erfolgt mit dem Starfish-Modell entlang der fünf Kategorien Keep,
 
 ### 2.8 Anforderungsmanagement und Product Backlog
 
-Jede Anforderung wird als GitHub Issue nach dem Schema `Als <Rolle> möchte ich <Ziel>, damit <Nutzen>` erfasst und im öffentlichen Project Board gesteuert. Der Backlog umfasst **38 User Stories** mit insgesamt **113 Story Points**, verteilt auf elf Epics und drei Sprints.
+Jede Anforderung wird als GitHub Issue nach dem Schema `Als <Rolle> möchte ich <Ziel>, damit <Nutzen>` erfasst und im öffentlichen Project Board gesteuert. Der Backlog umfasst 38 User Stories mit insgesamt 113 Story Points, verteilt auf elf Epics und drei Sprints.
 
 #### Verteilung über die Sprints
 
@@ -369,6 +381,8 @@ Jede Anforderung wird als GitHub Issue nach dem Schema `Als <Rolle> möchte ich 
 | E11 | Architektur und Projektabschluss | 3 | 9 | 1, 3 |
 
 #### Standards pro Issue
+
+> Platzhalter Abbildung 7: Aufbau eines Issues mit Akzeptanzkriterien und Definition of Done
 
 - User Story im genannten Schema
 - Epic, Story Points und Priorität nach MoSCoW
@@ -467,13 +481,13 @@ Die Stories liegen im Milestone Sprint 3 des Project Boards.
 | Verteilter Storage und produktive Skalierung | Won't |
 | Hardwarebeschaffung und betriebliche Netzwerkumstellungen | Won't |
 
-Diese Punkte sind im bewilligten Antrag abgegrenzt und werden im Ausblick in Kapitel 10 behandelt.
+Diese Punkte sind im bewilligten Antrag abgegrenzt und werden im Ausblick behandelt.
 
 #### Umgang mit Puffern und Umfangsreduktion
 
 Das Budget orientiert sich an der geplanten Kapazität von acht Story Points pro Woche. Sprint 3 liegt mit 41 Punkten einen Punkt über diesem Budget. Die Abweichung entstand, als die Klärung der künftigen Zuständigkeiten nachträglich in US33 aufgenommen wurde. Sie wird bewusst in Kauf genommen und im Statusbericht mitgeführt, statt die Story kleiner zu schätzen, als sie ist.
 
-Ein Zeitpuffer entsteht nicht durch freie Wochen, sondern durch die Steuerungsregel aus Kapitel 2.1.1: Bei Verzug wird der Umfang reduziert, nicht der Termin verschoben.
+Ein Zeitpuffer entsteht nicht durch freie Wochen, sondern durch die Steuerungsregel dieses Projekts: Bei Verzug wird der Umfang reduziert, nicht der Termin verschoben.
 
 Die Reihenfolge der Reduktion ist vorab festgelegt und mit dem Firmenexperten abgestimmt:
 
@@ -522,6 +536,10 @@ Für die Diplomarbeit steht während der Arbeitszeit bei der TBZ keine Zeit zur 
 
 **Velocity-Verfolgung**
 
+> Platzhalter Abbildung 8: Board nach Sprint gruppiert mit Summe der Story Points
+
+> Platzhalter Abbildung 9: Velocity je Sprint, geplant gegen abgeschlossen
+
 | Sprint | Geplant | Abgeschlossen | Velocity pro Woche | Abweichung | Konsequenz für die Folgeplanung |
 | --- | --- | --- | --- | --- | --- |
 | Sprint 1 | 40 | | | | |
@@ -543,7 +561,7 @@ Priorisiert wird nach MoSCoW. Die Priorität wird pro Issue im Board gesetzt und
 | Could | Verbesserung, wird nur bei freier Kapazität umgesetzt |
 | Won't | Bewusst ausserhalb des Umfangs, wird im Ausblick behandelt |
 
-Alle 38 User Stories des Backlogs sind als Must eingestuft. Das ist eine Konsequenz aus der Abgrenzung: Der Umfang wurde bereits im Antrag so eng gefasst, dass jede verbleibende Story ein Erfolgskriterium belegt. Die Flexibilität liegt deshalb nicht in der Priorisierung, sondern in der in Kapitel 2.8 festgelegten Reihenfolge der Umfangsreduktion.
+Alle 38 User Stories des Backlogs sind als Must eingestuft. Das ist eine Konsequenz aus der Abgrenzung: Der Umfang wurde bereits im Antrag so eng gefasst, dass jede verbleibende Story ein Erfolgskriterium belegt. Die Flexibilität liegt deshalb nicht in der Priorisierung, sondern in der vorab festgelegten Reihenfolge der Umfangsreduktion.
 
 Ergänzend zur MoSCoW-Einstufung entscheiden bei gleicher Priorität folgende Kriterien über die Reihenfolge:
 
@@ -576,7 +594,7 @@ Eine User Story darf erst in einen Sprint gezogen werden, wenn:
 
 **Projektweite Definition of Done**
 
-Die projektweite Definition of Done entspricht den sieben Erfolgskriterien des Proof of Concept in Kapitel 1.5. Sie werden an jedem Sprintende überprüft und der Erfüllungsgrad im Statusbericht ausgewiesen.
+Die projektweite Definition of Done entspricht den sieben Erfolgskriterien des Proof of Concept. Sie werden an jedem Sprintende überprüft und der Erfüllungsgrad im Statusbericht ausgewiesen.
 
 ### 2.12 Arbeitsweise, Branching und Teststrategie
 
@@ -618,7 +636,7 @@ Das Repository ist bewusst nicht mit den Zielsystemen verbunden. Der CI-Runner l
 | Adapter-Contract-Tests | Der Agent ruft die richtigen Funktionen in der richtigen Reihenfolge auf, geprüft gegen einen Fake-Adapter | nein |
 | Dokumentationsbau | Die Dokumentation baut im strikten Modus, keine toten Verweise | nein |
 
-Der Fake-Adapter dient dabei nicht nur als Testhilfsmittel, sondern ist eine dritte Implementierung derselben MCP-Schnittstelle und belegt damit unmittelbar das Kriterium Testbarkeit in der Bewertung der Adapterarchitektur in Kapitel 6. Mit direkten API-Aufrufen im Agenten wäre eine Prüfung der Steuerungslogik ohne echte Infrastruktur nicht möglich.
+Der Fake-Adapter dient dabei nicht nur als Testhilfsmittel, sondern ist eine dritte Implementierung derselben MCP-Schnittstelle und belegt damit unmittelbar das Kriterium Testbarkeit in der Bewertung der Adapterarchitektur. Mit direkten API-Aufrufen im Agenten wäre eine Prüfung der Steuerungslogik ohne echte Infrastruktur nicht möglich.
 
 **Ebene 2, manuell auf der Zielinfrastruktur**
 
@@ -631,6 +649,8 @@ Ein selbst gehosteter CI-Runner auf der Laborhardware würde der Pipeline Zugang
 ### 2.13 Qualitätssicherung, Nachweisführung und Controlling
 
 #### Nachweisstandard
+
+> Platzhalter Abbildung 10: Veröffentlichte Dokumentation auf GitHub Pages
 
 Jede Aussage über einen erreichten Zustand ist durch einen Nachweis belegt. Der Nachweis steht grundsätzlich in der Dokumentation selbst, an der Stelle, die er belegt. Konsolenausgaben werden als Codeblock eingefügt, Screenshots als Abbildung eingebunden. Der Leser findet den Beleg damit dort, wo die Aussage steht, und muss ihn nicht in einem Anhang suchen.
 
@@ -649,6 +669,8 @@ Alles andere, also Ergebnisse, Verifikationen, Fehlermeldungen und Zwischenstän
 Ein Issue gilt nicht als erledigt, solange der zugehörige Dokumentationsabschnitt fehlt. Der Fortschritt der Dokumentation wird im wöchentlichen Statusbericht als eigene Ampel geführt.
 
 #### Wöchentlicher Statusbericht
+
+> Platzhalter Abbildung 11: Statusbericht mit den vier Ampeln
 
 Jeden Freitag wird ein Statusbericht erstellt und unter `docs/status/` abgelegt, veröffentlicht über GitHub Pages. Zusätzlich wird im Teams-Kanal ein kurzer Post mit dem Link abgesetzt. Die Berichte sind nach Kalenderwoche nummeriert, von KW38 bis KW51, insgesamt vierzehn.
 
@@ -677,6 +699,8 @@ Dieselbe Skala wird für alle vier Ampeln verwendet, also für Termin, Umfang, Q
 
 #### Meilensteintrendanalyse
 
+> Platzhalter Abbildung 12: Meilensteintrendanalyse
+
 Für jeden Meilenstein wird wöchentlich der aktuell erwartete Termin erfasst. Eine waagrechte Linie über die Berichtswochen bedeutet, dass der Termin stabil ist. Eine steigende Linie zeigt eine drohende Verspätung früh an, lange bevor der Termin tatsächlich verstreicht.
 
 | Meilenstein | Plantermin | KW38 | KW40 | KW42 | KW44 | KW46 | KW48 | KW50 |
@@ -691,7 +715,7 @@ Die Tabelle wird zweiwöchentlich nachgeführt. Verschiebt sich ein erwarteter T
 
 #### Fortschrittsmessung
 
-Gemessen wird am Verhältnis abgeschlossener zu geplanter Story Points im laufenden Sprint. Teilweise erledigte Stories zählen nicht, eine Story ist erledigt oder nicht. Zusätzlich wird pro Sprint der Anteil erfüllter Erfolgskriterien aus Kapitel 1.5 ausgewiesen, damit Fortschritt nicht nur als Aktivität, sondern als Zielerreichung sichtbar wird.
+Gemessen wird am Verhältnis abgeschlossener zu geplanter Story Points im laufenden Sprint. Teilweise erledigte Stories zählen nicht, eine Story ist erledigt oder nicht. Zusätzlich wird pro Sprint der Anteil erfüllter Erfolgskriterien des Proof of Concept ausgewiesen, damit Fortschritt nicht nur als Aktivität, sondern als Zielerreichung sichtbar wird.
 
 ### 2.14 Änderungsmanagement
 
@@ -702,7 +726,7 @@ Merkblatt A verlangt für grössere Projektänderungen, etwa neue Ziele oder ein
 3. Der Change Request geht an beide Experten, mit einer Frist von fünf Arbeitstagen vor dem gewünschten Wirksamwerden
 4. Die Zustimmung beider Experten wird schriftlich im Teams-Kanal eingeholt
 5. Der Entscheid wird in der folgenden Tabelle und im Statusbericht der laufenden Woche dokumentiert
-6. Backlog, Terminplan und die Zieltabelle in Kapitel 1.4 werden nachgeführt
+6. Backlog, Terminplan und Zieltabelle werden nachgeführt
 
 | ID | Datum | Anlass | Änderung | Auswirkung | Entscheid | Zustimmung |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -756,6 +780,8 @@ Die Strategien beschränken sich auf Vermindern und Vermeiden. Ein Übertragen a
 
 #### Risikomatrix
 
+> Platzhalter Abbildung 13: Risikomatrix mit allen elf Risiken
+
 Die Matrix ordnet alle elf Risiken nach Auswirkung und Eintrittswahrscheinlichkeit ein. Die Zahlen bezeichnen die Risiko-IDs.
 
 | Auswirkung / Eintrittswahrscheinlichkeit | 1 | 2 | 3 | 4 | 5 |
@@ -775,6 +801,8 @@ Die Matrix ordnet alle elf Risiken nach Auswirkung und Eintrittswahrscheinlichke
 Fünf der elf Risiken sind hoch eingestuft. Die drei höchstbewerteten Risiken R03, R01 und R10 gehen auf dieselbe Ursache zurück: auf die knappe Zeit im Verhältnis zur technischen Unsicherheit. Sie werden deshalb mit derselben Gegenmassnahme gesteuert, nämlich einem verbindlich begrenzten Kernumfang mit vorab festgelegter Reihenfolge der Umfangsreduktion.
 
 #### Verlauf der Risikobewertung
+
+> Platzhalter Abbildung 14: Verlauf der Risikobewertung über die Sprints
 
 Die Bewertung wird an jedem Sprintende überprüft. Veränderungen werden hier und im Statusbericht der betreffenden Woche ausgewiesen.
 
@@ -804,7 +832,7 @@ Tritt ein Risiko ein, wird es mit Datum, Wirkung und Reaktion in der folgenden T
 
 ### 2.16 Wirtschaftlichkeitsbetrachtung
 
-Merkblatt A verlangt eine Bewertung des Projekts hinsichtlich Kosten-Nutzen, Ressourcen, Nachhaltigkeit und Skalierbarkeit. Die Betrachtung selbst erfolgt in Kapitel 6. Die Methode wird hier festgelegt, damit die dafür nötigen Daten von Beginn weg erhoben werden.
+Merkblatt A verlangt eine Bewertung des Projekts hinsichtlich Kosten-Nutzen, Ressourcen, Nachhaltigkeit und Skalierbarkeit. Die Betrachtung selbst erfolgt am Ende der Arbeit. Die Methode wird hier festgelegt, damit die dafür nötigen Daten von Beginn weg erhoben werden.
 
 | Betrachtungsfeld | Datenquelle | Erhebung ab |
 | --- | --- | --- |
@@ -823,11 +851,11 @@ Die Bewertung der MCP-basierten Adapterarchitektur gegenüber einer direkten API
 
 ### 2.17 Projektjournal
 
-Das Projektjournal wird fortlaufend geführt und hält zentrale Ereignisse, Entscheide, Beobachtungen und Reflexionen fest. Es liegt unter `docs/journal/`, ein File pro Monat, und ist über GitHub Pages jederzeit einsehbar.
+Das Projektjournal hält zentrale Ereignisse, Entscheide, Beobachtungen und Reflexionen fest. Es liegt als `docs/journal.md` im Repository und ist über GitHub Pages jederzeit einsehbar.
 
-Ein Journaleintrag entsteht pro Arbeitseinheit und enthält Datum, Dauer, bearbeitete Issues, wesentliche Beobachtungen, getroffene Entscheide und offene Punkte. Das Journal ersetzt in diesem Einzelprojekt das Daily Scrum und dient zugleich als Grundlage für die Aufwandserfassung in der Wirtschaftlichkeitsbetrachtung.
+Ein Eintrag entsteht je Kalenderwoche und wird jeweils am Sonntag geschrieben. Er weist die Arbeitstage der Woche einzeln aus und enthält Dauer, bearbeitete Issues, wesentliche Beobachtungen, getroffene Entscheide und offene Punkte. Das Journal ersetzt in diesem Einzelprojekt das Daily Scrum und dient zugleich als Grundlage für die Aufwandserfassung in der Wirtschaftlichkeitsbetrachtung.
 
-Sackgassen und Fehlversuche werden bewusst festgehalten. Sie sind Teil der Lösungsfindung und liefern das Material für die Reflexion in Kapitel 9.
+Sackgassen und Fehlversuche werden bewusst festgehalten. Sie sind Teil der Lösungsfindung und liefern das Material für die Reflexion.
 
 ### 2.18 Lehren aus den Semesterarbeiten 4 und 5
 
@@ -835,16 +863,16 @@ Die Projektführung dieser Arbeit baut auf den Rückmeldungen der Bewertungen de
 
 | Rückmeldung aus der Bewertung | Konsequenz in dieser Arbeit | Wo verankert |
 | --- | --- | --- |
-| Viele Änderungen kamen auf den letzten Drücker | Scope-Freeze am 04.12.2026, ab da nur noch Tests, Messungen und Dokumentation | Meilenstein M3, Kapitel 2.6 |
-| Das Project Board war auf privat gestellt und nicht zugänglich | Board und Repository öffentlich, Zugriff in Sprint 1 verifiziert und im Statusbericht KW38 bestätigt | Kapitel 2.4, US02 |
-| Die Dozenten hatten lange keine Information über den Projektstand | Wöchentlicher Statusbericht ab KW38, Ampelsystem, Standblock auf der Startseite | Kapitel 2.13 |
-| Sprints waren unterschiedlich lang | Sprintlängen folgen den fixen Reviewterminen, die Ungleichheit ist begründet, die Planung erfolgt über ein konstantes Wochenbudget | Kapitel 2.6.1 und 2.9 |
-| Sprintziele waren verbesserungswürdig | Sprintziel als ein Satz Outcome, mit Abgleich gegen die Zieltabelle im Review | Kapitel 2.7 |
-| Die Schätzung der Tasks war zu Beginn unklar | Schätzskala mit Referenzstory US01, Wochenbudget, Velocity-Verfolgung | Kapitel 2.9 |
-| Die Dokumentation war lange mager und bestand vor allem aus Tabellen | Dokumentation laufend, Fliesstext mit Begründung statt reiner Tabellen, Doku-Ampel im Statusbericht | Kapitel 2.13 |
-| Demo und Use Case waren nicht optimal vorbereitet | Demo-Skript mit Backup-Plan, Generalprobe am Vortag jeder Zwischenpräsentation | US37, Kapitel 2.7 |
-| Tests und Lint wurden in einer Zwischenpräsentation nicht nachvollziehbar erklärt | Für jeden Präsentationsblock wird vorab eine Erklärung in drei Sätzen vorbereitet, die Teststrategie ist schriftlich begründet | Kapitel 2.12 |
-| Zusammenarbeit und Fremdfeedback waren im Repository nur begrenzt sichtbar | Reviewprotokolle mit Expertenrückmeldungen und deren Umsetzung als Issues | Kapitel 2.7 und 8 |
+| Viele Änderungen kamen auf den letzten Drücker | Scope-Freeze am 04.12.2026, ab da nur noch Tests, Messungen und Dokumentation | Meilenstein M3 |
+| Das Project Board war auf privat gestellt und nicht zugänglich | Board und Repository öffentlich, Zugriff in Sprint 1 verifiziert und im Statusbericht KW38 bestätigt | US02 |
+| Die Dozenten hatten lange keine Information über den Projektstand | Wöchentlicher Statusbericht ab KW38, Ampelsystem, Standblock auf der Startseite | US05 |
+| Sprints waren unterschiedlich lang | Sprintlängen folgen den fixen Reviewterminen, die Ungleichheit ist begründet, die Planung erfolgt über ein konstantes Wochenbudget | Terminplan und Kapazitätsplanung |
+| Sprintziele waren verbesserungswürdig | Sprintziel als ein Satz Outcome, mit Abgleich gegen die Zieltabelle im Review | Sprint Planning |
+| Die Schätzung der Tasks war zu Beginn unklar | Schätzskala mit Referenzstory US01, Wochenbudget, Velocity-Verfolgung | Aufwandschätzung |
+| Die Dokumentation war lange mager und bestand vor allem aus Tabellen | Dokumentation laufend, Fliesstext mit Begründung statt reiner Tabellen, Doku-Ampel im Statusbericht | Definition of Done |
+| Demo und Use Case waren nicht optimal vorbereitet | Demo-Skript mit Backup-Plan, Generalprobe am Vortag jeder Zwischenpräsentation | US37 |
+| Tests und Lint wurden in einer Zwischenpräsentation nicht nachvollziehbar erklärt | Für jeden Präsentationsblock wird vorab eine Erklärung in drei Sätzen vorbereitet, die Teststrategie ist schriftlich begründet | Teststrategie |
+| Zusammenarbeit und Fremdfeedback waren im Repository nur begrenzt sichtbar | Reviewprotokolle mit Expertenrückmeldungen und deren Umsetzung als Issues | Sprint Review |
 | Abzug für schwarzen Folienhintergrund | Heller Foliensatz, an das TBZ-Layout angelehnt | US37 |
 
 Die Rückmeldungen betreffen überwiegend die Projektführung und die Nachweisführung, weniger die technische Umsetzung. Die daraus abgeleiteten Massnahmen sind deshalb nicht als Absichtserklärung formuliert, sondern jeweils an einen Meilenstein, eine User Story oder ein Kapitel dieser Dokumentation gebunden und dort überprüfbar.
@@ -882,7 +910,7 @@ default via 10.0.21.1 dev eno1 proto dhcp src 10.0.21.197
 
 Die Haupt-Netzwerkkarte hängt im allgemeinen Netz 10.0.21.0/24, die Verwaltung erfolgt über 10.1.24.5. Die Schnittstellen `eno2` bis `eno4` sind vorhanden, aber nicht aktiv. Der freigegebene Switch im Netz 10.0.26.0/24 ist zum Zeitpunkt der Erhebung noch nicht angebunden.
 
-Daraus ergibt sich ein Risiko: Der Fernzugriff auf beide Systeme hängt an der WireGuard-Verbindung, die auf denselben Maschinen terminiert. Ein Neustart oder eine Änderung der Netzwerkkonfiguration kann den eigenen Zugang unterbrechen. Dieser Sachverhalt ist als Risiko R11 in Kapitel 2.15 erfasst.
+Daraus ergibt sich ein Risiko: Der Fernzugriff auf beide Systeme hängt an der WireGuard-Verbindung, die auf denselben Maschinen terminiert. Ein Neustart oder eine Änderung der Netzwerkkonfiguration kann den eigenen Zugang unterbrechen. Dieser Sachverhalt ist als Risiko R11 erfasst.
 
 #### 3.1.3 Vorgefundener Zustand auf dl380-01
 
@@ -976,7 +1004,7 @@ Geprüfte Alternativen:
 | --- | --- |
 | NodePort | Gewählt. Standardmittel von Kubernetes, keine Änderung an der Plattform nötig, aus dem Verwaltungsnetz direkt erreichbar, vom Adapter mit wenigen Zeilen erzeugbar |
 | Weiterleitung über `virtctl port-forward` | Verworfen. Für manuelle Arbeit geeignet, für einen automatisierten Check jedoch umständlich, weil der Agent einen Prozess offen halten müsste |
-| Multus mit Netzwerkbrücke, Maschine erhält eine Adresse im Labornetz | Verworfen für den Proof of Concept. Am nächsten an einer produktiven Lernumgebung, erfordert aber Eingriffe in die Netzwerkkonfiguration des Systems, das den Fernzugriff trägt. Wird im Ausblick in Kapitel 10 als produktionsnaher Weg behandelt |
+| Multus mit Netzwerkbrücke, Maschine erhält eine Adresse im Labornetz | Verworfen für den Proof of Concept. Am nächsten an einer produktiven Lernumgebung, erfordert aber Eingriffe in die Netzwerkkonfiguration des Systems, das den Fernzugriff trägt. Wird im Ausblick als produktionsnaher Weg behandelt |
 
 **ADR-003: microk8s-hostpath als Speicherklasse**
 
@@ -988,9 +1016,11 @@ Geprüfte Alternativen:
 
 Begründung: `local-storage` verwendet den Provisioner `kubernetes.io/no-provisioner` und legt keine Datenträger selbst an. Jede virtuelle Maschine würde damit ein von Hand erstelltes PersistentVolume benötigen. Solche manuellen Schritte sollen durch diese Arbeit entfallen. `microk8s-hostpath` ist die Standardklasse des Clusters, legt Datenträger bei Bedarf an und entfernt sie beim Löschen wieder.
 
-Einschränkung, die bewusst in Kauf genommen wird: `microk8s-hostpath` bindet Daten an einen einzelnen Knoten. Für einen Einzelknoten-Cluster ist das folgenlos, für einen späteren Mehrknoten-Betrieb wäre verteilter Speicher nötig. Das ist in Kapitel 10 vermerkt.
+Einschränkung, die bewusst in Kauf genommen wird: `microk8s-hostpath` bindet Daten an einen einzelnen Knoten. Für einen Einzelknoten-Cluster ist das folgenlos, für einen späteren Mehrknoten-Betrieb wäre verteilter Speicher nötig. Das ist im Ausblick vermerkt.
 
 #### 3.1.7 Umgebung der Ausgangsmessung
+
+> Platzhalter Abbildung 15: Zone 10-1-45-0 in MAAS vor dem Lauf
 
 Die heutige Bereitstellung über LernMAAS läuft nicht auf `dl380-01`, sondern auf einer eigenen, davon vollständig getrennten Anlage. Diese wurde am 14.09.2026 lesend erhoben.
 
@@ -1046,7 +1076,7 @@ Für die Ausgangsmessung wird die Zone `10-1-45-0` verwendet. Sie ist nachweisli
 
 Die zentrale Reservationsliste weist für Rack 5 alle vier Umgebungen als frei aus. In MAAS stehen jedoch 24 bereitgestellte Maschinen des Moduls m437 mit dem Merkmal `m437-ICT23d` in der Zone `10-4-45-0`, die meisten davon eingeschaltet, mit Ubuntu 24.04 LTS und Adressen von 10.0.45.75 aufwärts.
 
-Ob diese Umgebung derzeit im Unterricht verwendet wird, ist für diesen Befund nicht massgeblich. Massgeblich ist, dass die Liste sie in keinem der beiden Fälle führt: weder als belegt noch als abgeräumt. Die Belegung der Umgebungen wird damit ausserhalb des Systems geführt, und der geführte Stand weicht vom tatsächlichen ab. Dieser Punkt wird in Kapitel 3.2.7 als Befund B8 aufgenommen.
+Ob diese Umgebung derzeit im Unterricht verwendet wird, ist für diesen Befund nicht massgeblich. Massgeblich ist, dass die Liste sie in keinem der beiden Fälle führt: weder als belegt noch als abgeräumt. Die Belegung der Umgebungen wird damit ausserhalb des Systems geführt, und der geführte Stand weicht vom tatsächlichen ab. Dieser Punkt wird als Befund B8 aufgenommen.
 
 **Umgang mit Zugangsdaten**
 
@@ -1061,7 +1091,7 @@ Die WireGuard-Konfigurationen der Umgebungen liegen als base64-kodiertes Archiv 
 | Steuerung | fünf getrennte Controller | ein Cluster |
 | Netzzuordnung | Availability Zones je VPN | Namensraum und Label |
 
-Der Unterschied in der Hardware ist erheblich und begründet die Trennung der Messgrössen in Kapitel 3.4.
+Der Unterschied in der Hardware ist erheblich und begründet die Trennung der Messgrössen im Messkonzept.
 
 ### 3.2 IST-Analyse der heutigen Bereitstellung
 
@@ -1129,9 +1159,13 @@ Es findet keine Prüfung der Eingaben statt. Die Anzahl der gewünschten Maschin
 
 Es gibt keine Rückmeldung über den Erfolg. Das Skript wartet nicht, prüft nichts nach und meldet keinen Zustand. Ob die Maschinen später nutzbar sind, zeigt sich erst in der Oberfläche.
 
-Diese drei Punkte, fehlende Vollständigkeit, fehlende Validierung und fehlende Zustandsführung, sind die Ansatzpunkte des in Kapitel 4.3 beschriebenen Agenten.
+Diese drei Punkte, fehlende Vollständigkeit, fehlende Validierung und fehlende Zustandsführung, sind die Ansatzpunkte des Agenten.
 
 #### 3.2.5 Ablauf und Zählung der manuellen Schritte
+
+> Platzhalter Abbildung 16: Ablauf des heutigen Verfahrens mit den dreizehn Schritten
+
+> Platzhalter Abbildung 17: Bereitstellungsdialog mit dem Textfeld für die Erstkonfiguration
 
 Die folgende Aufstellung ist nicht aus der Anleitung abgeleitet, sondern an einem vollständigen Durchlauf beobachtet. Dieser Lernlauf wurde am 16.09.2026 auf `cloud-au-30` in der Zone `10-1-45-0` durchgeführt, mit dem Profil m254 und einer Maschine. Er diente ausdrücklich der Ermittlung des Ablaufs und ist nicht Teil der Ausgangsmessung. Das Protokoll liegt als `docs/nachweise/lernlauf-lernmaas-00-20260916.txt` im Repository.
 
@@ -1176,9 +1210,11 @@ Die Adresse der Maschine wechselt. Während des Commissionings lautete sie `10.0
 
 Die Erstkonfiguration wird bei jedem Lauf von Hand eingefügt. Der Bereitstellungsdialog enthält ein Textfeld für cloud-init. Dessen Inhalt ist nicht Teil des Modulprofils, wird nicht versioniert und nicht geprüft. Ein Tippfehler wird deshalb erst erkennbar, wenn die Maschine später nicht das erwartete Verhalten zeigt.
 
-Der Lauf belegt zugleich, dass sich über dieses Textfeld derselbe prüfbare Dienst einrichten lässt wie auf der Zielplattform dieser Arbeit. Damit ist das in Kapitel 3.4.2 verlangte einheitliche Endkriterium auf beiden Seiten herstellbar. Die Prüfung ergab die erwartete Antwort des Testdienstes über Port 8080. Die Zeichenkette der Antwort wurde nach dem Lernlauf auf beiden Plattformen auf `lernumgebung bereit` vereinheitlicht, damit die Prüfung auf beiden Seiten mit demselben Befehl erfolgen kann.
+Der Lauf belegt zugleich, dass sich über dieses Textfeld derselbe prüfbare Dienst einrichten lässt wie auf der Zielplattform dieser Arbeit. Damit ist das einheitliche Endkriterium des Messkonzepts auf beiden Seiten herstellbar. Die Prüfung ergab die erwartete Antwort des Testdienstes über Port 8080. Die Zeichenkette der Antwort wurde nach dem Lernlauf auf beiden Plattformen auf `lernumgebung bereit` vereinheitlicht, damit die Prüfung auf beiden Seiten mit demselben Befehl erfolgen kann.
 
 #### 3.2.6 Abbau
+
+> Platzhalter Abbildung 18: Resource Pool nach dem Löschen der Maschine
 
 Ein dem Aufbau entsprechender Abbaubefehl existiert nicht. Der Abbau wurde im selben Lauf beobachtet und besteht aus drei getrennten Vorgängen.
 
@@ -1210,8 +1246,8 @@ Eine weitere Beobachtung betrifft die Nachweisführung selbst: Die Ereignisabfra
 | B10 | Zwischen Aufruf und Bereitstellung liegt ein automatischer Zwischenschritt von rund 157 Sekunden | Commissioning im Lernlauf vom 16.09.2026 |
 | B11 | Die Adresse der Maschine steht erst nach der Bereitstellung fest | Wechsel von 10.0.45.250 auf 10.0.45.56 |
 | B12 | Die Erstkonfiguration ist nicht Teil des Profils und wird von Hand eingefügt | Textfeld im Bereitstellungsdialog |
-| B13 | Freigeben ist kein Abbau, der vollständige Abbau besteht aus drei Vorgängen | Kapitel 3.2.6 |
-| B14 | Der Resource Pool bleibt nach dem Löschen der Maschine bestehen | Kapitel 3.2.6 |
+| B13 | Freigeben ist kein Abbau, der vollständige Abbau besteht aus drei Vorgängen | Freigeben, Maschine löschen, Pool löschen |
+| B14 | Der Resource Pool bleibt nach dem Löschen der Maschine bestehen | Pool nach dem Löschen weiterhin vorhanden |
 
 Die Befunde B2, B3, B5, B6, B11, B12, B13 und B14 adressiert diese Arbeit unmittelbar. B1 und B7 werden im Ausblick aufgegriffen. B9 bleibt ausserhalb des Umfangs, weil er die Hardware betrifft, B10 ist eine Eigenschaft der Plattform und wird lediglich in der Messung berücksichtigt.
 
@@ -1225,6 +1261,10 @@ Die Befunde B2, B3, B5, B6, B11, B12, B13 und B14 adressiert diese Arbeit unmitt
 | Erhebung auf den fünf MAAS-Controllern am 14.09.2026 | eigene Aufnahme | Zustand, Profile, Prüfsummen, Zonenbelegung |
 | Reservationsliste LernMAAS TBZ | intern | Belegung der VPN-Umgebungen |
 | Betriebsunterlagen in Teams, SharePoint und dem internen GitLab | intern | Hintergrund zu Betrieb und Upgrade-Planung |
+
+Die Nutzung der Umgebung und die Veröffentlichung der Erhebung sind über die bewilligte Projektbeschreibung vom 10.09.2026 abgedeckt, die von beiden Experten geprüft wurde. Die Freigabe der LernMAAS-Umgebung für diese Arbeit erfolgte durch deren Betreiber.
+
+Zur Einordnung dieser Befunde: Das heutige Verfahren ist seit Jahren im Einsatz und erfüllt den Zweck, für den es gebaut wurde, nämlich die wiederkehrende Bereitstellung von Übungsumgebungen auf einer bekannten Anlage durch Personen, die diese Anlage kennen. Die Befunde beschreiben Grenzen dieses Verfahrens gemessen an einer anderen Anforderung, der plattformübergreifenden und nachvollziehbaren Bereitstellung, und nicht Mängel in dessen Umsetzung.
 
 Für interne Unterlagen gilt in dieser Arbeit eine feste Regel: Sie werden benannt und mit Ablageort referenziert, aber nicht wiedergegeben. Weder Bildschirmfotos ihrer Inhalte noch kopierte Adress- oder Schlüsseltabellen sind Teil dieser Dokumentation. Grund ist, dass das Repository dieser Arbeit öffentlich ist. Aussagen aus internen Quellen werden in eigenen Worten formuliert und, wo möglich, durch eine eigene Erhebung belegt.
 
@@ -1269,7 +1309,7 @@ Der Proof of Concept verwendet eine einzige, technisch reduzierte Lernumgebung. 
 | Prüfbarer Dienst | HTTP auf Port 8080, Antwort mit der Zeichenkette `lernumgebung bereit` |
 | Endzustand | Die Umgebung gilt als bereit, wenn der Dienst diese Zeichenkette liefert |
 
-Diese Festlegung deckt sich weitgehend mit der in Kapitel 4.1 aufgebauten Referenz-Lernumgebung, die mit zwei Kernen, 2 GB und 10 GB betrieben wurde. Der Datenträger wird von 10 auf 12 GB angehoben, damit er dem im Betrieb vorgefundenen Wert entspricht.
+Diese Festlegung deckt sich weitgehend mit der aufgebauten Referenz-Lernumgebung, die mit zwei Kernen, 2 GB und 10 GB betrieben wurde. Der Datenträger wird von 10 auf 12 GB angehoben, damit er dem im Betrieb vorgefundenen Wert entspricht.
 
 Die Spezifikation ist mit dem Firmenexperten abzustimmen.
 
@@ -1303,7 +1343,7 @@ Beide Vorgehensweisen werden am selben Punkt gestartet und am selben Punkt als f
 | **Ende Aufbau** | Der Testdienst liefert über das Netz auf Port 8080 die Zeichenkette `lernumgebung bereit`. Nicht: die Maschine läuft, nicht: der Befehl ist abgesetzt |
 | **Ende Abbau** | Keine dem Lauf zugeordnete Ressource ist mehr vorhanden, einschliesslich des PersistentVolume. Nicht: der Löschbefehl ist abgesetzt |
 
-Das Endkriterium des Abbaus ist bewusst so streng formuliert. Der Referenzlauf in Kapitel 4.1.3 hat gezeigt, dass zwischen dem abgesetzten Befehl und dem tatsächlichen Verschwinden aller Ressourcen Zeit vergeht. Eine Messung, die nur den abgesetzten Befehl erfasst, bildet diesen Zeitraum nicht ab.
+Das Endkriterium des Abbaus ist bewusst so streng formuliert. Der Referenzlauf auf KubeVirt hat gezeigt, dass zwischen dem abgesetzten Befehl und dem tatsächlichen Verschwinden aller Ressourcen Zeit vergeht. Eine Messung, die nur den abgesetzten Befehl erfasst, bildet diesen Zeitraum nicht ab.
 
 #### 3.4.3 Umgang mit dem Abbildimport
 
@@ -1314,7 +1354,7 @@ Regel: Das Betriebssystemabbild liegt bei beiden Vorgehensweisen zu Beginn der M
 #### 3.4.4 Durchführung
 
 - Je Vorgehensweise werden drei vollständige Durchläufe protokolliert, Aufbau und Abbau.
-- Gemessen wird mit derselben Test-Lernumgebung nach Kapitel 3.3.
+- Gemessen wird mit derselben Test-Lernumgebung auf beiden Seiten.
 - Die Zeitnahme erfolgt mit Zeitstempeln, nicht durch Schätzung. Jeder Schritt wird mit Beginn und Ende erfasst.
 - Manuelle Schritte werden einzeln aufgeführt, nicht nur gezählt. Nur so ist nachvollziehbar, welche Schritte durch die neue Lösung tatsächlich entfallen.
 - Auch vorbereitende manuelle Schritte zählen, etwa die Reservation einer VPN-Umgebung oder das Eintragen in eine Liste.
@@ -1338,18 +1378,18 @@ Die Vorlage liegt als `docs/messungen/vorlage-messprotokoll.md` im Repository un
 
 #### 3.4.6 Erklärte Einschränkungen
 
-Diese Einschränkungen werden offen ausgewiesen und bei der Bewertung in Kapitel 6 berücksichtigt:
+Diese Einschränkungen werden offen ausgewiesen und bei der Bewertung berücksichtigt:
 
-1. **Unterschiedliche Hardware.** Die beiden Vorgehensweisen laufen nicht auf denselben Maschinen. Deshalb ist die Anzahl manueller Schritte und nicht die Gesamtdauer die tragende Messgrösse.
-2. **Kleine Stichprobe.** Drei Durchläufe je Vorgehensweise erlauben keine statistische Auswertung. Sie genügen, um einen Unterschied in der Grössenordnung zu belegen, nicht um kleine Unterschiede nachzuweisen.
-3. **Dieselbe ausführende Person.** Alle Durchläufe werden von derselben Person ausgeführt, die das heutige Verfahren kennt. Ein Einarbeitungseffekt zugunsten der neuen Lösung ist damit weitgehend ausgeschlossen, ein Routineeffekt zugunsten des heutigen Verfahrens besteht dagegen.
-4. **Reduzierte Test-Lernumgebung.** Gemessen wird nicht eine vollständige Unterrichtsumgebung, sondern die reduzierte Umgebung nach Kapitel 3.3.
+1. Die beiden Vorgehensweisen laufen nicht auf denselben Maschinen. Deshalb ist die Anzahl manueller Schritte und nicht die Gesamtdauer die tragende Messgrösse.
+2. Drei Durchläufe je Vorgehensweise erlauben keine statistische Auswertung. Sie genügen, um einen Unterschied in der Grössenordnung zu belegen, nicht um kleine Unterschiede nachzuweisen.
+3. Alle Durchläufe werden von derselben Person ausgeführt, die das heutige Verfahren kennt. Ein Einarbeitungseffekt zugunsten der neuen Lösung ist damit weitgehend ausgeschlossen, ein Routineeffekt zugunsten des heutigen Verfahrens besteht dagegen.
+4. Gemessen wird nicht eine vollständige Unterrichtsumgebung, sondern die festgelegte reduzierte Umgebung.
 
 ### 3.5 Ausgangsaufnahme des heutigen Verfahrens
 
 #### 3.5.1 Gegenstand und Abgrenzung
 
-Dieser Abschnitt hält fest, wie sich das heutige Verfahren im Betrieb tatsächlich verhält. Er ist bewusst nicht als Vorher-Nachher-Vergleich angelegt. Ein solcher Vergleich setzt voraus, dass beide Seiten in ihrer vorgesehenen Form vorliegen, und die neue Seite entsteht erst in Sprint 2. Der Vergleich erfolgt deshalb in Kapitel 6, auf Grundlage der Durchläufe aus US28 und US30.
+Dieser Abschnitt hält fest, wie sich das heutige Verfahren im Betrieb tatsächlich verhält. Er ist bewusst nicht als Vorher-Nachher-Vergleich angelegt. Ein solcher Vergleich setzt voraus, dass beide Seiten in ihrer vorgesehenen Form vorliegen, und die neue Seite entsteht erst in Sprint 2. Der Vergleich erfolgt deshalb erst später, auf Grundlage der Durchläufe aus US28 und US30.
 
 Was hier erhoben wird:
 
@@ -1371,13 +1411,17 @@ Die Läufe wurden am 16.09.2026 in der Zone `10-1-45-0` auf `cloud-au-30` durchg
 
 #### 3.5.3 Manuelle Schritte je Lernumgebung
 
-Das wesentliche Ergebnis dieser Aufnahme ist nicht eine Zeitangabe, sondern eine Anzahl. Der Grund steht in Kapitel 3.4.1: die Anzahl der manuellen Schritte ist die einzige Messgrösse, die von der eingesetzten Hardware unabhängig ist.
+Das wesentliche Ergebnis dieser Aufnahme ist nicht eine Zeitangabe, sondern eine Anzahl. Der Grund liegt im Messkonzept: die Anzahl der manuellen Schritte ist die einzige Messgrösse, die von der eingesetzten Hardware unabhängig ist.
 
-Massgeblich ist dabei die Bezugsgrösse. Die dreizehn manuellen Schritte aus Kapitel 3.2.5 fallen je Lernumgebung an, nicht je virtueller Maschine. Ob eine Umgebung aus einer oder aus vierundzwanzig Maschinen besteht, ändert daran nichts: `createvms` wird einmal aufgerufen, die Maschinen werden gemeinsam einer Zone zugeordnet, gemeinsam markiert und gemeinsam bereitgestellt, die Erstkonfiguration wird einmal eingefügt.
+Massgeblich ist dabei die Bezugsgrösse. Die dreizehn manuellen Schritte fallen je Lernumgebung an, nicht je virtueller Maschine. Ob eine Umgebung aus einer oder aus vierundzwanzig Maschinen besteht, ändert daran nichts: `createvms` wird einmal aufgerufen, die Maschinen werden gemeinsam einer Zone zugeordnet, gemeinsam markiert und gemeinsam bereitgestellt, die Erstkonfiguration wird einmal eingefügt.
 
-Daraus folgt eine Einordnung, die für die Bewertung in Kapitel 6 wesentlich ist: Der Aufwand des heutigen Verfahrens ist ein fixer Aufwand je Umgebung. Der Nutzen einer Automatisierung liegt deshalb nicht darin, Arbeit pro Maschine zu sparen, sondern darin, diesen fixen Block zu ersetzen und die darin enthaltenen fehleranfälligen Handgriffe zu beseitigen.
+Daraus folgt eine Einordnung, die für die spätere Bewertung wesentlich ist: Der Aufwand des heutigen Verfahrens ist ein fixer Aufwand je Umgebung. Der Nutzen einer Automatisierung liegt deshalb nicht darin, Arbeit pro Maschine zu sparen, sondern darin, diesen fixen Block zu ersetzen und die darin enthaltenen fehleranfälligen Handgriffe zu beseitigen.
 
 #### 3.5.4 Zeitanteile innerhalb des heutigen Verfahrens
+
+> Platzhalter Abbildung 19: Ereignisliste des Laufs lernmaas-00
+
+> Platzhalter Abbildung 20: Zeitanteile der Läufe lernmaas-00 und mess01
 
 Die folgenden Werte beschreiben den Ablauf für eine Maschine. Sie sind nicht mit Werten einer anderen Plattform vergleichbar, weil die Hardware unterschiedlich ist und weil die Grösse der Umgebung die automatischen Anteile beeinflusst.
 
@@ -1391,9 +1435,11 @@ Die folgenden Werte beschreiben den Ablauf für eine Maschine. Sie sind nicht mi
 
 Die automatischen Abschnitte sind über beide Läufe stabil, die Abweichung liegt unter vier Prozent. Die Spanne zwischen `Ready` und `Deploying` schwankt dagegen stark, weil sie zwei verschiedene Dinge enthält: die Zeit, bis die bedienende Person überhaupt bemerkt, dass die Maschine bereit ist, und die eigentliche Bedienung. Die bedienende Person schätzt den Bedienanteil auf 60 bis 90 Sekunden. Für künftige Läufe wird der Beginn der Bedienung als eigener Zeitstempel erfasst, damit beide Anteile getrennt ausgewiesen werden können.
 
-Der Abbau dauerte in beiden Läufen unter zwei Minuten und besteht aus drei getrennten Vorgängen, siehe Kapitel 3.2.6.
+Der Abbau dauerte in beiden Läufen unter zwei Minuten und besteht aus drei getrennten Vorgängen
 
 #### 3.5.5 Verhalten im Fehlerfall
+
+> Platzhalter Abbildung 21: Fehlermeldung des Laufs parallel01 auf cloud-au-36
 
 Der Lauf `parallel01` sollte zwei Maschinen gleichzeitig anlegen. Die erste entstand auf `cloud-au-32`, die zweite scheiterte auf `cloud-au-36`:
 
@@ -1419,28 +1465,141 @@ Für diese Arbeit ist weniger die Ursache von Bedeutung als das beobachtete Verh
 
 Der letzte Punkt hat die grösste Tragweite. Ohne Prüfung der Ausgabe ist nicht erkennbar, dass weniger Maschinen entstanden sind als angefordert. Bei zwei angeforderten Maschinen ist eine fehlende Maschine noch erkennbar, bei einer Klasse mit vierundzwanzig Maschinen kann die Abweichung dagegen unbemerkt bleiben, bis die Umgebung im Unterricht benötigt wird.
 
-Damit ist an einem tatsächlichen Vorfall belegt, was die Befunde B3, B5 und B6 aus Kapitel 3.2.7 beschreiben: es fehlt eine Prüfung der Eingabe, eine Zustandsführung und eine verlässliche Rückmeldung. Diese drei Eigenschaften sind Gegenstand des Agenten in Kapitel 4.3.
+Damit ist an einem tatsächlichen Vorfall belegt, was die Befunde B3, B5 und B6 beschreiben: es fehlt eine Prüfung der Eingabe, eine Zustandsführung und eine verlässliche Rückmeldung. Diese drei Eigenschaften sind Gegenstand des Agenten.
 
 #### 3.5.6 Was diese Aufnahme nicht leistet
 
-1. **Kein Zeitvergleich.** Die Gegenseite existiert noch nicht. Der Vergleich erfolgt in Kapitel 6.
-2. **Keine Klassengrösse.** Gemessen wurde mit einer Maschine. Dass der manuelle Aufwand bei grösseren Umgebungen gleich bleibt, ist aus dem Ablauf begründet, aber noch nicht an einem Lauf belegt. Ein einzelner Lauf in Klassengrösse ist dafür vorgesehen und mit dem Betreiber abzustimmen.
-3. **Keine Stichprobe.** Zwei vollständige Läufe erlauben keine Aussage über Streuung.
+1. Ein Zeitvergleich ist noch nicht möglich, weil die Gegenseite noch nicht existiert.
+2. Gemessen wurde mit einer Maschine und nicht in Klassengrösse. Dass der manuelle Aufwand bei grösseren Umgebungen gleich bleibt, ist aus dem Ablauf begründet, aber noch nicht an einem Lauf belegt. Ein einzelner Lauf in Klassengrösse ist dafür vorgesehen und mit dem Betreiber abzustimmen.
+3. Zwei vollständige Läufe erlauben keine Aussage über die Streuung.
 
-Diese Einschränkungen werden in Kapitel 6 erneut aufgegriffen.
+Diese Einschränkungen werden bei der Bewertung erneut aufgegriffen.
 
 ### 3.6 Auswahl der Public-Cloud-Plattform
 
-> Wird in Sprint 1 erarbeitet, User Stories US14 und US15. Inhalt: Nutzwertanalyse mit vorab gewichteten Kriterien, Entscheid als ADR-004, Ergebnis des Smoke-Tests inklusive Kostenkontrolle.
+Der Proof of Concept verlangt genau eine Public-Cloud-Plattform, auf der dieselbe Definition einer Lernumgebung bereitgestellt wird wie lokal auf KubeVirt. Welche Plattform das ist, wird hier anhand vorab festgelegter und gewichteter Kriterien entschieden.
+
+#### 3.6.1 Vorgabe aus dem bewilligten Antrag
+
+Die Menge der in Frage kommenden Anbieter ist nicht frei. Die bewilligte Projektbeschreibung vom 10.09.2026 legt im Abschnitt Hardware- und Softwareumgebung fest:
+
+> Public Cloud: Azure- oder AWS-Plattform wird über den Student-Account des Diplomanden genutzt. Die Cloud-Kosten trägt der Diplomand; sie betragen maximal CHF 50. Für die TBZ entstehen keine zusätzlichen Kosten.
+
+Daraus folgen drei Festlegungen. Erstens umfasst der Kandidatenkreis genau zwei Anbieter, Amazon Web Services und Microsoft Azure. Ein anderer Anbieter wäre eine Änderung des bewilligten Umfangs und müsste den Weg über einen Change Request nehmen. Zweitens trägt der Diplomand die Kosten privat, der TBZ entstehen keine. Drittens ist die Obergrenze von CHF 50 eine harte Grenze, keine Richtgrösse.
+
+Die Auswahl beschränkt sich damit auf die Frage, welcher der beiden vorgegebenen Anbieter für diese Arbeit besser geeignet ist.
+
+#### 3.6.2 Ausgangslage vor der Bewertung
+
+Zwei Gegebenheiten bestehen bereits und sind nicht Ergebnis dieser Bewertung, sondern gehen als Tatsachen in sie ein.
+
+Ein Konto bei Amazon Web Services besteht, ist eingerichtet und mit Guthaben ausgestattet. Der Zugang ist damit keine offene Frage. Formal handelt es sich um ein reguläres Konto und nicht um ein Konto aus einem Ausbildungsprogramm. Das entspricht der Absicht des Antrags, weil die Kosten privat getragen werden und der TBZ keine entstehen. Der Vollständigkeit halber: AWS Educate bietet heute Kurse und Übungslabore auf einer eigenen Plattform an, kein reguläres Konto mit Programmierschnittstelle. Für einen Proof of Concept, der Ressourcen über eine Schnittstelle erzeugt, Zustand über mehrere Tage hält und Zugangsschlüssel benötigt, wäre dieser Weg ohnehin nicht geeignet gewesen.
+
+Vorkenntnisse zu Amazon Web Services bestehen aus dem Lehrgang, zu Azure nicht. Das wirkt unmittelbar auf Risiko R03, das Zeitmanagement, mit einem Risikowert von 20 die höchste Bewertung im Risikoregister. Einarbeitungszeit fehlt an anderer Stelle, und das Projekt hat keine Reserve.
+
+#### 3.6.3 Kriterien und Gewichtung
+
+Die Gewichtung ist vor der Bewertung festgelegt worden und leitet sich aus den Vorgaben und der Ausgangslage dieser Arbeit ab, nicht aus den Eigenschaften der Anbieter.
+
+| Nr | Kriterium | Gewicht | Herleitung der Gewichtung |
+| --- | --- | --- | --- |
+| K1 | Eignung der Programmierschnittstelle für den Adapter | 30 | Der Adapter in US25 ist mit acht Story Points die grösste Einzelstory des Projekts und der Gegenstand von Ziel Z4. Die Schnittstelle ist damit das wichtigste Einzelkriterium |
+| K2 | Kostenrisiko innerhalb der Obergrenze von CHF 50 | 15 | Der Antrag begrenzt die Kosten. Da das Konto besteht und Guthaben vorhanden ist, betrifft das Kriterium nicht mehr den Zugang, sondern nur noch das verbleibende Risiko einer Überschreitung |
+| K3 | Nachweisbarkeit des vollständigen Abbaus | 15 | Das Endkriterium des Abbaus verlangt, dass keine dem Lauf zugeordnete Ressource zurückbleibt. Der Referenzlauf auf KubeVirt hat gezeigt, dass Datenträger einen Server überdauern können |
+| K4 | Unterstützung von cloud-init und Ubuntu-24.04-Abbildern | 10 | Die festgelegte Test-Lernumgebung ist über cloud-init definiert. Ohne diese Unterstützung wäre die Umgebung auf beiden Plattformen nicht identisch herstellbar |
+| K5 | Kostenkontrolle und Kontingente | 10 | Akzeptanzkriterium von US15. Betrifft die Steuerung des Risikos R02 |
+| K6 | Datenstandort in der Schweiz | 5 | US33 verlangt eine Beurteilung der Übertragbarkeit. Beide Anbieter betreiben eine Region in der Schweiz, das Kriterium unterscheidet sie kaum und wird deshalb niedrig gewichtet |
+| K7 | Einarbeitungsaufwand unter Berücksichtigung vorhandener Vorkenntnisse | 15 | Steuert die Risiken R01 und R03. R03 ist mit 20 das höchstbewertete Risiko des Projekts |
+
+Die Summe der Gewichte beträgt 100. Bewertet wird je Kriterium auf einer Skala von 1 bis 5, wobei 1 für ungenügend und 5 für sehr gut steht.
+
+#### 3.6.4 Bewertung
+
+> Platzhalter Abbildung 22: Nutzwertanalyse der Public-Cloud-Plattformen als Netzdiagramm
+
+| Kriterium | Gewicht | AWS | Azure |
+| --- | --- | --- | --- |
+| K1 Programmierschnittstelle | 30 | 5 | 4 |
+| K2 Kostenrisiko | 15 | 4 | 5 |
+| K3 Nachweis des Abbaus | 15 | 4 | 5 |
+| K4 cloud-init und Abbilder | 10 | 5 | 5 |
+| K5 Kostenkontrolle und Kontingente | 10 | 4 | 5 |
+| K6 Datenstandort Schweiz | 5 | 4 | 4 |
+| K7 Einarbeitungsaufwand | 15 | 5 | 2 |
+| Nutzwert von maximal 500 | | 455 | 420 |
+| Nutzwert normiert | | 4,55 | 4,20 |
+
+Begründung der Abweichungen:
+
+- K1: Amazon Web Services liegt vorn. Eine virtuelle Maschine entsteht über einen einzigen Dienst und die Programmbibliothek `boto3`, die als die am besten dokumentierte der Branche gilt. Azure verteilt dieselbe Aufgabe über mehrere Verwaltungsbibliotheken für Rechenleistung, Netz und Ressourcengruppen, was den Adapter umfangreicher macht.
+- K2: Azure liegt vorn. Bei Azure for Students wird das Abonnement bei erschöpftem Guthaben deaktiviert, die Obergrenze ist damit technisch erzwungen. Bei Amazon Web Services läuft die Nutzung nach Aufbrauchen des Guthabens kostenpflichtig weiter, die Grenze beruht auf Warnungen und auf Aufmerksamkeit. Dieses Restrisiko wird im Entscheid mit einer Massnahme unterlegt.
+- K3: Azure liegt vorn. Dort liegen alle Ressourcen eines Laufs in einer Ressourcengruppe, der Abbau ist das Löschen dieser Gruppe und der Nachweis eine Abfrage auf verbliebene Ressourcen darin. Bei Amazon Web Services sind Instanz, Datenträger, Sicherheitsgruppe, Schlüsselpaar und öffentliche Adresse eigenständige Objekte, die über Markierungen zusammengehalten und einzeln geprüft werden müssen. Machbar ist beides, der Weg über die Ressourcengruppe ist der kürzere.
+- K5: Beide bieten Budgets, Kostenauswertung und Kontingente. Azure erhält den höheren Wert, weil zur Auswertung die erzwungene Abschaltung hinzukommt.
+- K7: Amazon Web Services liegt deutlich vorn, weil Vorkenntnisse aus dem Lehrgang bestehen. Der objektive Einarbeitungsaufwand ist bei beiden vergleichbar hoch, beide verlangen vor der ersten erreichbaren Maschine mehrere vorgelagerte Objekte. Bewertet wird hier der Aufwand für diesen Diplomanden, nicht der Aufwand im Allgemeinen.
+
+#### 3.6.5 Entscheid
+
+**ADR-004: Amazon Web Services als zweite Zielplattform**
+
+| | |
+| --- | --- |
+| Status | Entschieden am 18.09.2026 |
+| Kontext | Der bewilligte Antrag lässt Amazon Web Services oder Azure zu, Kosten höchstens CHF 50 aus privaten Mitteln. Ein Konto bei Amazon Web Services besteht bereits, Vorkenntnisse bestehen aus dem Lehrgang |
+| Entscheid | Die zweite Zielplattform ist Amazon Web Services, EC2, angesprochen über die Programmbibliothek `boto3` |
+
+Begründung: Amazon Web Services erreicht mit 4,55 von 5 den höheren Nutzwert. Ausschlaggebend sind die Programmierschnittstelle, die mit 30 Punkten das höchstgewichtete Kriterium ist und den Adapter aus US25 trägt, und die vorhandenen Vorkenntnisse, die Einarbeitungszeit sparen und damit unmittelbar auf das höchstbewertete Risiko des Projekts wirken.
+
+Azure liegt bei drei Kriterien vorn, beim Kostenrisiko, beim Nachweis des Abbaus und bei der Kostenkontrolle. Diese Vorteile sind real und werden hier nicht kleingeredet. Sie wiegen den Rückstand bei Schnittstelle und Einarbeitung jedoch nicht auf, und die beiden erstgenannten lassen sich durch Massnahmen ausgleichen, die ohnehin Teil des Projekts sind.
+
+Empfindlichkeit des Ergebnisses: Ohne das Kriterium K7, also ohne Berücksichtigung der vorhandenen Vorkenntnisse, läge Azure mit 4,59 gegenüber 4,47 vorn. Der Entscheid beruht damit wesentlich auf einer Gegebenheit dieses Projekts und nicht auf einer allgemeinen Überlegenheit von Amazon Web Services. Ohne das Kriterium K1 bliebe Amazon Web Services mit 4,36 gegenüber 4,29 knapp vorn. Dieser Zusammenhang ist offengelegt, damit nachvollziehbar bleibt, worauf der Entscheid beruht.
+
+Massnahmen gegen die beiden benannten Nachteile:
+
+| Nachteil | Massnahme | Verankert in |
+| --- | --- | --- |
+| Keine erzwungene Kostenobergrenze | Kostenbudget mit Warnschwellen einrichten, Kontingente vor dem ersten Lauf prüfen, nach jedem Durchlauf abbauen statt Instanzen stehen zu lassen | US15 |
+| Kein gemeinsamer Behälter für die Ressourcen eines Laufs | Jede Ressource eines Laufs erhält dieselbe Markierung mit der Kennung des Laufs. Der Nachweis des Abbaus fragt alle Objektarten über diese Markierung ab und nicht einzeln. Dasselbe Vorgehen wie über das Label `lauf` auf der lokalen Plattform | US25, US29 |
+
+Die zweite Massnahme hat einen Nebeneffekt, der der Arbeit zugutekommt: der Nachweis des vollständigen Abbaus läuft damit auf beiden Zielplattformen nach demselben Muster, über eine Markierung und eine Abfrage darauf. Das macht die Ergebnisse aus US27 und US28 unmittelbar vergleichbar.
+
+Ausweichplattform: Azure bleibt als Ausweichplattform zugelassen, ein Change Request ist dafür nicht nötig, weil beide Anbieter im Antrag stehen. Ein Wechsel beträfe ausschliesslich den Adapter aus US25, weil Fachmodell und Agent plattformneutral sind. Genau das ist die Eigenschaft, die diese Arbeit nachweisen soll.
+
+#### 3.6.6 Smoke-Test
+
+> Platzhalter Abbildung 23: Kostenbudget in AWS mit Warnschwellen
+
+> Platzhalter Abbildung 24: Service Quotas vor dem ersten Lauf
+
+> Wird in Sprint 1 erarbeitet, User Story US15. Inhalt: eine Instanz nach der festgelegten Spezifikation, Prüfung der Kontingente, Einrichtung des Kostenbudgets mit Warnschwellen, vollständiger Abbau mit Nachweis über die Markierung.
+
+#### 3.6.7 Quellen
+
+Die Angaben zu Guthaben, Bedingungen und Funktionsumfang wurden am 18.09.2026 erhoben. Bedingungen der Anbieter ändern sich, die Bewertung bezieht sich auf diesen Stand.
+
+| Angabe | Quelle |
+| --- | --- |
+| Vorgabe Azure oder AWS, Kostenträger, Obergrenze CHF 50 | Bewilligte Projektbeschreibung vom 10.09.2026, Abschnitt Hardware- und Softwareumgebung |
+| AWS Free Tier: USD 100 bis 200 über sechs Monate für neue Konten | Amazon Web Services, Ankündigung vom Juli 2025 |
+| AWS Educate: Kurse und Übungslabore, kein reguläres Konto | Amazon Web Services, Seite zu AWS Educate |
+| Azure for Students: USD 100, zwölf Monate, keine Kreditkarte, Deaktivierung bei erschöpftem Guthaben | Microsoft, Angebotsbedingungen MS-AZR-0170P |
+
 
 ### 3.7 Zielarchitektur
+
+> Platzhalter Abbildung 25: Systemkontext der Lösung
+
+> Platzhalter Abbildung 26: Komponentensicht mit Fachmodell, Agent und Adaptern
+
+> Platzhalter Abbildung 27: Sequenz eines vollständigen Durchlaufs
+
+> Platzhalter Abbildung 28: Zustandsdiagramm des Agenten
 
 > Wird in Sprint 1 erarbeitet, User Story US16. Inhalt: Systemkontext, Komponentensicht, Trennung zwischen Fachmodell, Agent und Adaptern.
 ## 4 Umsetzung
 
 ### 4.1 Referenz-Lernumgebung auf KubeVirt
 
-Bevor ein Fachmodell entworfen werden kann, muss feststehen, welche Felder eine Lernumgebung auf der Zielplattform überhaupt benötigt. Diese Felder wurden nicht aus der Dokumentation von KubeVirt abgeleitet, sondern aus einer von Hand aufgebauten, lauffähigen Referenz-Lernumgebung. Der Lauf dient drei Zwecken: er belegt die Machbarkeit auf der gewählten Plattform, er liefert die Ausgangsgrössen für die spätere Messung, und er ist die Quelle für die Feldtrennung, auf der das Fachmodell in Kapitel 4.2 aufbaut.
+Bevor ein Fachmodell entworfen werden kann, muss feststehen, welche Felder eine Lernumgebung auf der Zielplattform überhaupt benötigt. Diese Felder wurden nicht aus der Dokumentation von KubeVirt abgeleitet, sondern aus einer von Hand aufgebauten, lauffähigen Referenz-Lernumgebung. Der Lauf dient drei Zwecken: er belegt die Machbarkeit auf der gewählten Plattform, er liefert die Ausgangsgrössen für die spätere Messung, und er ist die Quelle für die Feldtrennung, auf der das Fachmodell aufbaut.
 
 Der Lauf trägt die Kennung `testlauf-01` und wurde am 14.09.2026 auf `dl380-01` durchgeführt. Das vollständige Manifest liegt als `docs/nachweise/testvm.yaml` im Repository, die Konsolenausgaben unter `docs/nachweise/`.
 
@@ -1519,6 +1678,10 @@ Alle Objekte eines Laufs tragen das Label `lauf: testlauf-01`. Dieses Label ist 
 
 #### 4.1.2 Ablauf und Messwerte des Referenzlaufs
 
+> Platzhalter Abbildung 29: Virtuelle Maschine im Zustand Running
+
+> Platzhalter Abbildung 30: Antwort des Testdienstes über den NodePort
+
 Der Lauf wurde mit einem einzigen `apply` gestartet und anschliessend beobachtet, bis der Testdienst antwortete.
 
 | Grösse | Wert |
@@ -1536,6 +1699,8 @@ Die beobachtete Zustandsfolge ist zugleich der erste Entwurf der Zustandsführun
 
 #### 4.1.3 Abbau und ein Befund mit Folgen für den Entwurf
 
+> Platzhalter Abbildung 31: PersistentVolume im Zustand Released nach dem Löschen
+
 Nach dem Lauf wurde die Umgebung abgebaut. Der Abbau war vollständig, erfolgte aber verzögert: unmittelbar nach dem Löschen zeigte das zugehörige PersistentVolume noch den Zustand `Released`, erst bei einer späteren Prüfung war es verschwunden.
 
 Der Befund hat keine Auswirkung auf den Lauf selbst, wirkt sich aber unmittelbar auf den Entwurf des Agenten aus:
@@ -1550,16 +1715,16 @@ Ein zweiter Punkt betrifft die Prüfung selbst: Der Nachweis des vollständigen 
 
 #### 4.1.4 Trennung zwischen fachlicher und technischer Beschreibung
 
-Die Trennung der Felder ist das wichtigste Ergebnis des Referenzlaufs. Die Felder des Manifests wurden danach geordnet, ob eine Lehrperson sie sinnvoll angeben kann oder ob sie sich aus der Zielplattform ergeben. Diese Trennung ist die Grundlage des plattformneutralen Fachmodells in Kapitel 4.2 und wird dort in ein JSON-Schema überführt.
+Die Trennung der Felder ist das wichtigste Ergebnis des Referenzlaufs. Die Felder des Manifests wurden danach geordnet, ob eine Lehrperson sie sinnvoll angeben kann oder ob sie sich aus der Zielplattform ergeben. Diese Trennung ist die Grundlage des plattformneutralen Fachmodells und wird dort in ein JSON-Schema überführt.
 
 | Feld im Manifest | Einstufung | Begründung |
 | --- | --- | --- |
-| Name der Lernumgebung, Kennung des Laufs | **Fachlich** | Bezeichnet, worum es geht. Muss von der Lehrperson kommen |
-| Anzahl Maschinen und deren Rollen | **Fachlich** | Ergibt sich aus dem Modulprofil |
-| Anzahl Kerne, Arbeitsspeicher, Grösse des Speichers | **Fachlich** | Fachliche Anforderung an die Leistung, plattformunabhängig ausdrückbar |
-| Betriebssystem in der Form `ubuntu-24.04` | **Fachlich** | Fachliche Angabe. Die Zuordnung zur konkreten Abbild-URL ist Sache des Adapters |
-| Benötigte Dienste und deren Ports | **Fachlich** | Bestimmt, wann die Umgebung fachlich bereit ist |
-| Öffentliche Schlüssel der Zugangsberechtigten | **Fachlich** | Wer Zugriff erhält, ist eine fachliche Festlegung |
+| Name der Lernumgebung, Kennung des Laufs | Fachlich | Bezeichnet, worum es geht. Muss von der Lehrperson kommen |
+| Anzahl Maschinen und deren Rollen | Fachlich | Ergibt sich aus dem Modulprofil |
+| Anzahl Kerne, Arbeitsspeicher, Grösse des Speichers | Fachlich | Fachliche Anforderung an die Leistung, plattformunabhängig ausdrückbar |
+| Betriebssystem in der Form `ubuntu-24.04` | Fachlich | Fachliche Angabe. Die Zuordnung zur konkreten Abbild-URL ist Sache des Adapters |
+| Benötigte Dienste und deren Ports | Fachlich | Bestimmt, wann die Umgebung fachlich bereit ist |
+| Öffentliche Schlüssel der Zugangsberechtigten | Fachlich | Wer Zugriff erhält, ist eine fachliche Festlegung |
 | `apiVersion`, `kind` | Technisch | Reine Plattformsyntax |
 | `dataVolumeTemplates`, `source.http.url` | Technisch | Abbildbezug der Plattform. Wird vom Adapter aus dem fachlichen Betriebssystem abgeleitet |
 | `storageClassName: microk8s-hostpath` | Technisch | Ergebnis von ADR-003, plattformspezifisch |
@@ -1602,7 +1767,7 @@ Dieses Dokument enthält kein Feld, das nur auf KubeVirt zutrifft. Es ist der Au
 | Der Abbau ist vollständig, aber nicht sofort | Befund zum PersistentVolume, Anforderung an US20 und US29 |
 | Fachliche und technische Felder lassen sich sauber trennen | Tabelle in 4.1.4 |
 
-Damit ist die technische Machbarkeit auf der On-Prem-Seite belegt und der Entwurf des Fachmodells sachlich begründet. Offen bleibt die Gegenseite in der Public Cloud, die in Kapitel 3.6 ausgewählt und in Kapitel 4.6 umgesetzt wird.
+Damit ist die technische Machbarkeit auf der On-Prem-Seite belegt und der Entwurf des Fachmodells sachlich begründet. Offen bleibt die Gegenseite in der Public Cloud.
 
 ### 4.2 Plattformneutrales Fachmodell
 
@@ -1622,7 +1787,7 @@ Damit ist die technische Machbarkeit auf der On-Prem-Seite belegt und der Entwur
 
 ### 4.6 Adapter für die Public Cloud
 
-> Wird in Sprint 2 und 3 erarbeitet, User Stories US25 und US26. Inhalt: Abbildung desselben Fachmodells auf die in Kapitel 3.6 gewählte Plattform, Kostenkontrolle, Abbau.
+> Wird in Sprint 2 und 3 erarbeitet, User Stories US25 und US26. Inhalt: Abbildung desselben Fachmodells auf Amazon Web Services, Kostenkontrolle, Abbau.
 
 ### 4.7 Protokollierung und Nachvollziehbarkeit
 
@@ -1636,21 +1801,39 @@ Damit ist die technische Machbarkeit auf der On-Prem-Seite belegt und der Entwur
 
 > Wird in Sprint 3 erarbeitet. Enthält: Vorher-Nachher-Vergleich mit identischen Start- und Endkriterien, Nutzwertanalyse MCP-Adapter gegen direkte API-Anbindung, SWOT-Analyse, Wirtschaftlichkeitsbetrachtung, Beurteilung der Übertragbarkeit auf einen produktiven Betrieb.
 
+> Platzhalter Abbildung 32: Manuelle Schritte je Lernumgebung, heute gegen Proof of Concept
+
+> Platzhalter Abbildung 33: SWOT-Analyse
+
 ## 7 Betrieb und Schulung
 
 > Wird in Sprint 3 erarbeitet. Enthält: Runbook für Aufbau, Bedienung, Fehleranalyse und vollständigen Abbau, Schulungsunterlage und Einführung für Dozierende.
 
 ## 8 Projektverlauf
 
-> Folgt in Stufe 4 und wächst über die Sprints. Enthält: Sprintplanungen, Sprint Reviews mit Expertenrückmeldungen, Retrospektiven, Verlauf der Risikobewertung. Verlinkt auf die wöchentlichen Statusberichte und das Projektjournal.
+> Wächst über die Sprints. Enthält: Sprintplanungen, Sprint Reviews mit Expertenrückmeldungen, Retrospektiven, Verlauf der Risikobewertung. Verlinkt auf die wöchentlichen Statusberichte und das Projektjournal.
+
+Je Sprint werden zwei Nachweise abgelegt, der geschlossene Milestone am Sprintende und die Retrospektive.
+
+> Platzhalter Abbildung 34: Milestone Sprint 1 am Sprintende
+
+> Platzhalter Abbildung 35: Starfish-Retrospektive Sprint 1
+
+> Platzhalter Abbildung 36: Milestone Sprint 2 am Sprintende
+
+> Platzhalter Abbildung 37: Starfish-Retrospektive Sprint 2
+
+> Platzhalter Abbildung 38: Milestone Sprint 3 am Sprintende
+
+> Platzhalter Abbildung 39: Starfish-Retrospektive Sprint 3
 
 ## 9 Reflexion
 
-> Wird am Projektende verfasst. Gliederung: fachliche Reflexion, methodische Reflexion zur Projektführung mit Bezug auf Kapitel 2, persönliche Reflexion, Lessons Learned.
+> Wird am Projektende verfasst. Gliederung: fachliche Reflexion, methodische Reflexion zur Projektführung, persönliche Reflexion, Lessons Learned.
 
 ## 10 Fazit und Ausblick
 
-> Wird am Projektende verfasst. Enthält: Zielerreichung im Detail gegen die Tabelle aus Kapitel 1.4, Gesamtfazit, Ausblick auf mögliche Weiterentwicklungen.
+> Wird am Projektende verfasst. Enthält: Zielerreichung im Detail gegen die Zieltabelle, Gesamtfazit, Ausblick auf mögliche Weiterentwicklungen.
 
 ---
 
@@ -1680,9 +1863,49 @@ Texte und andere Teile dieser Arbeit, die nicht selbst verfasst wurden, sind an 
 
 ### Abbildungsverzeichnis
 
-| Nr. | Abbildung | Kapitel |
-| --- | --- | --- |
-| | | |
+Alle Abbildungen in der Reihenfolge ihres Auftretens. Grafiken sind im jeweiligen Kapitel gezeichnet, Screenshots liegen unter `docs/img/`.
+
+| Nr. | Abbildung | Art | Kapitel |
+| --- | --- | --- | --- |
+| 1 | Projektorganisation und Berichtswege | Grafik | Projektmanagement |
+| 2 | Stakeholder nach Einfluss und Interesse | Grafik | Projektmanagement |
+| 3 | Projektstrukturplan mit elf Epics | Grafik | Projektmanagement |
+| 4 | Terminplan mit Sprints, Epics und Meilensteinen | Grafik | Projektmanagement |
+| 5 | Project Board mit Spalten, Sprint-Feld und Story Points | Screenshot | Projektmanagement |
+| 6 | Milestones Sprint 1 bis 3 | Screenshot | Projektmanagement |
+| 7 | Aufbau eines Issues mit Akzeptanzkriterien und Definition of Done | Screenshot | Projektmanagement |
+| 8 | Board nach Sprint gruppiert mit Summe der Story Points | Screenshot | Projektmanagement |
+| 9 | Velocity je Sprint, geplant gegen abgeschlossen | Grafik | Projektmanagement |
+| 10 | Veröffentlichte Dokumentation auf GitHub Pages | Screenshot | Projektmanagement |
+| 11 | Statusbericht mit den vier Ampeln | Screenshot | Projektmanagement |
+| 12 | Meilensteintrendanalyse | Grafik | Projektmanagement |
+| 13 | Risikomatrix mit allen elf Risiken | Grafik | Projektmanagement |
+| 14 | Verlauf der Risikobewertung über die Sprints | Grafik | Projektmanagement |
+| 15 | Zone 10-1-45-0 in MAAS vor dem Lauf | Screenshot | Analyse und Konzept |
+| 16 | Ablauf des heutigen Verfahrens mit den dreizehn Schritten | Grafik | Analyse und Konzept |
+| 17 | Bereitstellungsdialog mit dem Textfeld für die Erstkonfiguration | Screenshot | Analyse und Konzept |
+| 18 | Resource Pool nach dem Löschen der Maschine | Screenshot | Analyse und Konzept |
+| 19 | Ereignisliste des Laufs lernmaas-00 | Screenshot | Analyse und Konzept |
+| 20 | Zeitanteile der Läufe lernmaas-00 und mess01 | Grafik | Analyse und Konzept |
+| 21 | Fehlermeldung des Laufs parallel01 auf cloud-au-36 | Screenshot | Analyse und Konzept |
+| 22 | Nutzwertanalyse der Public-Cloud-Plattformen als Netzdiagramm | Grafik | Analyse und Konzept |
+| 23 | Kostenbudget in AWS mit Warnschwellen | Screenshot | Analyse und Konzept |
+| 24 | Service Quotas vor dem ersten Lauf | Screenshot | Analyse und Konzept |
+| 25 | Systemkontext der Lösung | Grafik | Analyse und Konzept |
+| 26 | Komponentensicht mit Fachmodell, Agent und Adaptern | Grafik | Analyse und Konzept |
+| 27 | Sequenz eines vollständigen Durchlaufs | Grafik | Analyse und Konzept |
+| 28 | Zustandsdiagramm des Agenten | Grafik | Analyse und Konzept |
+| 29 | Virtuelle Maschine im Zustand Running | Screenshot | Umsetzung |
+| 30 | Antwort des Testdienstes über den NodePort | Screenshot | Umsetzung |
+| 31 | PersistentVolume im Zustand Released nach dem Löschen | Screenshot | Umsetzung |
+| 32 | Manuelle Schritte je Lernumgebung, heute gegen Proof of Concept | Grafik | Bewertung und Vergleich |
+| 33 | SWOT-Analyse | Grafik | Bewertung und Vergleich |
+| 34 | Milestone Sprint 1 am Sprintende | Screenshot | Projektverlauf |
+| 35 | Starfish-Retrospektive Sprint 1 | Screenshot | Projektverlauf |
+| 36 | Milestone Sprint 2 am Sprintende | Screenshot | Projektverlauf |
+| 37 | Starfish-Retrospektive Sprint 2 | Screenshot | Projektverlauf |
+| 38 | Milestone Sprint 3 am Sprintende | Screenshot | Projektverlauf |
+| 39 | Starfish-Retrospektive Sprint 3 | Screenshot | Projektverlauf |
 
 ---
 
