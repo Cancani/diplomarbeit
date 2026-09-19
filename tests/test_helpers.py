@@ -19,11 +19,12 @@ class IssueTests(unittest.TestCase):
     def setUp(self):
         self.story = dict(body='## Aufgabe\n\n- [ ] behalten\n- [ ] neu', previous_body='## Aufgabe\n\n- [ ] behalten\n- [ ] alt')
 
-    def test_preserve_checked_and_retired(self):
+    def test_preserve_current_checks_without_extra_section(self):
         result = issues.migrate_body('## Aufgabe\n\n- [x] behalten\n- [x] alt', self.story)
         self.assertIn('- [x] behalten', result)
         self.assertIn('- [ ] neu', result)
-        self.assertIn(issues.HISTORY+'\n\n- [x] alt', result)
+        self.assertNotIn(issues.HISTORY, result)
+        self.assertNotIn('- [x] alt', result)
         self.assertEqual(issues.migrate_body(result, self.story), result)
 
     def test_reject_user_changes(self):

@@ -22,8 +22,43 @@ def marked(body):
     return f'{BEGIN}\n{body.strip()}\n{END}'
 
 
+def text_key(text):
+    for _ in range(2):
+        try:
+            decoded = text.encode('cp1252').decode('utf-8')
+        except (UnicodeError, LookupError):
+            break
+        if decoded == text:
+            break
+        text = decoded
+    return text.strip()
+
+
+def remove_old_section(body):
+    lines = body.replace('\r\n', '\n').splitlines(keepends=True)
+    kept, checks = [], []
+    skipping = False
+    for line in lines:
+        if text_key(line) == HISTORY:
+            skipping = True
+            continue
+        if skipping and (line.startswith('## ') or line.strip() == END):
+            skipping = False
+        if skipping:
+            if not line.strip():
+                continue
+            match = re.fullmatch(r'- \[[xX]\] (.+)', line.rstrip('\n'))
+            if not match:
+                raise ValueError('Zusätzlicher Text im zu entfernenden Kriterienabschnitt; bitte manuell prüfen')
+            checks.append(match.group(1))
+        else:
+            kept.append(line)
+    return ''.join(kept), checks
+
+
 def migrate_body(current, story):
     """Only replace known template text; preserve notes outside managed section."""
+    current, saved_checks = remove_old_section(current)
     if BEGIN in current or END in current:
         if current.count(BEGIN) != 1 or current.count(END) != 1 or current.index(BEGIN) > current.index(END):
             raise ValueError('Ungültige Verwaltungsmarkierungen')
@@ -31,28 +66,14 @@ def migrate_body(current, story):
         active, suffix = rest.split(END, 1)
     else:
         prefix, active, suffix = '', current, ''
-    history = ''
-    if '\n'+HISTORY in active:
-        active, history = active.split('\n'+HISTORY, 1)
     known = [story['body'], story.get('previous_body')]
-    if normalise(active) not in [normalise(x) for x in known if x]:
+    if text_key(normalise(active)) not in [text_key(normalise(x)) for x in known if x]:
         raise ValueError('Beschreibung enthält eigene oder unbekannte Änderungen; Vorschlag manuell zusammenführen')
-    checked = re.findall(r'(?m)^- \[[xX]\] (.+)$', active)
+    checked = re.findall(r'(?m)^- \[[xX]\] (.+)$', active) + saved_checks
+    checked = {text_key(line) for line in checked}
     target = story['body'].strip()
-    retired = []
-    for line in checked:
-        # Changed acceptance criteria must be verified again; no fuzzy matching.
-        old = '- [ ] '+line
-        if old in target.splitlines():
-            target = target.replace(old, '- [x] '+line)
-        else:
-            retired.append('- [x] '+line)
-    if history.strip() or retired:
-        target += '\n\n'+HISTORY+'\n\n'
-        target += history.strip()
-        if history.strip() and retired:
-            target += '\n'
-        target += '\n'.join(retired)
+    target = '\n'.join('- [x] '+line[6:] if line.startswith('- [ ] ') and text_key(line[6:]) in checked
+                       else line for line in target.splitlines())
     return prefix+marked(target)+suffix
 
 

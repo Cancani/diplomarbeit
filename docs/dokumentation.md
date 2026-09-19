@@ -148,9 +148,9 @@ Diese sieben Meilensteine sind Planung. Erreichte Termine werden erst mit einem 
 
 ### 2.4 Backlog und Prioritäten
 
-Der Backlog enthält 39 Stories mit 113 Story Points. US25 wurde in den AWS-Durchstich US39 mit drei Punkten in Sprint 2 und die Vervollständigung US25 mit fünf Punkten in Sprint 3 geteilt. Der Gesamtaufwand bleibt dadurch unverändert. Readiness und Abbauprüfung entstehen bereits mit dem ersten lokalen Durchlauf; US26 und US29 prüfen sie später auf beiden Plattformen formal.
+Der Backlog enthält 39 Stories mit 113 Story Points. Der AWS-Durchstich US39 umfasst drei Punkte in Sprint 2, die Vervollständigung US25 fünf Punkte in Sprint 3. Readiness und Abbauprüfung entstehen bereits mit dem ersten lokalen Durchlauf; US26 und US29 prüfen sie später auf beiden Plattformen formal.
 
-Die versionierte Quelle liegt in `scripts/backlog.json`. Die Skripte erstellen daraus Issue-Vorschläge. Ein abgeglichener lokaler Backlog bedeutet noch nicht, dass das öffentliche Board bereits aktualisiert ist. Die Zahlenfelder und Sprintfelder eines GitHub Projects werden separat gepflegt; ein Tabellenfeld im Issue setzt sie nicht automatisch.
+Die versionierte Quelle liegt in `scripts/backlog.json`. Die Skripte erstellen daraus Issue-Vorschläge. Ein abgeglichener lokaler Backlog bedeutet noch nicht, dass das öffentliche Board bereits aktualisiert ist. Das Skript `scripts/sync-project.py` gleicht die Project-Felder für Story Points, Sprint, Epic, Priority und Plantermine mit dem Backlog ab. Ein Tabellenwert im Issue allein setzt diese Project-Felder nicht.
 
 Die Epics bündeln Initialisierung (E1), IST-Aufnahme (E2), lokale Plattform (E3), AWS-Vorbereitung (E4), Fachmodell (E5), Agent (E6), Adapter (E7), Validierung (E8), Bewertung (E9), Betrieb und Schulung (E10) sowie Architektur und Abschluss (E11).
 
@@ -368,7 +368,7 @@ Die Eigenleistung dieser Arbeit beginnt oberhalb dieser Plattform und umfasst:
 - die MCP-basierte Adapterschicht für beide Zielplattformen
 - die Messung, den Vergleich und die Bewertung
 
-Der Umstand, dass die Plattform bereitstand, verändert den Umfang der Arbeit gegenüber der bewilligten Projektbeschreibung nicht. Er verschiebt lediglich Aufwand von der Einrichtung zur Verifikation. Die betroffenen User Stories US12 und US13 wurden entsprechend von fünf und drei auf je zwei Story Points reduziert, die frei gewordene Kapazität floss in US38 und in die Messvorbereitung.
+Der Umstand, dass die Plattform bereitstand, verändert den Umfang der Arbeit gegenüber der bewilligten Projektbeschreibung nicht. Er verschiebt lediglich Aufwand von der Einrichtung zur Verifikation. US12 und US13 umfassen jeweils zwei Story Points für Verifikation und Dokumentation. US38 deckt den vollständigen Referenzlauf ab.
 
 #### 3.1.6 Architekturentscheide aus der Erhebung
 
@@ -974,7 +974,7 @@ Zusätzliche typspezifische Suchabfragen, Zeitstempel und Ausgaben verlinken. AP
 | --- | --- | --- | --- | --- | --- | --- |
 | | | | | | | |
 
-Automatische Prüfungen zählen nicht als menschliche Handlungen. Bedienzeit mit eigener Aufzeichnung messen, nicht aus Befehlsdauer schätzen. Historische Schätzungen nicht hier eintragen.
+Automatische Prüfungen zählen nicht als menschliche Handlungen. Bedienzeit mit eigener Aufzeichnung messen, nicht aus Befehlsdauer schätzen. Nur tatsächlich gemessene Werte eintragen.
 
 #### Ergebnis
 
@@ -1091,7 +1091,34 @@ bash scripts/create-issues.sh Cancani/diplomarbeit --apply
 bash scripts/update-issues.sh Cancani/diplomarbeit --apply
 ```
 
-Die Skripte benötigen Python 3 und eine angemeldete GitHub CLI. Labels und die drei Sprint-Milestones müssen bereits bestehen. Unbekannte Änderungen in bestehenden Issue-Beschreibungen werden nicht überschrieben. Abgehakte Kriterien werden nur bei unverändertem Wortlaut übernommen; entfallene erledigte Kriterien bleiben als historische Liste erhalten. Vorschläge und Diffs werden lokal unter `issue-preview/` abgelegt. Geschlossene Issues werden nur zum Prüfen vorgeschlagen, nicht automatisch aktualisiert oder wieder geöffnet.
+Die Skripte benötigen Python 3 und eine angemeldete GitHub CLI. Labels und die drei Sprint-Milestones müssen bereits bestehen. Unbekannte Änderungen in bestehenden Issue-Beschreibungen werden nicht überschrieben. Abgehakte Kriterien werden nur bei unverändertem Wortlaut übernommen; entfallene Kriterien werden entfernt. Es werden keine zusätzlichen Kriterienlisten angehängt. Vorschläge und Diffs werden lokal unter `issue-preview/` abgelegt. Das reine Update-Skript überspringt geschlossene Issues. Der Project-Abgleich bereinigt auch deren Beschreibungen und Felder, ohne sie wieder zu öffnen.
+
+### Project Board abgleichen
+
+Story Points sind ein Zahlenfeld im Project. Sprint, Epic und Priority werden aus dem Backlog gesetzt. Die Datumsfelder `Start date` und `Target date` zeigen den geplanten Sprintzeitraum aus Kapitel 2.3. Sie bezeichnen keine tatsächlichen Ausführungszeiten. US05 läuft als wiederkehrende Aufgabe vom 14.09. bis 18.12.2026. Die Sprint-Milestones erhalten das jeweilige Sprintende als Fälligkeit.
+
+Der Abgleich wird aus dem Repository-Verzeichnis ausgeführt. Die GitHub CLI muss für Repository und Project berechtigt sein. Bei fehlender Project-Berechtigung wird diese mit `gh auth refresh -s project` ergänzt.
+
+```bash
+python3 scripts/sync-project.py Cancani/diplomarbeit --complete-reviewed
+python3 scripts/sync-project.py Cancani/diplomarbeit --complete-reviewed --apply
+```
+
+Der erste Aufruf erstellt nur eine Vorschau unter `issue-preview/Cancani_diplomarbeit/sync/`. Der zweite wendet sie nach erneuter Abfrage an. Die Datei `pruefung.txt` nennt die vorgesehenen Änderungen und die verfügbaren Project-Workflows. Ein abweichender Project-Name kann mit `--project NUMMER` anhand der Project-URL zugeordnet werden.
+
+Die Option `--complete-reviewed` ist für den geprüften Arbeitsstand vorgesehen: US01, US07, US09, US12 und US13 erhalten abgehakte Kriterien, den Board-Status Done und den Issue-Zustand abgeschlossen. Das setzt voraus, dass die geprüften Dateien auf main vorliegen. US04 und US11 bleiben bis zu den ausstehenden Bestätigungen offen. Bereits geschlossene andere Issues erhalten keine pauschalen neuen Häkchen. Bei späteren Abgleichen wird die Option weggelassen, damit bewusst wieder geöffnete Stories offen bleiben.
+
+Aktuelle Häkchen werden übernommen. Bereits angehängte zusätzliche Kriterienlisten werden entfernt; passende Häkchen werden in die aktuellen Kriterien zurückgeführt. Unbekannte Beschreibungsänderungen und beobachtete parallele Bearbeitungen führen zum Abbruch. Ein erneuter Aufruf setzt nach Behebung eines Fehlers am aktuellen GitHub-Zustand an.
+
+| Ansicht | Layout | Einstellung |
+| --- | --- | --- |
+| Arbeitsboard | Board | Nach Status gruppieren; Sprint, Priority und Story Points auf Karten anzeigen |
+| Sprintplanung | Tabelle | Nach Sprint gruppieren; Story Points summieren; Epic, Priority und Plantermine anzeigen |
+| Zeitplan | Roadmap | Start date und Target date als Datumsfelder auswählen; nach Sprint gruppieren |
+
+Das Skript legt die Ansichten an oder benennt die passenden Standardansichten View 1 und View 2 um, sofern die Ansichten-API verfügbar ist. Die Datumszuordnung der Roadmap, Gruppierung und Summen werden einmalig im Browser eingestellt und gespeichert. Vorhandene Filter bleiben erhalten. Der Workflow Auto-add sollte Issues aus `Cancani/diplomarbeit` aufnehmen; die automatische Statusänderung beim Schliessen sollte Done setzen. Das Skript liest die Aktivierung der Workflows aus. Deren konkrete Bedingungen und der Zugriff ohne Anmeldung werden im Browser geprüft.
+
+Technische Grundlagen: [GitHub Projects API](https://docs.github.com/en/issues/planning-and-tracking-with-projects/automating-your-project/using-the-api-to-manage-projects), [Project-Felder und Ansichten](https://docs.github.com/en/graphql/reference/projects) und [Roadmap-Datumsfelder](https://docs.github.com/en/issues/planning-and-tracking-with-projects/customizing-views-in-your-project/customizing-the-roadmap-layout).
 
 ### Ordner
 
