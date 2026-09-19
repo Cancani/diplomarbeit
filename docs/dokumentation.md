@@ -2,7 +2,7 @@
 
 !!! info "Lesehinweis"
     Arbeitsstand vom 18.09.2026. Die Infrastrukturaufnahme und erste Referenzversuche liegen vor. Agent, Adapter und formale Vergleichsmessungen sind noch offen. Planung und Entwürfe sind als solche gekennzeichnet.
-
+ 
 | | |
 | --- | --- |
 | Diplomand | Efekan Demirci, ITCNE24, TBZ Höhere Fachschule |
