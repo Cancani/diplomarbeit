@@ -2,7 +2,7 @@
 
 !!! info "Lesehinweis"
     Arbeitsstand vom 18.09.2026. Die Infrastrukturaufnahme und erste Referenzversuche liegen vor. Agent, Adapter und formale Vergleichsmessungen sind noch offen. Planung und Entwürfe sind als solche gekennzeichnet.
- 
+
 | | |
 | --- | --- |
 | Diplomand | Efekan Demirci, ITCNE24, TBZ Höhere Fachschule |
@@ -236,11 +236,11 @@ Für die Schätzung verwende ich 1, 2, 3, 5 und 8 Punkte. US01 dient mit zwei Pu
 
 ### 2.6 Arbeitsweise und Qualität
 
-Zu Sprintbeginn werden Ziel, Abhängigkeiten und verfügbare Zeit geprüft. Höchstens zwei Issues stehen gleichzeitig auf In Progress. Änderungen laufen über einen Branch und einen Pull Request nach main. Auch im Einzelprojekt dient der Pull Request dazu, Änderungen, Prüfungen und Nachweise zusammenzuhalten.
+Zu Sprintbeginn werden Ziel, Abhängigkeiten und verfügbare Zeit geprüft. Höchstens zwei Issues stehen gleichzeitig auf In Progress. Ich arbeite direkt auf main und halte zusammengehörige Änderungen in kleinen, nachvollziehbaren Commits fest. Vor dem Commit prüfe ich die Änderungen lokal. Die Commit-Nachricht beschreibt die Änderung und nennt bei Bedarf die zugehörige User Story.
 
 Eine Story ist fertig, wenn ihre Akzeptanzkriterien erfüllt sind, die Änderung geprüft ist und der passende Nachweis vorliegt. Bei Infrastrukturarbeiten ist das ein Protokoll vom Zielsystem. Ein erfolgreicher Dokumentationsbuild beweist keine funktionierende Infrastruktur. Offene Nachweise werden ausdrücklich benannt.
 
-Die Dokumentationspipeline prüft Pull Requests und baut MkDocs im strikten Modus mit festgeschriebenen direkten Abhängigkeiten. Die Veröffentlichung erfolgt nur vom Hauptbranch. Tests für Modell, Zustandsspeicher und Adapterverhalten werden mit der Implementierung ergänzt. Ein Testadapter kann Fehler reproduzierbar auslösen. Auch direkte SDK-Aufrufe lassen sich isoliert testen, beispielsweise mit Botocore Stubber. [Botocore Stubber](https://docs.aws.amazon.com/botocore/latest/reference/stubber.html)
+Bei Änderungen an Dokumentation, Skripten, Tests oder Build-Konfiguration auf main prüft die Pipeline die Dateien und baut MkDocs im strikten Modus mit festgeschriebenen direkten Abhängigkeiten. Die Veröffentlichung erfolgt nur vom Hauptbranch. Tests für Modell, Zustandsspeicher und Adapterverhalten werden mit der Implementierung ergänzt. Ein Testadapter kann Fehler reproduzierbar auslösen. Auch direkte SDK-Aufrufe lassen sich isoliert testen, beispielsweise mit Botocore Stubber. [Botocore Stubber](https://docs.aws.amazon.com/botocore/latest/reference/stubber.html)
 
 Die sechs vollständigen Lebenszyklen werden auf den Zielplattformen durchgeführt und separat protokolliert. Im Review zeige ich einen kurzen ausgewählten Ablauf und erkläre, was die Tests belegen und was offen bleibt. Dauer und Ablauf der Präsentation richten sich nach dem bestätigten Zeitrahmen. Vor jedem Review ist eine Generalprobe vorgesehen.
 
@@ -994,7 +994,7 @@ Fehler, Restressourcen, Abweichungen und notwendige Wiederholung:
 
 Verlinkte Rohdaten und unabhängiger Nachvollzug:
 
-### 5.3 Messläufe
+### 5.3 Messläufe {#messlaeufe}
 
 Die Vergleichsläufe sind noch offen. Für jeden Versuch wird hier ein eigener Abschnitt mit ausgefülltem Messprotokoll und Links zu den Rohdaten ergänzt.
 

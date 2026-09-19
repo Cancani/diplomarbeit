@@ -68,7 +68,7 @@ body:
       label: Definition of Done
       value: |
         - [ ] Akzeptanzkriterien erfüllt
-        - [ ] Code oder Konfiguration committed und über Pull Request nach main gemerged
+        - [ ] Änderungen geprüft und direkt auf main committed
         - [ ] Dokumentationsabschnitt geschrieben oder aktualisiert
         - [ ] Nachweis abgelegt (Screenshot, Logauszug oder Messwert) und in der Doku verlinkt
         - [ ] Wiederholbar: der Schritt lässt sich anhand der Doku ein zweites Mal ausführen
