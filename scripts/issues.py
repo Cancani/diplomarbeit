@@ -57,7 +57,7 @@ def migrate_body(current, story):
 
 
 def gh(*args):
-    result = subprocess.run(['gh', *args], check=True, text=True, capture_output=True)
+    result = subprocess.run(['gh', *args], check=True, text=True, encoding='utf-8', capture_output=True)
     return result.stdout
 
 
@@ -82,7 +82,7 @@ def main():
     args = parser.parse_args()
     if not re.fullmatch(r'[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+', args.repo):
         parser.error('Repository muss OWNER/REPO sein')
-    stories = json.loads((ROOT/'scripts/backlog.json').read_text())
+    stories = json.loads((ROOT/'scripts/backlog.json').read_text(encoding='utf-8-sig'))
     rows = list_issues(args.repo)
     folder = ROOT/'issue-preview'/args.repo.replace('/', '_')/args.mode
     folder.mkdir(parents=True, exist_ok=True)
@@ -104,13 +104,13 @@ def main():
             try:
                 body = migrate_body(issue.get('body') or '', story)
             except ValueError as error:
-                (folder/f'{sid}-vorschlag.md').write_text(marked(story['body'])+'\n')
+                (folder/f'{sid}-vorschlag.md').write_text(marked(story['body'])+'\n', encoding='utf-8')
                 print(f'{sid}: {error}'); unresolved += 1; continue
         path = folder/f'{sid}.md'
-        path.write_text(body+'\n')
+        path.write_text(body+'\n', encoding='utf-8')
         before = issue.get('body') or '' if issue else ''
         diff = ''.join(difflib.unified_diff(before.splitlines(True), body.splitlines(True), fromfile='GitHub', tofile='Vorschlag'))
-        (folder/f'{sid}.diff').write_text(diff)
+        (folder/f'{sid}.diff').write_text(diff, encoding='utf-8')
         print(f'{sid}: {"anlegen" if not issue else "prüfen"}, Sprint {story["sprint"]}, {story["points"]} SP, {path.relative_to(ROOT)}')
         if not args.apply:
             continue
