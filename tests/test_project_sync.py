@@ -174,6 +174,9 @@ class EndToEndTests(unittest.TestCase):
                 value = dict(payload['value'])
                 if 'singleSelectOptionId' in value: value['optionId'] = value.pop('singleSelectOptionId')
                 nodes.append(dict(value,field={'id':payload['fieldId']}))
+                if value.get('optionId') == 'Done' and rows[int(item['id'])]['state'] == 'open':
+                    rows[int(item['id'])].update(state='closed', state_reason='completed')
+                    rows[int(item['id'])]['updated_at'] += 'workflow'
                 return {'projectV2Item':{'id':item['id']}}
             self.fail('Unexpected mutation '+name)
         with tempfile.TemporaryDirectory() as temp:
@@ -221,6 +224,34 @@ class ConflictTests(unittest.TestCase):
             exported = json.loads((Path(tmp)/'konflikte.json').read_text(encoding='utf-8'))
             self.assertEqual([v['issue'] for v in exported],[1,2])
             self.assertEqual(exported[0]['current_body'],'Eigene Ergänzung')
+
+
+class CompletionTests(unittest.TestCase):
+    def test_workflow_timestamp_change_is_allowed(self):
+        before = dict(body='before',title='US01',state='open',state_reason=None,updated_at='a')
+        after = dict(before,updated_at='b')
+        with patch.object(sync,'api',side_effect=[after,{}]) as api:
+            sync.finish_reviewed_issue('endpoint',before,'after','US01')
+            self.assertEqual(api.call_args.args[2],dict(body='after',state='closed',state_reason='completed'))
+
+    def test_automatic_close_only_needs_body_update(self):
+        before = dict(body='before',title='US01',state='open',state_reason=None,updated_at='a')
+        after = dict(before,state='closed',state_reason='completed',updated_at='b')
+        with patch.object(sync,'api',side_effect=[after,{}]) as api:
+            sync.finish_reviewed_issue('endpoint',before,'after','US01')
+            self.assertEqual(api.call_args.args[2],dict(body='after'))
+
+    def test_parallel_edits_and_other_state_changes_still_block(self):
+        before = dict(body='before',title='US01',state='open',state_reason=None)
+        for update in [dict(body='Eigene Notiz'),dict(title='Anderer Titel'),dict(state='closed',state_reason='not_planned')]:
+            with self.subTest(update=update), patch.object(sync,'api',return_value=dict(before,**update)) as api:
+                with self.assertRaises(ValueError):
+                    sync.finish_reviewed_issue('endpoint',before,'after','US01')
+                self.assertEqual(api.call_count,1)
+        closed = dict(before,state='closed',state_reason='completed')
+        with patch.object(sync,'api',return_value=before) as api, self.assertRaises(ValueError):
+            sync.finish_reviewed_issue('endpoint',closed,'after','US01')
+        self.assertEqual(api.call_count,1)
 
 
 if __name__ == '__main__':

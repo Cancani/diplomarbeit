@@ -241,6 +241,23 @@ def sync_cancelled(repo, pid, plan, item, apply):
                  dict(projectId=pid, itemId=item['id']), 'deletedItemId')
 
 
+def finish_reviewed_issue(endpoint, issue, body, sid):
+    fresh = api(endpoint)
+    changed_text = any(fresh.get(k) != issue.get(k) for k in ('body', 'title'))
+    same_state = all(fresh.get(k) == issue.get(k) for k in ('state', 'state_reason'))
+    completed_after_board_update = (issue['state'] == 'open' and fresh['state'] == 'closed'
+                                    and fresh.get('state_reason') == 'completed')
+    if changed_text or not (same_state or completed_after_board_update):
+        raise ValueError(f'{sid}: Inhalt oder Abschlussgrund zwischenzeitlich geändert; erneut prüfen')
+    payload = {}
+    if (fresh.get('body') or '') != body:
+        payload['body'] = body
+    if fresh['state'] != 'closed' or fresh.get('state_reason') != 'completed':
+        payload.update(state='closed', state_reason='completed')
+    if payload:
+        api(endpoint, 'PATCH', payload)
+
+
 def sync_milestones_labels(repo, apply, log, stories):
     milestones = rest_rows(f'repos/{repo}/milestones?state=all&per_page=100')
     result = {}
@@ -425,10 +442,7 @@ def main():
             issue = api(endpoint+(f'/{issue["number"]}' if issue else ''), 'PATCH' if issue else 'POST', payload)
         sync_item(project['id'], fields, item_map.get(issue['number']), issue, story, done, True)
         if done and ((issue.get('body') or '') != body or issue['state'] != 'closed'):
-            fresh = api(endpoint+f'/{issue["number"]}')
-            if any(fresh.get(k) != issue.get(k) for k in ('body', 'title', 'state', 'updated_at')):
-                raise ValueError(f'{sid}: Zwischenzeitliche Änderung vor Abschluss; erneut starten')
-            api(endpoint+f'/{issue["number"]}', 'PATCH', dict(body=body, state='closed', state_reason='completed'))
+            finish_reviewed_issue(endpoint+f'/{issue["number"]}', issue, body, sid)
     sync_views(project['id'], fields, args.apply, log)
     workflows = connection(project['id'], 'workflows', 'name enabled')
     log += [f'Workflow: {w["name"]}; aktiv: {w["enabled"]}' for w in workflows]
