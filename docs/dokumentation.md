@@ -80,7 +80,7 @@ Der Umfang ist bewusst so festgelegt, dass der vollständige und messbare Nachwe
 | Sprachmodellbasierte Entscheidungslogik | Der Agent arbeitet nach festgelegten Regeln, um Abläufe und Fehlerfälle eindeutig prüfen zu können |
 | Bedienoberfläche | Der Nachweis erfolgt über die Kommandozeile, eine Oberfläche liefert für die Fragestellung keinen zusätzlichen Erkenntnisgewinn |
 | Zweite Public Cloud | Eine Plattform genügt, um die Austauschbarkeit über die Adapterschicht zu zeigen |
-| GitOps oder Argo CD | War Gegenstand der Semesterarbeit 5 und wird in dieser Arbeit nicht erneut behandelt |
+| GitOps oder Argo CD | Wird in dieser Arbeit nicht behandelt |
 | Hochverfügbarkeit, verteilter Storage, produktive Skalierung | Betriebsthemen, die erst bei einer produktiven Einführung relevant werden |
 | Hardwarebeschaffung und betriebliche Netzwerkumstellungen | Es wird ausschliesslich vorhandene, freigegebene Hardware verwendet |
 
