@@ -1,7 +1,7 @@
 # Diplomarbeit: Agentenbasierte Hybrid-Cloud-Bereitstellung von Lernumgebungen mit Kubernetes, KubeVirt und MCP
 
 !!! info "Lesehinweis"
-    Arbeitsstand vom 18.09.2026. Die Infrastrukturaufnahme und erste Referenzversuche liegen vor. Agent, Adapter und formale Vergleichsmessungen sind noch offen. Planung und Entwürfe sind als solche gekennzeichnet.
+    Arbeitsstand vom 19.09.2026. Die Infrastrukturaufnahme und erste Referenzversuche liegen vor. Agent, Adapter und formale Vergleichsmessungen sind noch offen. Planung und Entwürfe sind als solche gekennzeichnet.
 
 | | |
 | --- | --- |
@@ -247,7 +247,7 @@ Nach dem Review werden die Rückmeldungen und höchstens drei Verbesserungen fü
 
 ### 2.7 Wöchentlicher Statusbericht
 
-Jeden Sonntag erstelle ich einen kurzen [Statusbericht](#statusberichte). Darin halte ich fest, was ich in der vergangenen Woche erledigt habe und was ich in der nächsten Woche angehen werde. Ergebnisse verlinke ich bei Bedarf direkt. Probleme, Verzögerungen oder benötigte Rückmeldungen ergänze ich, wenn sie den weiteren Verlauf beeinflussen.
+Jeden Samstag oder Sonntag erstelle ich einen kurzen [Statusbericht](#statusberichte). Darin halte ich fest, was ich in der vergangenen Woche erledigt habe und was ich in der nächsten Woche angehen werde. Ergebnisse verlinke ich bei Bedarf direkt. Probleme, Verzögerungen oder benötigte Rückmeldungen ergänze ich, wenn sie den weiteren Verlauf beeinflussen.
 
 Die Berichte begleiten das Projekt ab KW38 und werden direkt in Kapitel 8 geführt. Dafür verwende ich eine gemeinsame [Vorlage](#statusvorlage).
 
@@ -1011,11 +1011,11 @@ Hier werden die tatsächlich durchgeführten Sprintplanungen, Reviews und Retros
 
 ### 8.1 Wöchentliche Statusberichte {#statusberichte}
 
-Jeden Sonntag halte ich fest, was ich in der vergangenen Woche erledigt habe und was ich für die nächste Woche plane. Offene Probleme oder benötigte Rückmeldungen ergänze ich bei Bedarf. Die Wochenberichte werden direkt in diesem Kapitel ergänzt. Für jeden Bericht verwende ich die [Vorlage](#statusvorlage).
+Jeden Samstag oder Sonntag halte ich fest, was ich in der vergangenen Woche erledigt habe und was ich für die nächste Woche plane. Offene Probleme oder benötigte Rückmeldungen ergänze ich bei Bedarf. Die Wochenberichte werden direkt in diesem Kapitel ergänzt. Für jeden Bericht verwende ich die [Vorlage](#statusvorlage).
 
 | Kalenderwoche | Bericht |
 | --- | --- |
-| KW38 | Noch nicht erstellt |
+| KW38 | [14.09. bis 19.09.2026: Projektstart und Grundlagen](#statusbericht-kw38) |
 | KW39 | Noch nicht erstellt |
 | KW40 | Noch nicht erstellt |
 | KW41 | Noch nicht erstellt |
@@ -1030,11 +1030,66 @@ Jeden Sonntag halte ich fest, was ich in der vergangenen Woche erledigt habe und
 | KW50 | Noch nicht erstellt |
 | KW51 | Noch nicht erstellt |
 
+#### KW 38: Projektstart und Grundlagen {#statusbericht-kw38}
+
+**Datum:** 19.09.2026  
+**Berichtszeitraum:** 14.09. bis 19.09.2026  
+**Sprint:** 1, 14.09. bis 18.10.2026
+
+**Aktueller Stand**
+
+In der ersten Projektwoche habe ich die Projektorganisation eingerichtet, die vorhandene Infrastruktur untersucht und die Grundlagen für die Umsetzung und den späteren Vergleich ausgearbeitet. Erste Versuche mit LernMAAS und KubeVirt liegen vor. Der vollständige automatisierte Lebenszyklus mit Agent und Adaptern sowie die formalen Vergleichsmessungen sind noch offen.
+
+**Vergangene Woche**
+
+| Bereich | Erledigte Arbeiten und vorliegende Ergebnisse |
+| --- | --- |
+| Projektorganisation | Repository strukturiert und das öffentliche Project Board eingerichtet. User Stories, Akzeptanzkriterien, Prioritäten und Sprintzuordnung sind erfasst. Das Board zeigt Story Points sowie geplante Start- und Enddaten. |
+| Dokumentation | Die zentrale Dokumentation mit Projektplanung, Analyse, Architekturentwurf und Messkonzept aufgebaut. Die Veröffentlichung über GitHub Pages ist eingerichtet; US04 steht weiterhin auf In Progress. Alle Wochenberichte werden direkt in dieser Datei geführt. |
+| IST-Analyse | Die heutige Bereitstellung mit MAAS, LernMAAS, Profilen und Shellskripten untersucht. Aufbau, manuelle Bedienhandlungen, Abbau und mögliche Teilfehler sind beschrieben. |
+| Lokale Infrastruktur | Die vorhandenen Systeme sowie den Kubernetes-Cluster und KubeVirt untersucht und dokumentiert. Die Storage-Eigenschaften und die nötige gesonderte Prüfung der PersistentVolumes sind erfasst. |
+| Erste praktische Versuche | LernMAAS-Abläufe protokolliert. Auf KubeVirt wurde eine Referenz-VM gestartet und eine erfolgreiche HTTP-Antwort nachgewiesen. Für einen vollständigen Referenznachweis fehlen noch der SSH-Nachweis und die lückenlose Prüfung des Abbaus. |
+| Test-Lernumgebung | Eine reduzierte Testumgebung aus den Merkmalen von m239, m254 und m426 beschrieben. Die Spezifikation umfasst eine Ubuntu-VM, festgelegte Mindestressourcen, SSH-Zugang und einen HTTP-Testdienst. Die Abstimmung mit dem Firmenexperten steht noch aus. |
+| Messkonzept | Gemeinsame Start- und Endkriterien, getrennte Erfassung von aktiver Bedienzeit und Wartezeit sowie die Ressourcenprüfung nach dem Abbau festgelegt. Messplan und Protokollvorlage sind vorbereitet. |
+| Architektur und AWS | Den Entwurf für YAML-Modell, Agent, Zustandsführung und MCP-Adapter beschrieben. AWS ist als zweite Zielplattform vorgesehen; Kontobedingungen, Berechtigungen, Quotas und der praktische Smoke-Test sind noch zu prüfen. |
+| Hilfswerkzeuge | Skripte für Repository-Prüfungen, HTTP-Beobachtung und den Abgleich von Issues und Project-Feldern ergänzt. Der Board-Abgleich übernimmt Sprinttermine und Story Points und berücksichtigt abgeschlossene Issues. |
+
+Die ausführlichen Ergebnisse und ihre Nachweise stehen in der [Infrastrukturaufnahme](#31-ausgangslage-der-infrastruktur), der [IST-Analyse](#32-ist-analyse-der-heutigen-bereitstellung), dem [Messplan](#messplan) und dem [Nachweisverzeichnis](#nachweise).
+
+**Stand der User Stories**
+
+Der zuletzt abgeglichene Board-Stand umfasst 38 aktive Stories mit insgesamt 111 Story Points.
+
+| Status | Anzahl |
+| --- | ---: |
+| Done | 7 |
+| In Progress | 1 |
+| Ready | 3 |
+| Backlog | 27 |
+
+Abgeschlossen sind US01 (Repository), US02 (Project Board), US03 (Vorlagen und Regeln), US07 (IST-Analyse), US09 (Messkonzept), US12 (Kubernetes-Prüfung) und US13 (KubeVirt und Storage). US04 ist in Bearbeitung. Die Anzahl abgeschlossener Stories beschreibt den Aufgabenstand und ist keine Aussage über den prozentualen Fertigstellungsgrad der Diplomarbeit.
+
+**Nächste Woche, 21.09. bis 27.09.2026**
+
+1. Die Spezifikation der Test-Lernumgebung mit dem Firmenexperten abstimmen und die Verfügbarkeit der Hardware klären (US08, US11).
+2. Sobald der Zugang zur Maschine möglich ist, den vollständigen KubeVirt-Referenzlauf durchführen: VM erstellen, SSH und HTTP prüfen, Ressourcen inventarisieren und nach dem Löschen einschliesslich PersistentVolume kontrollieren (US38).
+3. Nach Freigabe der Testdefinition die drei LernMAAS-Basisläufe durchführen. Dabei aktive Bedienzeit, Aufbaudauer, Bedienhandlungen und vollständigen Abbau getrennt protokollieren (US10).
+4. Die AWS-Kontobedingungen, Berechtigungen, Quotas und Kostenkontrolle prüfen und den Smoke-Test vorbereiten (US14, US15).
+5. Ergebnisse und Rückmeldungen direkt in dieser Dokumentation ergänzen und die betroffenen Issues aktualisieren.
+
+**Offene Punkte und Abhängigkeiten**
+
+- Der Zugang zur Testmaschine ist derzeit nicht durchgehend möglich. Referenzlauf und Basisläufe hängen von der nächsten Zugriffsmöglichkeit und der geklärten Hardwareverfügbarkeit ab. Bis dahin können Testdefinition, AWS-Vorbereitung und Dokumentation weiterbearbeitet werden.
+- Die reduzierte Test-Lernumgebung muss vor den formalen Basisläufen mit dem Firmenexperten abgestimmt werden.
+- Die bisherigen Versuche liefern noch keine vollständige Vergleichsserie. Insbesondere fehlen durchgängige Readiness-Zeitpunkte, belastbar gemessene aktive Bedienzeiten und vollständige Abbaunachweise.
+- Agent, JSON-Schema und MCP-Adapter sind noch zu implementieren. Die drei formalen PoC-Läufe je Zielplattform folgen nach der Umsetzung.
+- Die Roadmap-Ansicht benötigt noch die Zuordnung der vorhandenen Datumsfelder, damit die geplanten Zeiträume als Balken angezeigt werden.
+
 ### 8.2 Vorlage für den Statusbericht {#statusvorlage}
 
 **Kalenderwoche:** KWXX
 
-**Datum:** TT.MM.JJJJ (Sonntag)  
+**Datum:** TT.MM.JJJJ (Samstag oder Sonntag)  
 **Berichtszeitraum:** TT.MM. bis TT.MM.JJJJ
 
 #### Vergangene Woche
@@ -1112,10 +1167,10 @@ Die Prüfsummen in [SHA256SUMS](nachweise/SHA256SUMS) dienen der Integritätspr�
 
 ### Abbildungsverzeichnis
 
-| Nr. | Abbildung | Stand |
-| --- | --- | --- |
-| 1 | Projektorganisation und Berichtswege | Vorhanden |
-| 2 | Geplanter Aufbau von CLI, Agent und Adaptern | Entwurf, noch keine implementierte Architektur |
+| Nr. | Abbildung |
+| --- | --- | 
+| 1 | Projektorganisation und Berichtswege | 
+| 2 | Geplanter Aufbau von CLI, Agent und Adaptern | 
 
 Geplante Screenshots werden erst aufgenommen und nummeriert, wenn ein tatsächlicher Nachweis vorliegt.
 
@@ -1127,3 +1182,4 @@ Geplante Screenshots werden erst aufgenommen und nummeriert, wenn ein tatsächli
 
 Efekan Demirci, ITCNE24, TBZ Höhere Fachschule
 efekan.demirci@tbz.ch
+
