@@ -1167,10 +1167,10 @@ Die Prüfsummen in [SHA256SUMS](nachweise/SHA256SUMS) dienen der Integritätspr�
 
 ### Abbildungsverzeichnis
 
-| Nr. | Abbildung |
-| --- | --- | 
-| 1 | Projektorganisation und Berichtswege | 
-| 2 | Geplanter Aufbau von CLI, Agent und Adaptern | 
+| Nr. | Abbildung | Stand |
+| --- | --- | --- |
+| 1 | Projektorganisation und Berichtswege | Vorhanden |
+| 2 | Geplanter Aufbau von CLI, Agent und Adaptern | Entwurf, noch keine implementierte Architektur |
 
 Geplante Screenshots werden erst aufgenommen und nummeriert, wenn ein tatsächlicher Nachweis vorliegt.
 
