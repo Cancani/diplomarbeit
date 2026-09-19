@@ -47,9 +47,6 @@ theme:
 extra_css:
   - stylesheets/style.css
 
-extra_javascript:
-  - javascripts/diagram-zoom.js
-
 markdown_extensions:
   - admonition
   - attr_list
@@ -81,7 +78,6 @@ markdown_extensions:
 nav:
   - Start: index.md
   - Dokumentation: dokumentation.md
-  - Journal: journal.md
 
 extra:
   social:

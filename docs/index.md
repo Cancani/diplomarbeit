@@ -2,6 +2,8 @@
 
 **Agentenbasierte Hybrid-Cloud-Bereitstellung von Lernumgebungen mit Kubernetes, KubeVirt und MCP**
 
+[Zur vollständigen Dokumentation](dokumentation.md)
+
 Proof of Concept für die Technische Berufsschule Zürich, Informatikdienst.
 
 | | |
@@ -20,18 +22,7 @@ Proof of Concept für die Technische Berufsschule Zürich, Informatikdienst.
 | --- | --- |
 | Aktueller Sprint | Sprint 1, 14.09.2026 bis 18.10.2026 |
 | Nächster Meilenstein | Zwischenpräsentation 1, Woche vom 19.10.2026 |
-| Gesamtampel | Grün |
 
-Dieser Block wird mit jedem Statusbericht nachgeführt, damit die Experten den Stand ohne Rückfrage sehen.
-
-## Einstiegspunkte
-
-| Ich möchte | Hier klicken |
-| --- | --- |
-| Die Arbeit von vorne lesen | [Dokumentation](dokumentation.md) |
-| Die Projektführung nachvollziehen | [Kapitel 2 Projektmanagement](dokumentation.md#2-projektmanagement) |
-| Den Umfang und die Planung sehen | [Product Backlog im Repository](https://github.com/Cancani/diplomarbeit/issues) |
-| Den Projektstand verfolgen | [Project Board](https://github.com/users/Cancani/projects/7) |
 
 ## Über diese Arbeit
 

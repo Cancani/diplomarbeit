@@ -198,23 +198,8 @@ html {
   }
 }
 
-/* SVGs remain readable even when JavaScript is disabled. */
-.md-typeset svg.dia-svg { display: block; max-width: 100%; height: auto; margin: 1rem auto; }
-.dia-host { position: relative; padding-top: 2rem; overflow-x: auto; }
-.dia-oeffnen { position: absolute; top: 0; right: 0; }
-.dia-oeffnen, .diagram-toolbar button {
-  border: 1px solid var(--sa-border); border-radius: 4px;
-  padding: .35rem .65rem; background: var(--sa-surface);
-  color: var(--md-default-fg-color); cursor: pointer; font: inherit; font-size: .7rem;
+.md-typeset .mermaid {
+  overflow-x: auto;
+  margin: 1rem 0;
+  text-align: center;
 }
-.dia-oeffnen:focus-visible, .diagram-toolbar button:focus-visible { outline: 2px solid var(--md-accent-fg-color); outline-offset: 2px; }
-.diagram-dialog {
-  width: 94vw; max-width: 94vw; height: 90vh; max-height: 90vh;
-  padding: 1rem; border: 1px solid var(--sa-border); border-radius: 8px;
-  background: var(--md-default-bg-color); color: var(--md-default-fg-color);
-}
-.diagram-dialog::backdrop { background: rgba(0,0,0,.65); }
-.diagram-toolbar { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: .75rem; }
-.diagram-viewport { overflow: auto; max-height: calc(90vh - 6rem); }
-.diagram-viewport svg { display: block; max-width: none; height: auto; margin: auto; }
-@media print { .dia-oeffnen, .diagram-dialog { display: none !important; } .dia-host { padding-top: 0; } }

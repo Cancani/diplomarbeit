@@ -44,7 +44,6 @@ jobs:
           python scripts/check-repository.py
           python -m unittest discover -s tests -v
           bash -n scripts/create-issues.sh scripts/update-issues.sh
-          node --check docs/javascripts/diagram-zoom.js
       - name: Dokumentation bauen
         run: mkdocs build --strict
       - uses: actions/upload-pages-artifact@v3
