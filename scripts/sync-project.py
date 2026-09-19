@@ -19,6 +19,11 @@ DONE = {
     'US09': '34-messkonzept', 'US12': '313-vorgefundener-zustand-auf-dl380-01',
     'US13': '316-architekturentscheide-aus-der-erhebung',
 }
+CANCELLED = dict(id='US06', title='US06: Separates Kickoff-Meeting entfällt', body=(
+    '## Status\n\nNicht geplant. Die Experten haben den Antrag geprüft. '
+    'Der Projektstart erfolgte anschliessend ohne separates Kickoff-Meeting.\n\n'
+    'Die Abstimmung mit den Experten erfolgt im laufenden Projekt.'))
+
 FIELD_PART = '''... on ProjectV2Field {id name dataType}
 ... on ProjectV2SingleSelectField {id name dataType options {id name color description}}
 ... on ProjectV2IterationField {id name dataType configuration {
@@ -180,10 +185,18 @@ def complete_body(body):
 
 
 def prepare(stories, rows, folder, complete, repo='Cancani/diplomarbeit'):
-    plans = []
+    plans, conflicts = [], []
     for story in stories:
-        issue = issues.select_issue(rows, story['id'])
-        body = issues.migrate_body(issue.get('body') or '', story) if issue else issues.marked(story['body'])
+        issue = None
+        try:
+            issue = issues.select_issue(rows, story['id'])
+            body = issues.migrate_body(issue.get('body') or '', story) if issue else issues.marked(story['body'])
+        except ValueError as error:
+            conflicts.append(dict(story=story['id'], issue=issue.get('number') if issue else None,
+                                  error=str(error), current_body=issue.get('body') if issue else None,
+                                  expected_body=story['body']))
+            print(f'{story["id"]} / #{issue["number"] if issue else "?"}: {error}', flush=True)
+            continue
         done = complete and story['id'] in DONE
         if done and issue is None:
             raise ValueError(f'{story["id"]}: Fertige Story fehlt auf GitHub; zuerst Zuordnung klären')
@@ -200,7 +213,32 @@ def prepare(stories, rows, folder, complete, repo='Cancani/diplomarbeit'):
         (folder / (story['id'] + '.diff')).write_text(''.join(difflib.unified_diff(
             old.splitlines(True), body.splitlines(True), fromfile='GitHub', tofile='Vorschlag')), encoding='utf-8')
         plans.append(dict(story=story, issue=issue, body=body, done=done))
+    conflict_path = folder/'konflikte.json'
+    if conflicts:
+        conflict_path.write_text(json.dumps(conflicts, ensure_ascii=False, indent=2)+'\n', encoding='utf-8')
+        raise ValueError(f'{len(conflicts)} Issue-Konflikte. Keine GitHub-Änderungen. Details: {conflict_path}')
+    if conflict_path.exists():
+        conflict_path.unlink()
     return plans
+
+
+def sync_cancelled(repo, pid, plan, item, apply):
+    issue, body = plan['issue'], plan['body']
+    if issue is None:
+        return
+    print(f'US06 / #{issue["number"]}: nicht geplant; aus aktivem Board entfernen', flush=True)
+    if not apply:
+        return
+    endpoint = f'repos/{repo}/issues/{issue["number"]}'
+    fresh = api(endpoint)
+    if any(fresh.get(k) != issue.get(k) for k in ('body', 'title', 'state', 'updated_at')):
+        raise ValueError('US06: Zwischenzeitliche Änderung; erneut starten')
+    if (fresh['state'] != 'closed' or fresh.get('state_reason') != 'not_planned'
+            or fresh.get('body') != body or fresh['title'] != CANCELLED['title'] or fresh.get('milestone') is not None):
+        api(endpoint, 'PATCH', dict(title=CANCELLED['title'], body=body, state='closed', state_reason='not_planned', milestone=None))
+    if item:
+        mutation('deleteProjectV2Item', 'DeleteProjectV2ItemInput',
+                 dict(projectId=pid, itemId=item['id']), 'deletedItemId')
 
 
 def sync_milestones_labels(repo, apply, log, stories):
@@ -311,12 +349,13 @@ def main():
     if not re.fullmatch(r'[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+', args.repo):
         parser.error('Repository muss OWNER/REPO sein')
     stories = json.loads((ROOT/'scripts/backlog.json').read_text(encoding='utf-8-sig'))
-    if len(stories) != 39 or len({s['id'] for s in stories}) != 39 or sum(s['points'] for s in stories) != 113:
-        raise ValueError('Backlog weicht vom geprüften Stand mit 39 Stories und 113 SP ab')
+    if len(stories) != 38 or len({s['id'] for s in stories}) != 38 or sum(s['points'] for s in stories) != 111:
+        raise ValueError('Backlog weicht vom geprüften Stand mit 38 Stories und 111 SP ab')
     folder = ROOT/'issue-preview'/args.repo.replace('/', '_')/'sync'
     folder.mkdir(parents=True, exist_ok=True)
     rows = issues.list_issues(args.repo)
-    plans = prepare(stories, rows, folder, args.complete_reviewed, args.repo)
+    plans = prepare(stories + [CANCELLED], rows, folder, args.complete_reviewed, args.repo)
+    cancelled = plans.pop()
     project = choose_project(args.repo, args.project)
     print(f'Project: {project["title"]} ({project["url"]})', flush=True)
     fields = connection(project['id'], 'fields', FIELD_PART)
@@ -333,7 +372,7 @@ def main():
                 raise ValueError('Doppelter Project-Eintrag für Issue '+str(content['number']))
             item_map[content['number']] = item
     log = [f'Project: {project["title"]}; öffentlich: {project["public"]}',
-           '39 Stories, 113 SP: Sprint 1 = 40, Sprint 2 = 35, Sprint 3 = 38.',
+           '38 Stories, 111 SP: Sprint 1 = 38, Sprint 2 = 35, Sprint 3 = 38.',
            'Zeiträume sind Plantermine. US05 läuft bis 18.12.2026.']
     # Validate field compatibility and every issue before the first write.
     preview_fields = ensure_fields(project['id'], fields, False, log)
@@ -345,6 +384,10 @@ def main():
         if issue:
             sync_item(project['id'], preview_fields, item, issue, story, plan['done'], False)
     milestones = sync_milestones_labels(args.repo, False, log, stories)
+    cancelled_issue = cancelled['issue']
+    cancelled_item = item_map.get(cancelled_issue['number']) if cancelled_issue else None
+    sync_cancelled(args.repo, project['id'], cancelled, cancelled_item, args.apply)
+    log.append('US06: nicht geplant; entfällt im aktiven Backlog und Board.')
     if args.apply:
         fields = ensure_fields(project['id'], fields, True, [])
         milestones = sync_milestones_labels(args.repo, True, [], stories)
@@ -402,5 +445,6 @@ if __name__ == '__main__':
         sys.exit(main())
     except (RuntimeError, ValueError, KeyError, OSError, subprocess.CalledProcessError) as error:
         print(f'Abgebrochen: {error}', file=sys.stderr)
-        print('Bei fehlenden Project-Rechten: gh auth refresh -s project', file=sys.stderr)
+        if isinstance(error, RuntimeError) and any(word in str(error).lower() for word in ('scope', '403', 'permission')):
+            print('Project-Berechtigung prüfen: gh auth refresh -s project', file=sys.stderr)
         sys.exit(1)

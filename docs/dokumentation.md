@@ -136,7 +136,7 @@ Der bewilligte Projektzeitraum beginnt am 11.09.2026. Die operative Wochenplanun
 
 | ID | Meilenstein | Plantermin | Erforderlicher Stand |
 | --- | --- | --- | --- |
-| M0 | Arbeitsbeginn und Kickoff-Vorbereitung | 14.09.2026 | Zugänge und Umfang geklärt; Durchführung des Kickoffs separat protokollieren |
+| M0 | Arbeitsbeginn | 14.09.2026 | Die Experten haben den Antrag geprüft; Projektstart ohne separates Kickoff-Meeting |
 | M1 | Erstes Review | Woche vom 19.10.2026 | Vergleichsbasis, lokale Machbarkeit, AWS-Smoke-Test und Architektur liegen vor |
 | M2 | Zweites Review | Woche vom 16.11.2026 | Vollständiger lokaler Durchlauf und automatisierter AWS-Durchstich demonstrierbar |
 | M3 | Scope-Freeze | 04.12.2026 | Kernfunktionen stehen; danach Fehlerkorrekturen, Messungen und Abschluss |
@@ -148,7 +148,7 @@ Diese sieben Meilensteine sind Planung. Erreichte Termine werden erst mit einem 
 
 ### 2.4 Backlog und Prioritäten
 
-Der Backlog enthält 39 Stories mit 113 Story Points. Der AWS-Durchstich US39 umfasst drei Punkte in Sprint 2, die Vervollständigung US25 fünf Punkte in Sprint 3. Readiness und Abbauprüfung entstehen bereits mit dem ersten lokalen Durchlauf; US26 und US29 prüfen sie später auf beiden Plattformen formal.
+Der Backlog enthält 38 Stories mit 111 Story Points. Der AWS-Durchstich US39 umfasst drei Punkte in Sprint 2, die Vervollständigung US25 fünf Punkte in Sprint 3. Readiness und Abbauprüfung entstehen bereits mit dem ersten lokalen Durchlauf; US26 und US29 prüfen sie später auf beiden Plattformen formal.
 
 Die versionierte Quelle liegt in `scripts/backlog.json`. Die Skripte erstellen daraus Issue-Vorschläge. Ein abgeglichener lokaler Backlog bedeutet noch nicht, dass das öffentliche Board bereits aktualisiert ist. Das Skript `scripts/sync-project.py` gleicht die Project-Felder für Story Points, Sprint, Epic, Priority und Plantermine mit dem Backlog ab. Ein Tabellenwert im Issue allein setzt diese Project-Felder nicht.
 
@@ -156,7 +156,7 @@ Die Epics bündeln Initialisierung (E1), IST-Aufnahme (E2), lokale Plattform (E3
 
 #### Sprint 1
 
-17 Stories, 40 Story Points.
+16 Stories, 38 Story Points.
 
 | ID | Aufgabe | Epic | SP | Priorität |
 | --- | --- | --- | --- | --- |
@@ -165,7 +165,6 @@ Die Epics bündeln Initialisierung (E1), IST-Aufnahme (E2), lokale Plattform (E3
 | US03 | Vorlagen, Labels, Milestones und Regeln | E1 | 1 | Must |
 | US04 | Dokumentation über GitHub Pages | E1 | 2 | Must |
 | US05 | Wöchentlicher Statusbericht am Sonntag | E1 | 1 | Must |
-| US06 | Kickoff mit den Experten | E1 | 2 | Must |
 | US07 | IST-Analyse der heutigen Bereitstellung | E2 | 2 | Must |
 | US08 | Test-Lernumgebung aus m239, m254 und m426 ableiten | E2 | 3 | Must |
 | US09 | Messkonzept mit identischen Start- und Endkriterien | E2 | 3 | Must |
@@ -225,10 +224,10 @@ Als erste Orientierung dienen acht Story Points pro Woche. Sprint 2 umfasst den 
 
 | Sprint | Wochen | Orientierungsbudget | Backlog | Differenz |
 | --- | --- | --- | --- | --- |
-| 1 | 5 | 40 SP | 40 SP | 0 SP |
+| 1 | 5 | 40 SP | 38 SP | -2 SP |
 | 2 | 4 | 32 SP | 35 SP | +3 SP |
 | 3 | 5 | 40 SP | 38 SP | -2 SP |
-| Gesamt | 14 | 112 SP | 113 SP | +1 SP |
+| Gesamt | 14 | 112 SP | 111 SP | -1 SP |
 
 Sprint 2 ist überplant. Vor seinem Beginn wird anhand der tatsächlichen Ergebnisse entschieden, welche Vorbereitung vorgezogen werden kann. Priorität haben Modellvalidierung, der lokale Lebenszyklus und der AWS-Durchstich. Die zusätzliche Einführung aus US35 ist die erste verzichtbare Ausarbeitung. Die Schätzung wird anhand der Umsetzungserfahrungen überprüft.
 
@@ -266,7 +265,7 @@ Die folgende Risikobewertung ist eine Planungseinschätzung. Eintrittswahrschein
 | R04 | Netzwerk und Berechtigungen: fehlende Freigaben verzögern die Anbindung der Zielplattformen | 2 | 4 | 8 | Vermindern | Eine benötigte Verbindung ist beim ersten Test nicht erreichbar | Zugang über WireGuard und lerncloud-Schlüssel in der ersten Projektwoche verifiziert. Änderungen an produktiven Netzwerken bleiben ausserhalb des Umfangs |
 | R05 | Unvollständiger Teardown und Zustandsabweichungen: nach delete bleiben Ressourcen zurück oder der gespeicherte Zustand weicht vom tatsächlichen ab | 3 | 3 | 9 | Vermindern | Ein Lauf findet nach delete noch zugeordnete Ressourcen | Wiederholbare Operationen, Statusprüfung vor und nach jeder Aktion, Ressourceninventar mit IDs und ergänzender Laufkennzeichnung, automatisierter Cleanup-Test mit Warten auf den Endzustand |
 | R06 | Hardwareausfall im HF-Labor | 2 | 3 | 6 | Vermindern | Ein Knoten erscheint nach einem Neustart nicht mehr | Clusteraufbau und Konfiguration reproduzierbar dokumentiert, kvcontrol als möglicher Ersatz; Referenztest vor Nutzung erforderlich |
-| R07 | Verfügbarkeit der Experten: Termine für Zwischenpräsentationen lassen sich nicht rechtzeitig vereinbaren | 2 | 3 | 6 | Vermindern | Keine Terminbestätigung 10 Arbeitstage vor dem geplanten Termin | Alle drei Termine beim Kickoff fixieren und in die Kalender legen, Ersatztermin in derselben Woche vorschlagen |
+| R07 | Verfügbarkeit der Experten: Termine für Zwischenpräsentationen lassen sich nicht rechtzeitig vereinbaren | 2 | 3 | 6 | Vermindern | Keine Terminbestätigung 10 Arbeitstage vor dem geplanten Termin | Alle drei Termine direkt mit den Experten abstimmen und in die Kalender legen, Ersatztermin in derselben Woche vorschlagen |
 | R08 | Dokumentationsrückstand: die Dokumentation wird erst am Projektende nachgezogen | 3 | 4 | 12 | Vermeiden | Ein Issue erreicht Done ohne zugehörigen Dokumentationsabschnitt | Dokumentationsabschnitt ist Teil der Definition of Done, Dokumentationsnachweise in der Qualitätsampel, Doku-Stand ist fester Punkt jeder Retrospektive |
 | R09 | Reifegrad und Änderungen im MCP-Umfeld | 3 | 3 | 9 | Vermindern | Ein verwendetes Werkzeug meldet inkompatible Änderungen | Verwendete Versionen früh festschreiben, Adapterschnittstelle schmal halten, direkte API-Anbindung als Vergleich verwenden; ein Wegfall von MCP wäre eine Änderung des bewilligten Kerns |
 | R10 | Persönliche Kapazität: Krankheit oder beruflicher Engpass reduziert die verfügbare Zeit | 3 | 4 | 12 | Vermindern | Zwei aufeinanderfolgende Wochen unter 8 Stunden Projektzeit | Verfügbare Wochenkapazität prüfen; bei Unterschreitung optionale Ausarbeitung kürzen, Planung aktualisieren und den Firmenexperten informieren |
@@ -1079,7 +1078,7 @@ Die Prüfungen bestätigen Dateien, Hilfsskripte und den Dokumentationsbuild. Si
 
 ### Backlog und Issue-Skripte {#issue-skripte}
 
-`scripts/backlog.json` enthält 39 Stories mit 113 Story Points. Der AWS-Durchstich steht als US39 in Sprint 2; US25 vervollständigt den Adapter in Sprint 3. GitHub-Project-Felder müssen separat gepflegt werden.
+`scripts/backlog.json` enthält 38 Stories mit 111 Story Points. Der AWS-Durchstich steht als US39 in Sprint 2; US25 vervollständigt den Adapter in Sprint 3. Das Project wird mit `scripts/sync-project.py` abgeglichen.
 
 ```bash
 # Nur lesen und geplante Änderungen anzeigen:
@@ -1104,11 +1103,15 @@ python3 scripts/sync-project.py Cancani/diplomarbeit --complete-reviewed
 python3 scripts/sync-project.py Cancani/diplomarbeit --complete-reviewed --apply
 ```
 
+Unter Windows kann `python3` durch `py -3` ersetzt werden. Python muss dafür nicht erneut installiert werden.
+
 Der erste Aufruf erstellt nur eine Vorschau unter `issue-preview/Cancani_diplomarbeit/sync/`. Der zweite wendet sie nach erneuter Abfrage an. Die Datei `pruefung.txt` nennt die vorgesehenen Änderungen und die verfügbaren Project-Workflows. Ein abweichender Project-Name kann mit `--project NUMMER` anhand der Project-URL zugeordnet werden.
+
+US06 ist nicht geplant, weil der Projektstart nach der Prüfung des Antrags ohne separates Kickoff-Meeting erfolgte. Das Skript schliesst dieses Issue als nicht geplant und entfernt es aus dem aktiven Board sowie aus dem Sprint-Milestone. Die Issue-Nummern bleiben unverändert.
 
 Die Option `--complete-reviewed` ist für den geprüften Arbeitsstand vorgesehen: US01, US07, US09, US12 und US13 erhalten abgehakte Kriterien, den Board-Status Done und den Issue-Zustand abgeschlossen. Das setzt voraus, dass die geprüften Dateien auf main vorliegen. US04 und US11 bleiben bis zu den ausstehenden Bestätigungen offen. Bereits geschlossene andere Issues erhalten keine pauschalen neuen Häkchen. Bei späteren Abgleichen wird die Option weggelassen, damit bewusst wieder geöffnete Stories offen bleiben.
 
-Aktuelle Häkchen werden übernommen. Bereits angehängte zusätzliche Kriterienlisten werden entfernt; passende Häkchen werden in die aktuellen Kriterien zurückgeführt. Unbekannte Beschreibungsänderungen und beobachtete parallele Bearbeitungen führen zum Abbruch. Ein erneuter Aufruf setzt nach Behebung eines Fehlers am aktuellen GitHub-Zustand an.
+Aktuelle Häkchen werden übernommen. Bereits angehängte zusätzliche Kriterienlisten werden entfernt; passende Häkchen werden in die aktuellen Kriterien zurückgeführt. Bekannte vom Skript erzeugte Vorlagen werden anhand ihres Texts beziehungsweise ihrer Prüfsumme erkannt. Unbekannte Beschreibungsänderungen führen vor jeder GitHub-Änderung zum Abbruch. Die betroffenen Issue-Nummern und Texte stehen lokal in `issue-preview/Cancani_diplomarbeit/sync/konflikte.json`. Beobachtete parallele Bearbeitungen stoppen den laufenden Abgleich. Ein erneuter Aufruf setzt nach Behebung eines Fehlers am aktuellen GitHub-Zustand an.
 
 | Ansicht | Layout | Einstellung |
 | --- | --- | --- |

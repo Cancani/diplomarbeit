@@ -13,10 +13,10 @@ def require(ok, message):
     if not ok: errors.append(message)
 
 stories = json.loads((ROOT/'scripts/backlog.json').read_text(encoding='utf-8-sig'))
-require(len(stories) == 39, 'Expected 39 backlog stories')
+require(len(stories) == 38, 'Expected 38 backlog stories')
 require(len({s['id'] for s in stories}) == len(stories), 'Duplicate story IDs')
-require(sum(s['points'] for s in stories) == 113, 'Backlog total must be 113 SP')
-expected = {1:(17,40), 2:(9,35), 3:(13,38)}
+require(sum(s['points'] for s in stories) == 111, 'Backlog total must be 111 SP')
+expected = {1:(16,38), 2:(9,35), 3:(13,38)}
 main = (ROOT/'docs/dokumentation.md').read_text(encoding='utf-8-sig')
 for sprint, (count, points) in expected.items():
     group = [s for s in stories if s['sprint'] == sprint]
@@ -29,7 +29,7 @@ for story in stories:
 for line in (ROOT/'docs/nachweise/SHA256SUMS').read_text(encoding='utf-8-sig').splitlines():
     digest, name = line.split('  ',1)
     path = ROOT/name
-    require(path.is_file() and hashlib.sha256(path.read_bytes()).hexdigest() == digest, f'Historical evidence changed: {name}')
+    require(path.is_file() and hashlib.sha256(path.read_bytes()).hexdigest() == digest, f'Evidence changed: {name}')
 for path in [ROOT/'README.md', *ROOT.joinpath('docs').rglob('*.md')]:
     content = path.read_text(encoding='utf-8-sig')
     # Inline local links, excluding fenced code and external URLs; anchors checked by MkDocs.
@@ -50,4 +50,4 @@ require(not list(ROOT.joinpath('docs').rglob('*.svg')), 'Separate SVG diagram fo
 require((ROOT/'.github/pull_request_template.md').is_file(), 'PR template missing')
 if errors:
     print('\n'.join(errors),file=sys.stderr);sys.exit(1)
-print(f'OK: {len(stories)} stories, 113 SP, local links, Mermaid blocks and immutable evidence verified.')
+print(f'OK: {len(stories)} stories, 111 SP, local links, Mermaid blocks and immutable evidence verified.')

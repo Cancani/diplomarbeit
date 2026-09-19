@@ -125,6 +125,7 @@ class EndToEndTests(unittest.TestCase):
         rows = {i: dict(number=i, node_id='node'+str(i), title=s['title'],
                        body=issues.marked(s['body']), state='open', state_reason=None,
                        updated_at='v0', labels=[], milestone=None) for i,s in enumerate(stories, 1)}
+        rows[99] = dict(number=99,node_id='node99',title='US06: Kickoff mit den Experten',body=issues.marked(sync.CANCELLED['body']),state='open',state_reason=None,updated_at='v0',labels=[],milestone=None)
         pid = 'project'
         fields = []
         sync.ensure_fields(pid, fields, False, [])
@@ -137,7 +138,7 @@ class EndToEndTests(unittest.TestCase):
                   for n,t,opts in specs]
         milestones = [dict(number=i,title=f'Sprint {i}',due_on=sync.SPRINTS[i][1]+'T23:59:59Z') for i in range(1,4)]
         labels = [dict(name=n) for n in {'story','must','should','could','wont'} | {f'E{i}' for i in range(1,12)}]
-        items, writes = {}, []
+        items, writes = {'99':dict(id='99',isArchived=False,content=dict(number=99,repository={'nameWithOwner':'test/repo'}),fieldValues={'nodes':[]})}, []
         def fake_api(path, method='GET', payload=None):
             n = int(path.rsplit('/',1)[1])
             if method == 'GET':
@@ -147,7 +148,7 @@ class EndToEndTests(unittest.TestCase):
             if 'labels' in update:
                 update['labels'] = [dict(name=x) for x in update['labels']]
             if 'milestone' in update:
-                update['milestone'] = dict(number=update['milestone'])
+                update['milestone'] = dict(number=update['milestone']) if update['milestone'] is not None else None
             rows[n].update(update)
             rows[n]['updated_at'] += 'x'
             return deepcopy(rows[n])
@@ -157,6 +158,9 @@ class EndToEndTests(unittest.TestCase):
             return deepcopy(list(items.values()))
         def fake_mutation(name, typename, payload, result):
             writes.append((name,deepcopy(payload)))
+            if name == 'deleteProjectV2Item':
+                items.pop(payload['itemId'])
+                return {'deletedItemId':payload['itemId']}
             if name == 'addProjectV2ItemById':
                 n = int(payload['contentId'][4:])
                 item = dict(id=str(n),isArchived=False,content=dict(number=n,repository={'nameWithOwner':'test/repo'}),
@@ -187,9 +191,11 @@ class EndToEndTests(unittest.TestCase):
                     self.assertEqual(writes,[])
                 with patch.object(sys,'argv',['sync-project.py','test/repo','--complete-reviewed','--apply']):
                     self.assertEqual(sync.main(),0)
-                    self.assertEqual(len(items),39)
-                    closed = {r['title'].split(':')[0] for r in rows.values() if r['state']=='closed'}
+                    self.assertEqual(len(items),38)
+                    closed = {r['title'].split(':')[0] for r in rows.values() if r['state']=='closed' and r['state_reason']=='completed'}
                     self.assertEqual(closed,set(sync.DONE))
+                    self.assertEqual(rows[99]['state_reason'],'not_planned')
+                    self.assertNotIn('99',items)
                     for r in rows.values():
                         if r['state']=='closed': self.assertNotIn('- [ ]',r['body'])
                     writes.clear()
@@ -203,6 +209,18 @@ class EndToEndTests(unittest.TestCase):
                     with patch.object(sync,'api',side_effect=edited), self.assertRaises(ValueError):
                         sync.main()
                     self.assertEqual(writes,[])
+
+
+class ConflictTests(unittest.TestCase):
+    def test_all_conflicts_are_identified_and_exported(self):
+        stories = [dict(id=sid, body='- [ ] Vorgabe') for sid in ['US01','US04']]
+        rows = [dict(number=n,title=s['id']+': Test',body='Eigene Ergänzung') for n,s in enumerate(stories,1)]
+        with tempfile.TemporaryDirectory() as tmp:
+            with self.assertRaisesRegex(ValueError,'2 Issue-Konflikte'):
+                sync.prepare(stories,rows,Path(tmp),False)
+            exported = json.loads((Path(tmp)/'konflikte.json').read_text(encoding='utf-8'))
+            self.assertEqual([v['issue'] for v in exported],[1,2])
+            self.assertEqual(exported[0]['current_body'],'Eigene Ergänzung')
 
 
 if __name__ == '__main__':
