@@ -27,7 +27,7 @@ body:
         - "E8 Validierung und Messung"
         - "E9 Bewertung und Vergleich"
         - "E10 Betrieb und Schulung"
-        - "E11 Projektabschluss"
+        - "E11 Architektur und Projektabschluss"
     validations:
       required: true
 
