@@ -1,7 +1,7 @@
 # Diplomarbeit: Agentenbasierte Hybrid-Cloud-Bereitstellung von Lernumgebungen mit Kubernetes, KubeVirt und MCP
 
 !!! info "Lesehinweis"
-    Arbeitsstand vom 19.09.2026. Die Infrastrukturaufnahme und erste Referenzversuche liegen vor. Agent, Adapter und formale Vergleichsmessungen sind noch offen. Planung und Entwürfe sind als solche gekennzeichnet.
+    Arbeitsstand vom 22.09.2026. Die Infrastrukturaufnahme und ein manueller KubeVirt-Referenzlauf mit HTTP, SSH und vollständiger Ressourcenbereinigung liegen vor. Agent, Adapter und formale Vergleichsmessungen sind noch offen. Planung und Entwürfe sind als solche gekennzeichnet.
 
 | | |
 | --- | --- |
@@ -776,17 +776,13 @@ Die spätere MCP-Bewertung vergleicht denselben Provider-Code einmal über eine 
 
 ### 4.1 Referenz-Lernumgebung auf KubeVirt
 
-Am 14.09.2026 wurde auf dl380-01 eine Referenz-VM mit der Kennung `testlauf-01` aufgebaut. Der [Konsolenbeleg](nachweise/nachweis-testvm-20260914.txt) zeigt eine laufende VM und eine erfolgreiche HTTP-Antwort über `10.1.24.5:30080`. Damit ist die grundlegende lokale Machbarkeit beobachtet.
+Am 22.09.2026 habe ich auf `dl380-01` den Referenzlauf `kv-ref-20260922-01` durchgeführt. Die VM erreichte den Zustand `Running/Ready`, der HTTP-Testdienst lieferte den erwarteten Inhalt und die SSH-Anmeldung mit einem eigenen Schlüssel war erfolgreich. Nach dem Abbau waren die laufbezogenen Kubernetes-Ressourcen, der zugehörige PersistentVolume und sein Datenverzeichnis entfernt. Das [Laufprotokoll](#kv-ref-20260922-01) enthält die Zeitstempel und Nachweise.
 
-Das [archivierte Manifest](nachweise/testvm.yaml) beschreibt Namespace, VM mit DataVolume-Vorlage, cloud-init und NodePort-Service. Es enthält 2 GiB RAM und 10 GiB Datenträger. Ein öffentlicher SSH-Schlüssel ist darin nicht hinterlegt; das Passwortfeld wurde entfernt. Das Manifest dokumentiert den Referenzaufbau. Für die Vergleichsläufe werden Abbild, SSH-Zugang und Dienstinhalt in einer versionierten Laufdefinition festgelegt. Im Protokoll steht `testvm bereit`, im Manifest inzwischen `lernumgebung bereit`.
+Das [ausgeführte Manifest](messungen/laeufe/kv-ref-20260922-01/manifest.yaml) beschreibt einen eigenen Namespace, eine VirtualMachine mit DataVolume-Vorlage und einen NodePort-Service für SSH und HTTP. Es verwendet zwei vCPU, 2 GiB RAM, einen Systemdatenträger von 12 GiB und das Ubuntu-24.04-Abbild vom 11.09.2026. cloud-init hinterlegt den öffentlichen SSH-Schlüssel, deaktiviert die Passwortanmeldung und startet den HTTP-Testdienst. Der private Schlüssel liegt ausserhalb der Nachweisdateien.
 
-Das Protokoll enthält keine eindeutigen Zeitgrenzen für die Bereitstellungsdauer. Auch das Entfernen des zugehörigen PersistentVolume ist nicht protokolliert. Dienstbereitschaft, SSH-Zugang und vollständiger Abbau werden in den Vergleichsläufen gesondert nachgewiesen.
+Der Speicher wird über `microk8s-hostpath` mit `WaitForFirstConsumer` und der Reclaim-Policy `Delete` bereitgestellt. Die Zuordnung vom PVC zum clusterweiten PV wird vor dem Abbau gesichert. Im Lauf wechselte der PV nach der Namespace-Löschung zunächst auf `Released`; erst die Nachkontrolle bestätigte seine Entfernung sowie das fehlende Datenverzeichnis. Der spätere Adapter muss deshalb die Ressourcenprüfung bis zum tatsächlichen Endzustand fortsetzen.
 
-Im Manifest tragen nicht alle Ressourcen ein Lauf-Label. Service, Namespace und DataVolume-Vorlage sind nicht durchgängig gekennzeichnet. Zudem liegen PVs ausserhalb des Namespace. Der vollständige Referenztest muss deshalb vor dem Abbau alle IDs erfassen und anschliessend die Ressourcen gezielt prüfen. Ein Label oder das Löschen des Namespace allein schliesst den Nachweis nicht ab.
-
-Für das Fachmodell bleibt die Trennung brauchbar: Name, VM-Rolle, Mindestkapazitäten, Betriebssystem, Testdienst und öffentliche Zugangsschlüssel sind fachliche Angaben. Abbild-URL, StorageClass, NodePort, Namespace und Provider-IDs entstehen im Adapter. Die Laufkennung erzeugt der Agent; sie muss nicht von einer Lehrperson eingegeben werden.
-
-Die Referenzspezifikation enthält eine Modellversion, eindeutige Einheiten und den erwarteten Dienstinhalt. Das ausführbare Manifest benötigt einen geprüften Abbildstand und den tatsächlich verwendeten öffentlichen Schlüssel. Die Arbeitsschritte dafür stehen im [Messplan](#messplan).
+Für das Fachmodell werden Name, VM-Rolle, Mindestkapazitäten, Betriebssystem, Testdienst und öffentliche Zugangsschlüssel von den Plattformdetails getrennt. Abbild-URL, StorageClass, NodePorts, Namespace und Ressourcen-IDs gehören zur Umsetzung im Adapter. Der Referenzlauf wurde manuell über das Manifest gesteuert. Agent, MCP und Reset sind noch nicht Bestandteil dieses Nachweises.
 
 ### 4.2 Plattformneutrales Fachmodell
 
@@ -996,7 +992,86 @@ Verlinkte Rohdaten und unabhängiger Nachvollzug:
 
 ### 5.3 Messläufe {#messlaeufe}
 
-Die Vergleichsläufe sind noch offen. Für jeden Versuch wird hier ein eigener Abschnitt mit ausgefülltem Messprotokoll und Links zu den Rohdaten ergänzt.
+Die drei LernMAAS-Basisläufe und die sechs formalen PoC-Läufe sind noch offen. Der folgende manuelle Referenzlauf dient der Vorbereitung der KubeVirt-Implementierung.
+
+#### KubeVirt-Referenzlauf vom 22.09.2026 {#kv-ref-20260922-01}
+
+**Ergebnis:** Aufbau, HTTP-Prüfung, SSH-Zugang und vollständiger Abbau der erfassten Testressourcen bestanden.  
+**Laufkennung:** `kv-ref-20260922-01`  
+**Zweck:** Manueller Referenznachweis für US38.  
+**Durchführung:** Efekan Demirci auf `dl380-01`; alle Zeitstempel in UTC.
+
+**Definition und Umgebung**
+
+| Merkmal | Wert |
+| --- | --- |
+| Host / Cluster | `dl380-01`, MicroK8s v1.35.6, Einzelknoten |
+| Zustand vor dem Lauf | Node `Ready`, KubeVirt und CDI `Deployed` |
+| Namespace | `da-kv-ref-20260922-01`, für diesen Lauf neu angelegt |
+| VM / Service | `referenzvm` |
+| DataVolume / PVC | `referenzvm-disk` |
+| VM-Konfiguration | 2 vCPU, 2 GiB RAM, 12 GiB Systemdatenträger |
+| Abbild | Ubuntu 24.04, amd64, Build `20260911`; genaue URL im Manifest |
+| SHA-256 des ausgeführten Manifests | `a305121b22d02413cd5ed1747be4f1cde0a7f183e23e6afaa959e35c533cfaa4` |
+| HTTP | `http://10.1.24.5:31946/`, Gastport 8080 |
+| SSH | Benutzer `ubuntu`, NodePort 30526, eigener Ed25519-Schlüssel |
+| Prüfrechner | `dl380-01`; HTTP und SSH wurden von dort gegen die NodePorts geprüft |
+| HTTP-Beobachter | `probe-http.py`, Intervall 2 s, Gesamtlimit 900 s, Request-Timeout 2 s |
+| StorageClass | `microk8s-hostpath`, `WaitForFirstConsumer`, Reclaim-Policy `Delete` |
+| PV | `pvc-af106e61-e080-46c8-8b38-4ba46f59b092` |
+| PV-UID | `704e15a1-ff36-4864-b1e1-d103dc740bc0` |
+| Gastdatenträger | `vda`, 12 884 901 888 Bytes, entsprechend 12 GiB |
+| Gemeldete PVC-Kapazität | 13 657 996 002 Bytes |
+| Bestehender Speicher | `rwm-volume`, 50 GiB, `Retain`, an `default/data-claim` gebunden; blieb beim Abbau erhalten |
+
+Die im Manifest vermerkte Abbild-Prüfsumme stammt aus der Veröffentlichung des Anbieters. Eine unabhängige Prüfsummenprüfung des tatsächlich von CDI heruntergeladenen Abbilds wurde in diesem Lauf nicht protokolliert. Das ausgeführte Manifest besitzt eine separat erfasste SHA-256-Prüfsumme.
+
+**Ablauf und Ergebnisse**
+
+| Zeitpunkt am 22.09.2026, UTC | Beobachtung |
+| --- | --- |
+| 18:22:35 | Startzeit unmittelbar vor `kubectl create -f manifest.yaml` protokolliert; Namespace, VM und Service erstellt |
+| Direkt nach Erstellung | PVC `Pending`, DataVolume `WaitForFirstConsumer`; Ressourcenaufbau noch im Gang |
+| 18:27:37.922 | HTTP-Prüfung erfolgreich: Status 200, erwarteter Inhalt `lernumgebung bereit`, 20 Bytes einschliesslich Zeilenumbruch |
+| Nach der HTTP-Prüfung | VM und VMI `Running/Ready`, DataVolume `Succeeded` mit 100 %, PVC `Bound`, VM-Pod `2/2 Running`; VMI-IP `10.1.90.120` |
+| 18:39:35 | SSH-Anmeldung erfolgreich; Hostname `referenzvm`, Benutzer `ubuntu`, Testdienst `active`, Gastdatenträger 12 GiB |
+| Vor dem Abbau | VM, VMI, DataVolume, PVC, Service, Pods und der zugeordnete PV als JSON gesichert |
+| 18:50:32 | Abbau mit gezielter Löschung des Lauf-Namespace begonnen |
+| 18:51:14 | Wechsel des PV auf `Released`, gemäss `lastPhaseTransitionTime` |
+| 18:51:20 | Namespace-Löschung beendet; Ressourcenabfrage liefert `items: []`; Test-PV noch `Released`, `rwm-volume` weiterhin `Bound` |
+| 18:53:15 | Start der abschliessenden Nachkontrolle: gezielte PV-Abfrage ohne Ergebnis und Dateisystemprüfung mit Ergebnis «Datenverzeichnis entfernt» |
+
+Die letzte Kontrolle bezog sich auf das im gesicherten PV hinterlegte Verzeichnis:
+
+`/var/snap/microk8s/common/default-storage/da-kv-ref-20260922-01-referenzvm-disk-pvc-af106e61-e080-46c8-8b38-4ba46f59b092`
+
+Eine erfolgreiche API-Abfrage mit `--ignore-not-found` lieferte keinen Test-PV mehr. Die anschliessende Prüfung des Pfads mit Administratorrechten bestätigte dessen Abwesenheit. Es wurden keine zusätzlichen manuellen Löschbefehle für den PV oder das Datenverzeichnis ausgeführt.
+
+**Zeitmessung und Aussagegrenzen**
+
+- Vom protokollierten Start bis zur erfolgreichen HTTP-Beobachtung vergingen 302,922 Sekunden. Der HTTP-Beobachter selbst lief 234,367 Sekunden und meldete Erfolg im 118. Versuch. Das Polling begann erst nach der Erstellung; die Werte belegen keine exakte Zeit bis zur erstmaligen Dienstbereitschaft.
+- Die Namespace-Löschung war nach rund 48 Sekunden beendet. Der vollständige Storage-Abbau wurde erst mit der Nachkontrolle ab 18:53:15 UTC bestätigt, rund 163 Sekunden nach dem Abbaustart. Die genaue Löschzeit des PV und die Dauer der abschliessenden Abfragen sind nicht einzeln protokolliert.
+- Aktive Bedienzeit und Anzahl der Bedienhandlungen wurden nicht systematisch gemessen. Der Lauf liefert deshalb keine vollständige Ausgangs- oder Vergleichsmessung.
+- Der Zugriffsweg wurde vom Host zu seinen NodePorts geprüft. Ein separater Ende-zu-Ende-Test vom Laptop über WireGuard war nicht Teil dieses Laufs.
+- Reset, Agentensteuerung, MCP-Adapter und die drei aufeinanderfolgenden formalen KubeVirt-PoC-Läufe sind noch offen.
+
+**Rohdateien**
+
+Die Nachweise werden gemeinsam mit dem ausgeführten Manifest unter `docs/messungen/laeufe/kv-ref-20260922-01/` versioniert. Das Commit des Nachweispakets gehört zum Abschluss von US38.
+
+| Nachweis | Dateien |
+| --- | --- |
+| Definition | [Manifest](messungen/laeufe/kv-ref-20260922-01/manifest.yaml), [SHA256SUMS](messungen/laeufe/kv-ref-20260922-01/SHA256SUMS) |
+| Ausgangszustand | [Nodes](messungen/laeufe/kv-ref-20260922-01/nodes-vorher.txt), [PVs](messungen/laeufe/kv-ref-20260922-01/pv-vorher.json) |
+| Erstellung | [Startzeit](messungen/laeufe/kv-ref-20260922-01/start-utc.txt), [Erstellung](messungen/laeufe/kv-ref-20260922-01/erstellen.txt) |
+| HTTP | [Beobachtungsprotokoll](messungen/laeufe/kv-ref-20260922-01/http-create.jsonl), [verwendetes Prüfskript](messungen/laeufe/kv-ref-20260922-01/probe-http.py), [Skript-Prüfsumme](messungen/laeufe/kv-ref-20260922-01/probe-http.sha256) |
+| SSH | [SSH-Prüfung](messungen/laeufe/kv-ref-20260922-01/ssh-pruefung.txt) |
+| Inventar vor Abbau | [Namespace-Ressourcen](messungen/laeufe/kv-ref-20260922-01/inventar-vor-abbau.json), [PV](messungen/laeufe/kv-ref-20260922-01/pv-vor-abbau.json) |
+| Abbau | [Startzeit](messungen/laeufe/kv-ref-20260922-01/abbau-start-utc.txt), [Löschprotokoll](messungen/laeufe/kv-ref-20260922-01/abbau.txt), [Namespace entfernt](messungen/laeufe/kv-ref-20260922-01/namespace-entfernt-utc.txt) |
+| Erste Abbaukontrolle | [Leere Ressourcenliste](messungen/laeufe/kv-ref-20260922-01/inventar-nach-abbau.json), [PV noch Released](messungen/laeufe/kv-ref-20260922-01/pv-nach-abbau.yaml), [bestehender PV](messungen/laeufe/kv-ref-20260922-01/bestehendes-volume-nach-abbau.txt) |
+| Abschliessende Kontrolle | [Zeitstempel](messungen/laeufe/kv-ref-20260922-01/nachkontrolle-utc.txt), [leere PV-Ausgabe](messungen/laeufe/kv-ref-20260922-01/pv-nachkontrolle.yaml), [Datenverzeichnis entfernt](messungen/laeufe/kv-ref-20260922-01/storage-nachkontrolle.txt) |
+
+Die Datei `pv-nachkontrolle.yaml` ist wegen des entfernten PV leer. Ihr Ergebnis wird zusammen mit dem Zeitstempel, dem erfolgreichen Befehlsablauf und der Dateisystemprüfung beurteilt.
 
 ## 6 Bewertung und Vergleich
 
@@ -1149,10 +1224,11 @@ Interne Betriebsunterlagen und die Reservationsliste sind in der IST-Analyse ben
 
 ### Nachweise und Aussagegrenzen {#nachweise}
 
-Die Dateien dokumentieren die Infrastrukturaufnahme und die Referenzversuche vom 14. und 16.09.2026. Die Tabelle ordnet ein, welche Aussagen die jeweiligen Belege stützen und welche Nachweise noch fehlen.
+Die Dateien dokumentieren die Infrastrukturaufnahme und die Referenzversuche vom 14., 16. und 22.09.2026. Die Tabelle ordnet ein, welche Aussagen die jeweiligen Belege stützen und welche Nachweise noch fehlen.
 
 | Datei | Nutzbarer Inhalt | Grenze |
 | --- | --- | --- |
+| [Referenzlauf kv-ref-20260922-01](#kv-ref-20260922-01) | VM läuft, HTTP und SSH erfolgreich, Namespace, PV und Datenverzeichnis entfernt | Manueller Referenzlauf; keine aktive Bedienzeit, kein Reset, keine formale Vergleichsserie |
 | [Lernlauf](nachweise/lernlauf-lernmaas-00-20260916.txt) | Heutiger Ablauf, Commissioning, IP-Wechsel, einzelne Abbauaktionen | Kein Zeitstempel der ersten HTTP-Bereitschaft; aktive Zeiten sind nicht belastbar gemessen |
 | [mess01](messungen/messprotokoll-mess01.txt) | Zeitpunkte bis Deployed und späterer HTTP-Check | 673 s endet bei Deployed, 797 s bei beobachtetem HTTP-Erfolg; kein lückenloser Vollnachweis |
 | [parallel01](messungen/messprotokoll-parallel01.txt) | Teilaufbau und I/O-Fehler | Kein abschliessender Bereinigungsnachweis; keine Evidenz für fehlende Eingabevalidierung |
@@ -1181,4 +1257,5 @@ Geplante Screenshots werden erst aufgenommen und nummeriert, wenn ein tatsächli
 
 Efekan Demirci, ITCNE24, TBZ Höhere Fachschule
 efekan.demirci@tbz.ch
+
 
