@@ -1,0 +1,2 @@
+NAME         CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS   CLAIM                STORAGECLASS    VOLUMEATTRIBUTESCLASS   REASON   AGE   VOLUMEMODE
+rwm-volume   50Gi       RWX            Retain           Bound    default/data-claim   local-storage   <unset>                          28d   Filesystem

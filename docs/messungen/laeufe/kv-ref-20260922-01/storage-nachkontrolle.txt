@@ -1,0 +1,1 @@
+Datenverzeichnis entfernt: /var/snap/microk8s/common/default-storage/da-kv-ref-20260922-01-referenzvm-disk-pvc-af106e61-e080-46c8-8b38-4ba46f59b092

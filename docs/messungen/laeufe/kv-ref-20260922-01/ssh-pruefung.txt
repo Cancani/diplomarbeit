@@ -1,0 +1,11 @@
+Tue Sep 22 18:39:35 UTC 2026
+referenzvm
+uid=1000(ubuntu) gid=1000(ubuntu) groups=1000(ubuntu),27(sudo)
+active
+NAME    TYPE        SIZE
+vda     disk 12884901888
+├─vda1  part 11810094592
+├─vda14 part     4194304
+├─vda15 part   111149056
+└─vda16 part   957350400
+vdb     disk     1048576

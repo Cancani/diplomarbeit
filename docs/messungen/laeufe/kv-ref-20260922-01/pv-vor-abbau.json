@@ -1,0 +1,61 @@
+{
+    "apiVersion": "v1",
+    "kind": "PersistentVolume",
+    "metadata": {
+        "annotations": {
+            "hostPathProvisionerIdentity": "dl380-01",
+            "pv.kubernetes.io/provisioned-by": "microk8s.io/hostpath"
+        },
+        "creationTimestamp": "2026-09-22T18:22:41Z",
+        "finalizers": [
+            "kubernetes.io/pv-protection"
+        ],
+        "name": "pvc-af106e61-e080-46c8-8b38-4ba46f59b092",
+        "resourceVersion": "10724097",
+        "uid": "704e15a1-ff36-4864-b1e1-d103dc740bc0"
+    },
+    "spec": {
+        "accessModes": [
+            "ReadWriteOnce"
+        ],
+        "capacity": {
+            "storage": "13657996002"
+        },
+        "claimRef": {
+            "apiVersion": "v1",
+            "kind": "PersistentVolumeClaim",
+            "name": "referenzvm-disk",
+            "namespace": "da-kv-ref-20260922-01",
+            "resourceVersion": "10724036",
+            "uid": "af106e61-e080-46c8-8b38-4ba46f59b092"
+        },
+        "hostPath": {
+            "path": "/var/snap/microk8s/common/default-storage/da-kv-ref-20260922-01-referenzvm-disk-pvc-af106e61-e080-46c8-8b38-4ba46f59b092",
+            "type": "DirectoryOrCreate"
+        },
+        "nodeAffinity": {
+            "required": {
+                "nodeSelectorTerms": [
+                    {
+                        "matchExpressions": [
+                            {
+                                "key": "kubernetes.io/hostname",
+                                "operator": "In",
+                                "values": [
+                                    "dl380-01"
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        "persistentVolumeReclaimPolicy": "Delete",
+        "storageClassName": "microk8s-hostpath",
+        "volumeMode": "Filesystem"
+    },
+    "status": {
+        "lastPhaseTransitionTime": "2026-09-22T18:22:41Z",
+        "phase": "Bound"
+    }
+}
