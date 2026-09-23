@@ -1,7 +1,7 @@
 # Diplomarbeit: Agentenbasierte Hybrid-Cloud-Bereitstellung von Lernumgebungen mit Kubernetes, KubeVirt und MCP
 
 !!! info "Lesehinweis"
-    Arbeitsstand vom 23.09.2026. Die Infrastrukturaufnahme und ein manueller KubeVirt-Referenzlauf mit HTTP, SSH und vollständiger Ressourcenbereinigung liegen vor. Agent, Adapter und formale Vergleichsmessungen sind noch offen. Planung und Entwürfe sind als solche gekennzeichnet.
+    Arbeitsstand vom 23.09.2026. Die Infrastrukturaufnahme und ein manueller KubeVirt-Referenzlauf mit HTTP, SSH und vollständiger Ressourcenbereinigung liegen vor. Das plattformneutrale Modell und seine lokale Validierung sind implementiert; ihr Prüfstand steht in Kapitel 4.2. Agent, Adapter und formale Vergleichsmessungen sind noch offen. Planung und Entwürfe sind als solche gekennzeichnet.
 
 | | |
 | --- | --- |
@@ -48,7 +48,7 @@ Die fünf Teilziele aus der bewilligten Projektbeschreibung bestimmen den Umfang
 
 | ID | Ziel | Messkriterium | Zielwert | Nachweis | Status |
 | --- | --- | --- | --- | --- | --- |
-| Z1 | Plattformneutrales Modell für Lernumgebungen | Versioniertes YAML-Modell mit JSON-Schema, gültige Definition wird akzeptiert, ungültige abgewiesen | 1 Modell, 1 Schema, je 1 positiver und 1 negativer Testfall bestehen | Repository, Testprotokoll | Offen |
+| Z1 | Plattformneutrales Modell für Lernumgebungen | Versioniertes YAML-Modell mit JSON-Schema, gültige Definition wird akzeptiert, ungültige abgewiesen | 1 Modell, 1 Schema, je 1 positiver und 1 negativer Testfall bestehen | Repository, Testprotokoll | Lokal umgesetzt und geprüft; Commit und Push offen |
 | Z2 | Zentraler Agent mit Zustandsführung | create, status, reset und delete laufen über festgelegte Zustandsübergänge, Zustand ist persistent | 4 Operationen funktionsfähig, reset erzeugt aus derselben Definition neu | Quellcode, Zustandsdiagramm, Testprotokoll | Offen |
 | Z3 | On-Prem-Backend mit Kubernetes und KubeVirt | Test-Lernumgebung wird automatisiert bereitgestellt und vollständig entfernt | 3 vollständige Durchläufe ohne manuelle Korrektur | Laufprotokolle, Screenshots | Offen |
 | Z4 | Bewertung der MCP-basierten Adapterarchitektur | Dieselbe Definition läuft lokal und auf genau einer Public Cloud, Bewertung gegen direkte API-Anbindung | 3 vollständige Durchläufe in der Cloud, Bewertung nach 5 Kriterien dokumentiert | Laufprotokolle, Bewertungstabelle | Offen |
@@ -146,6 +146,8 @@ Der bewilligte Projektzeitraum beginnt am 11.09.2026. Die operative Wochenplanun
 
 Diese sieben Meilensteine sind Planung. Erreichte Termine werden erst mit einem Nachweis als abgeschlossen geführt. Die Abschlussphase ab 04.12.2026 ist für Tests und Dokumentation vorgesehen und daher kein freier Zeitpuffer.
 
+Für das Kolloquium war auf der bisherigen Einstiegsseite die Woche vom 04.01.2027 vorgemerkt. Diese Angabe ist eine Planannahme; ein verbindlicher Termin ist in den vorliegenden Nachweisen noch nicht belegt.
+
 ### 2.4 Backlog und Prioritäten
 
 Der Backlog enthält 38 Stories mit 111 Story Points. Der AWS-Durchstich US39 umfasst drei Punkte in Sprint 2, die Vervollständigung US25 fünf Punkte in Sprint 3. Readiness und Abbauprüfung entstehen bereits mit dem ersten lokalen Durchlauf; US26 und US29 prüfen sie später auf beiden Plattformen formal.
@@ -237,16 +239,56 @@ Für die Schätzung verwende ich 1, 2, 3, 5 und 8 Punkte. US01 dient mit zwei Pu
 
 #### Ablagestruktur {#ordner}
 
+Diese Datei ist die einzige fachliche Dokumentation. Sie enthält Projektstand, Entscheidungen, Erklärungen, vollständige Beispiele, Bedienungsanleitungen, Tests, Ergebnisse und später das Runbook. README und Einstiegsseite sind nur Wegweiser hierher. Zum Lesen und Nachvollziehen der Arbeit ist kein Wechsel auf weitere Dokumentationsseiten nötig. Separate Dateien bleiben für ausführbaren Code, Schemata, Testdaten und unveränderte Rohbelege erforderlich.
+
+Fachliche Ordner und neue zugehörige Dateien werden deutsch und ohne Umlaute benannt, etwa `modell/beispiele` und `referenz.yaml`. `docs`, `scripts`, `tests`, `.github`, `stylesheets` und `javascripts` bleiben als etablierte technische Namen bestehen. Bereits veröffentlichte Rohbelege behalten ihre Namen, damit Verweise, Prüfsummen und historische Protokolle nachvollziehbar bleiben. Feldnamen im maschinenlesbaren Modell bleiben einheitlich englisch.
+
+```text
+diplomarbeit/
+  docs/
+    dokumentation.md
+    index.md
+    messungen/
+      laeufe/
+    nachweise/
+    stylesheets/
+    javascripts/
+  modell/
+    lernumgebung-v1.schema.json
+    validierung.py
+    beispiele/
+      referenz.yaml
+      ungueltig-ram.yaml
+  scripts/
+    modell-pruefen.py
+    backlog.json
+  tests/
+    test_modell.py
+  .github/
+    workflows/
+    ISSUE_TEMPLATE/
+  README.md
+  requirements.txt
+  requirements-docs.txt
+  mkdocs.yml
+```
+
+Der Baum zeigt die wesentlichen Ablagen. Weitere bestehende Hilfsskripte, Testmodule und Rohdateien liegen in den jeweils bezeichneten Ordnern.
+
 | Ablage | Inhalt und Stand |
 | --- | --- |
 | `docs/dokumentation.md` | Zentrale fachliche Dokumentation einschliesslich Architekturentscheiden, Messplan, Laufberichten, Statusberichten und späterem Runbook; Diagramme als Mermaid |
 | `docs/nachweise/` und `docs/messungen/` | Rohprotokolle, ausgeführte Manifeste und weitere Nachweisdateien; Einordnung und Ergebnisse stehen in der zentralen Dokumentation |
 | `docs/index.md`, `docs/stylesheets/` und `docs/javascripts/` | Einstiegsseite und Darstellung der veröffentlichten Dokumentation |
 | `scripts/` | Backlog sowie Hilfswerkzeuge für Issues, Project Board, Repository-Prüfung und HTTP-Beobachtung |
-| `tests/` | Vorhandene Tests für die Hilfswerkzeuge; noch keine Tests einer implementierten Agentenlösung |
+| `modell/` | Schema der Modellversion 1.0, YAML-Beispiele und wiederverwendbare lokale Validierung |
+| `requirements.txt` | Festgeschriebene direkte Abhängigkeiten der Modellvalidierung |
+| `tests/` | Tests für Fachmodell und Hilfswerkzeuge; noch keine Tests einer implementierten Agentenlösung |
 | `.github/`, `mkdocs.yml` und `requirements-docs.txt` | Issue-Vorlagen, Veröffentlichung und Build-Konfiguration |
 
-Fachmodell, JSON-Schema, Agent, Zustandsspeicher und MCP-Adapter sind geplante Laufzeitkomponenten. Ihre Quellcodeablage wird mit der Implementierung in Sprint 2 festgelegt; sie ist noch nicht als vorhandene Lösung ausgewiesen.
+README und Einstiegsseite verweisen direkt auf diese Dokumentation. Beteiligte, Zeitraum und verbindlicher Umfang stehen am Anfang dieser Datei.
+
+Fachmodell und JSON-Schema liegen unter `modell/`. Agent, Zustandsspeicher und MCP-Adapter sind geplante Laufzeitkomponenten. Ihre Quellcodeablage wird mit der Implementierung festgelegt; sie sind noch nicht als vorhandene Lösung ausgewiesen.
 
 #### Vorgehen und Prüfungen
 
@@ -751,13 +793,13 @@ Vor dem ersten Aufbau werden Region, Kontoplan, Quotas, API-Rechte, Instanztyp, 
 
 Warnschwellen sollen bei einem Gegenwert von CHF 25 und CHF 40 liegen. Eine Warnung ist keine harte Kostensperre. Für das Learner Lab werden Guthaben, Währung, Laufzeit, Verbrauchsanzeige und verfügbare Warnmöglichkeiten im konkreten Angebot geprüft. Allgemeine Angaben zu regulären AWS-Kontoplänen gelten nicht als Nachweis für die Lab-Bedingungen. Verbrauch vor Anrechnung von Credits und effektiv belastete Kosten werden getrennt ausgewiesen; nicht verfügbare Angaben oder Warnfunktionen bleiben ausdrücklich als solche dokumentiert.
 
-Vor dem ersten Aufbau werden ausserdem die Sitzungsdauer, die Erneuerung temporärer Zugangsdaten, erlaubte Regionen und Ressourcen, benötigte API-Rechte sowie Quotas geprüft. Der vorbereitete Ablauf umfasst eine VM nach der Referenzspezifikation, HTTP und SSH, ein Ressourceninventar vor dem Löschen sowie typspezifische Abbaukontrollen. Neue Tests werden vor ihrer Durchführung angekündigt.
+Vor dem ersten Aufbau werden ausserdem die Sitzungsdauer, die Erneuerung temporärer Zugangsdaten, erlaubte Regionen und Ressourcen, benötigte API-Rechte sowie Quotas geprüft. Der vorbereitete Ablauf umfasst eine VM nach der Referenzspezifikation, HTTP und SSH, ein Ressourceninventar vor dem Löschen sowie typspezifische Abbaukontrollen.
 
 Der Smoke-Test erzeugt eine einzelne VM, prüft SSH und HTTP und entfernt anschliessend sämtliche erzeugten Ressourcen. Das Inventar enthält auch Nebenressourcen wie eigene Security Groups, Volumes oder Adressen, soweit sie tatsächlich angelegt wurden. Geteilte Basisressourcen bleiben dokumentiert bestehen. Der Smoke-Test ist noch offen und ersetzt weder den automatisierten Durchstich in Sprint 2 noch die drei formalen AWS-Läufe.
 
 ### 3.7 Zielarchitektur
 
-Der folgende Entwurf konkretisiert die geplante Umsetzung. Im aktuellen Repository sind Agent, JSON-Schema und Adapter noch nicht implementiert.
+Der folgende Entwurf konkretisiert die geplante Umsetzung. Das Fachmodell und seine Schema-Validierung sind lokal implementiert. Agent und Adapter sind noch offen.
 
 ```mermaid
 flowchart TD
@@ -803,7 +845,87 @@ Für das Fachmodell werden Name, VM-Rolle, Mindestkapazitäten, Betriebssystem, 
 
 ### 4.2 Plattformneutrales Fachmodell
 
-Noch offen, US17 und US18. Zu erstellen sind versioniertes YAML-Modell, JSON-Schema und gültige sowie ungültige Testdefinitionen. Das Modell enthält eindeutige Grösseneinheiten und das fachliche Readiness-Kriterium. Abweichende Providerkapazitäten werden im Adapter ausgewiesen.
+Für US17 und US18 liegen die Modellversion `1.0`, das zugehörige JSON-Schema und eine lokale Validierung vor. Eine erfolgreiche Modellprüfung erzeugt keine VM und belegt noch keine Bereitstellung.
+
+#### Dateien und Beispiel
+
+| Datei | Aufgabe |
+| --- | --- |
+| `modell/lernumgebung-v1.schema.json` | JSON-Schema nach Draft 2020-12 für Modellversion 1.0 |
+| `modell/beispiele/referenz.yaml` | Vollständige fachliche Definition der reduzierten Referenzumgebung |
+| `modell/beispiele/ungueltig-ram.yaml` | Bewusst ungültige Variante mit 1024 statt mindestens 2048 MiB RAM |
+| `modell/validierung.py` | YAML einlesen und gegen das lokale Schema prüfen; später vom Agenten wiederverwendbar |
+| `scripts/modell-pruefen.py` | Eigenständiger Aufruf der Modellprüfung |
+| `tests/test_modell.py` | Automatisierte positive und negative Validierungsfälle |
+
+Die folgende Definition ist vollständig hier abgedruckt und entspricht der ausführbaren Datei `modell/beispiele/referenz.yaml`:
+
+```yaml
+modelVersion: "1.0"
+name: referenzumgebung
+vm:
+  role: server
+  resources:
+    minVcpus: 2
+    minMemoryMiB: 2048
+    minDiskGiB: 12
+  os:
+    distribution: ubuntu
+    release: "24.04"
+    architecture: x86_64
+  ssh:
+    username: ubuntu
+    publicKeys:
+      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICDeni6OPrsYaCfeayWMiGPRKbpcOZf+4Q6T+lFv9tAz diplomarbeit-referenz
+  testService:
+    protocol: http
+    port: 8080
+    path: /
+    expectedStatus: 200
+    expectedBody: lernumgebung bereit
+```
+
+Der öffentliche Ed25519-Schlüssel im Beispiel stammt aus dem versionierten Referenzmanifest vom 22.09.2026. Er enthält keinen privaten Schlüssel. Vor einem neuen Infrastrukturversuch muss ein öffentlicher Schlüssel verwendet werden, dessen zugehöriger privater Schlüssel auf dem vorgesehenen Zugangsrechner verfügbar ist. Die lokale Modellprüfung weist weder den Schlüsselbesitz noch eine erfolgreiche SSH-Anmeldung nach.
+
+#### Fachliche Festlegungen
+
+| Feld | Bedeutung und Grenze |
+| --- | --- |
+| `modelVersion` | Zeichenkette `1.0`; unbekannte Modellversionen werden abgewiesen |
+| `name` | Name der Lernumgebung aus Kleinbuchstaben, Ziffern und einzelnen Bindestrichen, beginnend mit einem Buchstaben; höchstens 63 Zeichen |
+| `vm.role` | `server`; Version 1.0 beschreibt genau eine VM |
+| `vm.resources` | Ganzzahlige Mindestkapazitäten: mindestens 2 vCPU, 2048 MiB RAM und 12 GiB Systemdatenträger |
+| `vm.os` | Ubuntu `24.04` auf `x86_64`; die Release-Angabe bleibt eine Zeichenkette |
+| `vm.ssh` | Benutzer `ubuntu` und mindestens ein öffentlicher Ed25519-Schlüssel im OpenSSH-Format |
+| `vm.testService` | HTTP auf Gastport 8080, Pfad `/`, Status 200 und Antwort `lernumgebung bereit` |
+
+Ein abschliessender Zeilenumbruch in der tatsächlichen HTTP-Antwort bleibt gemäss Messkonzept zulässig. Der spätere Readiness-Check muss zusätzlich den laufenden VM-Zustand prüfen. Externe Adresse und Port werden vom Adapter ermittelt und stehen nicht in der fachlichen Definition.
+
+Die Mindestwerte übernehmen die Festlegung aus Kapitel 3.3. Höhere Werte sind im Modell zulässig; der spätere Adapter muss vor einer Bereitstellung prüfen, ob er sie erfüllen kann, und die tatsächlich zugeteilte Kapazität protokollieren. Die Freigabe einer Definition durch das Schema ist noch kein Nachweis für Kontorechte, Quotas oder verfügbare Instanztypen.
+
+AMI-ID, Abbild-URL und Abbild-Prüfsumme, Namespace, StorageClass, NodePorts sowie Ressourcen-IDs gehören zur Plattformkonfiguration beziehungsweise zum späteren Ressourceninventar. Das Schema erlaubt an keiner Ebene unbekannte Felder. Damit werden auch plattformspezifische Ergänzungen und Schreibfehler zurückgewiesen. Änderungen des Testfalls, weitere Betriebssysteme oder mehrere VMs erfordern eine bewusste Weiterentwicklung des Modells und seiner Tests.
+
+#### Lokale Validierung
+
+Die direkten Abhängigkeiten sind in `requirements.txt` festgeschrieben: PyYAML 6.0.3 und jsonschema 4.26.0. Die Validierung verwendet ein lokales Schema und benötigt nach der Installation keinen Netzwerkzugriff. Die explizite Auswahl von `Draft202012Validator` und die zusätzliche Formatprüfung folgen der [jsonschema-Dokumentation](https://python-jsonschema.readthedocs.io/en/stable/validate/).
+
+Im aktivierten Python-Umfeld, aus dem Repository-Verzeichnis:
+
+```bash
+python -m pip install -r requirements.txt
+python scripts/modell-pruefen.py modell/beispiele/referenz.yaml
+python scripts/modell-pruefen.py modell/beispiele/ungueltig-ram.yaml
+```
+
+Die gültige Definition liefert Exitcode 0 und `Gueltig: referenzumgebung (Modellversion 1.0)`. Die ungültige Definition muss Exitcode 1 und `Ungueltig: $.vm.resources.minMemoryMiB: Muss mindestens 2048 sein.` liefern. Die Angabe bezeichnet den betroffenen Feldpfad und die verletzte Mindestanforderung.
+
+Der YAML-Lader weist doppelte oder nicht textuelle Feldnamen, Alias-Verweise, mehrere YAML-Dokumente und nicht JSON-kompatible Werte zurück. Die Schlüsselprüfung kontrolliert zusätzlich zum Textformat den Aufbau des öffentlichen Ed25519-Schlüssels. Fehlermeldungen geben keine eingegebenen Feldwerte oder YAML-Zeilen wieder. Das Prüfskript unterstützt weder create, status, reset noch delete und ist deshalb noch kein Agent im Sinn von US19.
+
+Die bestehende Pipeline ist um Modellpfade und `requirements.txt` ergänzt. Dadurch laufen die Modelltests nach einem Push auch bei Änderungen ausschliesslich am Schema oder den Beispielen. Ein Pipeline-Ergebnis für diese Erweiterung liegt noch nicht vor.
+
+**Prüfstand vom 23.09.2026:** Alle 35 lokalen Tests bestanden, darunter zehn Testmethoden für das Fachmodell mit zusätzlichen Unterfällen. Der Lauf erfolgte unter Windows mit Python 3.14; die Pipeline bleibt auf Python 3.12 und wird erst nach dem Push für diesen Stand ausgeführt. Beide CLI-Beispiele wurden in den Tests als eigene Prozesse aus einem anderen Arbeitsverzeichnis geprüft: gültige Referenz mit Exitcode 0, ungültiger RAM-Wert mit Exitcode 1 und dem oben genannten Feldpfad. Auch unbekannte Modellversionen und Plattformfelder, fehlende Angaben, unzulässige Ressourcentypen, fehlerhafte SSH-Schlüssel sowie ungültige YAML-Eingaben wurden abgewiesen. Konsistenzprüfung und strikter Dokumentationsbuild waren ebenfalls erfolgreich. Es gab keinen Zugriff auf DL380, Terra oder AWS.
+
+Der lokale Testaufruf lautet `python -m unittest discover -s tests -v`. Die Konsistenzprüfung erfolgt mit `python scripts/check-repository.py`; für den Dokumentationsbuild werden zusätzlich die Abhängigkeiten aus `requirements-docs.txt` benötigt. Der Build-Aufruf lautet `python -m mkdocs build --strict`. Die lokalen Ergebnisse belegen die Modellvalidierung; der versionsgebundene Abschluss von US17 und US18 bleibt bis zum Commit und Push offen.
 
 ### 4.3 Agent mit Zustandsführung
 
@@ -827,9 +949,9 @@ Noch offen als Bestandteil von US20 bis US25 sowie US39. Protokolle müssen Zeit
 
 ## 5 Tests und Messungen
 
-Die formalen Tests sind noch nicht durchgeführt. Der [Messplan](#messplan) legt Reihenfolge, Voraussetzungen und Abnahmekriterien fest. Für jeden Versuch wird die [Messprotokollvorlage](#messprotokollvorlage) unter [Messläufe](#messlaeufe) ausgefüllt und mit Rohdaten belegt.
+Die formalen Vergleichsläufe auf den Zielplattformen sind noch nicht durchgeführt. Der lokale Prüfstand des Fachmodells ist in Kapitel 4.2 ausgewiesen. Der [Messplan](#messplan) legt Reihenfolge, Voraussetzungen und Abnahmekriterien fest. Für jeden Infrastrukturversuch wird die [Messprotokollvorlage](#messprotokollvorlage) unter [Messläufe](#messlaeufe) ausgefüllt und mit Rohdaten belegt.
 
-Zuerst werden gültige und ungültige Modelle sowie Zustandsübergänge isoliert geprüft. Danach folgen Fehlerfälle wie nicht erreichbarer Dienst, falscher Antwortinhalt, unterbrochener Aufbau und verbleibende Ressource beim Abbau. Die sechs erfolgreichen PoC-Läufe erfolgen erst auf einer festgeschriebenen Version. Ergebnisse werden hier nachgetragen, sobald die entsprechenden Protokolle vorliegen.
+Die lokale Modellvalidierung prüft gültige und ungültige Definitionen. Zustandsübergänge und Fehlerfälle der späteren Agentenlösung, etwa nicht erreichbarer Dienst, falscher Antwortinhalt, unterbrochener Aufbau und verbleibende Ressource beim Abbau, sind noch offen. Die sechs erfolgreichen PoC-Läufe erfolgen erst auf einer festgeschriebenen Version. Ergebnisse werden hier nachgetragen, sobald die entsprechenden Protokolle vorliegen.
 
 ### 5.1 Messplan {#messplan}
 
@@ -1208,10 +1330,10 @@ Die Veröffentlichung der Dokumentation ist erreichbar. Der [Dokumentationslauf 
 - US08: Die reduzierte Testumgebung ist beschrieben; die Abstimmung mit dem Firmenexperten ist noch zu dokumentieren. Originalprofile und ausgeführten LernMAAS-Skriptstand für die Vergleichsläufe sichern.
 - US11: Voller Zugriff auf DL380 und Terra ist bestätigt. Die ausdrückliche Aussage zur bestehenden Nutzung und zur fehlenden Unterrichtskollision bleibt als Nachweis offen. Ein Terra-Referenzlauf ist erst vor seiner Nutzung als nachgewiesener Ersatz nötig.
 - US14 und US15: Die konkreten Bedingungen des AWS Academy Learner Labs prüfen und den Smoke-Test anhand der gemeinsamen Referenzspezifikation vorbereiten. Allgemeine AWS-Kontobedingungen ersetzen diesen Nachweis nicht.
-- US17 und US18: Das plattformneutrale YAML-Modell und das JSON-Schema auf Grundlage der Referenzspezifikation vorbereiten. Agent und Adapter sind weiterhin offen.
-- US10 sowie US27 und US28: Drei LernMAAS-Basisläufe und sechs vollständige PoC-Läufe bleiben offen. Weitere Tests werden vor der Durchführung angekündigt.
+- US17 und US18: Das plattformneutrale YAML-Modell, JSON-Schema und die lokale Validierung wurden nach dem Issue-Abgleich vorgezogen. Der in Kapitel 4.2 dokumentierte lokale Testlauf ist erfolgreich; Commit, Push und erster Pipeline-Lauf dieses Stands sind noch offen. Agent und Adapter sind weiterhin offen.
+- US10 sowie US27 und US28: Drei LernMAAS-Basisläufe und sechs vollständige PoC-Läufe bleiben offen.
 
-Die redaktionellen Korrekturen und der Zwischenbericht sind bis zum nächsten Commit und Push ein lokaler Arbeitsstand. Die Veröffentlichung dieses Stands ist damit noch nicht nachgewiesen.
+Der Stand vor der Modellimplementierung ist in Commit `19ae849` festgehalten. Modell und Validierung sind lokal umgesetzt und geprüft; ihre Veröffentlichung ist noch offen.
 
 ### 8.2 Vorlage für den Statusbericht {#statusvorlage}
 
@@ -1274,7 +1396,7 @@ Die redaktionellen Korrekturen und der Zwischenbericht sind bis zum nächsten Co
 | [AWS: GetResources](https://docs.aws.amazon.com/resourcegroupstagging/latest/APIReference/API_GetResources.html) | Grenze der Tagging-Abfragen; geprüft am 18.09.2026 |
 | [Scrum Guide](https://scrumguides.org/scrum-guide.html) | Abgrenzung des angepassten Vorgehens; geprüft am 18.09.2026 |
 
-Interne Betriebsunterlagen und die Reservationsliste sind in der IST-Analyse benannt. Die Rohprotokolle sind eigene Erhebungen des Diplomanden. In diesem Arbeitsstand wurde KI-Unterstützung für Textüberarbeitung, Konsistenzprüfung und Hilfsskripte verwendet. Fachliche Entscheidungen, Implementierung und Live-Nachweise müssen vom Diplomanden geprüft und verantwortet werden. Die endgültige Hilfsmitteldeklaration richtet sich nach den schulischen Vorgaben.
+Interne Betriebsunterlagen und die Reservationsliste sind in der IST-Analyse benannt. Die Rohprotokolle sind eigene Erhebungen des Diplomanden.
 
 ### Nachweise und Aussagegrenzen {#nachweise}
 

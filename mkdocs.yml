@@ -76,8 +76,8 @@ markdown_extensions:
       emoji_generator: !!python/name:material.extensions.emoji.to_svg
 
 nav:
-  - Start: index.md
   - Dokumentation: dokumentation.md
+  - Einstieg: index.md
 
 extra:
   social:

@@ -1,0 +1,22 @@
+modelVersion: "1.0"
+name: referenzumgebung
+vm:
+  role: server
+  resources:
+    minVcpus: 2
+    minMemoryMiB: 1024
+    minDiskGiB: 12
+  os:
+    distribution: ubuntu
+    release: "24.04"
+    architecture: x86_64
+  ssh:
+    username: ubuntu
+    publicKeys:
+      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICDeni6OPrsYaCfeayWMiGPRKbpcOZf+4Q6T+lFv9tAz diplomarbeit-referenz
+  testService:
+    protocol: http
+    port: 8080
+    path: /
+    expectedStatus: 200
+    expectedBody: lernumgebung bereit

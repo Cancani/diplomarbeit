@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Lernumgebung, Modellversion 1.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["modelVersion", "name", "vm"],
+  "properties": {
+    "modelVersion": {"type": "string", "const": "1.0"},
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 63,
+      "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$",
+      "not": {"pattern": "[\\r\\n]"}
+    },
+    "vm": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["role", "resources", "os", "ssh", "testService"],
+      "properties": {
+        "role": {"type": "string", "const": "server"},
+        "resources": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["minVcpus", "minMemoryMiB", "minDiskGiB"],
+          "properties": {
+            "minVcpus": {"type": "integer", "minimum": 2},
+            "minMemoryMiB": {"type": "integer", "minimum": 2048},
+            "minDiskGiB": {"type": "integer", "minimum": 12}
+          }
+        },
+        "os": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["distribution", "release", "architecture"],
+          "properties": {
+            "distribution": {"type": "string", "const": "ubuntu"},
+            "release": {"type": "string", "const": "24.04"},
+            "architecture": {"type": "string", "const": "x86_64"}
+          }
+        },
+        "ssh": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["username", "publicKeys"],
+          "properties": {
+            "username": {"type": "string", "const": "ubuntu"},
+            "publicKeys": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "pattern": "^ssh-ed25519 [A-Za-z0-9+/]{68}(?: [^\\r\\n]+)?$",
+                "format": "ssh-ed25519"
+              }
+            }
+          }
+        },
+        "testService": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["protocol", "port", "path", "expectedStatus", "expectedBody"],
+          "properties": {
+            "protocol": {"type": "string", "const": "http"},
+            "port": {"type": "integer", "const": 8080},
+            "path": {"type": "string", "const": "/"},
+            "expectedStatus": {"type": "integer", "const": 200},
+            "expectedBody": {"type": "string", "const": "lernumgebung bereit"}
+          }
+        }
+      }
+    }
+  }
+}
