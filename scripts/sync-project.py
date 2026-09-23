@@ -15,7 +15,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SPRINTS = {1: ('2026-09-14', '2026-10-18'), 2: ('2026-10-19', '2026-11-15'),
            3: ('2026-11-16', '2026-12-18')}
 DONE = {
-    'US01': 'ordner', 'US07': '32-ist-analyse-der-heutigen-bereitstellung',
+    'US01': '26-arbeitsweise-und-qualitat', 'US07': '32-ist-analyse-der-heutigen-bereitstellung',
     'US09': '34-messkonzept', 'US12': '313-vorgefundener-zustand-auf-dl380-01',
     'US13': '316-architekturentscheide-aus-der-erhebung',
 }

@@ -1,7 +1,7 @@
 # Diplomarbeit: Agentenbasierte Hybrid-Cloud-Bereitstellung von Lernumgebungen mit Kubernetes, KubeVirt und MCP
 
 !!! info "Lesehinweis"
-    Arbeitsstand vom 22.09.2026. Die Infrastrukturaufnahme und ein manueller KubeVirt-Referenzlauf mit HTTP, SSH und vollständiger Ressourcenbereinigung liegen vor. Agent, Adapter und formale Vergleichsmessungen sind noch offen. Planung und Entwürfe sind als solche gekennzeichnet.
+    Arbeitsstand vom 23.09.2026. Die Infrastrukturaufnahme und ein manueller KubeVirt-Referenzlauf mit HTTP, SSH und vollständiger Ressourcenbereinigung liegen vor. Agent, Adapter und formale Vergleichsmessungen sind noch offen. Planung und Entwürfe sind als solche gekennzeichnet.
 
 | | |
 | --- | --- |
@@ -164,7 +164,7 @@ Die Epics bündeln Initialisierung (E1), IST-Aufnahme (E2), lokale Plattform (E3
 | US02 | Öffentlich einsehbares Project Board | E1 | 2 | Must |
 | US03 | Vorlagen, Labels, Milestones und Regeln | E1 | 1 | Must |
 | US04 | Dokumentation über GitHub Pages | E1 | 2 | Must |
-| US05 | Wöchentlicher Statusbericht am Sonntag | E1 | 1 | Must |
+| US05 | Wöchentlicher Statusbericht am Wochenende | E1 | 1 | Must |
 | US07 | IST-Analyse der heutigen Bereitstellung | E2 | 2 | Must |
 | US08 | Test-Lernumgebung aus m239, m254 und m426 ableiten | E2 | 3 | Must |
 | US09 | Messkonzept mit identischen Start- und Endkriterien | E2 | 3 | Must |
@@ -235,6 +235,21 @@ Für die Schätzung verwende ich 1, 2, 3, 5 und 8 Punkte. US01 dient mit zwei Pu
 
 ### 2.6 Arbeitsweise und Qualität
 
+#### Ablagestruktur {#ordner}
+
+| Ablage | Inhalt und Stand |
+| --- | --- |
+| `docs/dokumentation.md` | Zentrale fachliche Dokumentation einschliesslich Architekturentscheiden, Messplan, Laufberichten, Statusberichten und späterem Runbook; Diagramme als Mermaid |
+| `docs/nachweise/` und `docs/messungen/` | Rohprotokolle, ausgeführte Manifeste und weitere Nachweisdateien; Einordnung und Ergebnisse stehen in der zentralen Dokumentation |
+| `docs/index.md`, `docs/stylesheets/` und `docs/javascripts/` | Einstiegsseite und Darstellung der veröffentlichten Dokumentation |
+| `scripts/` | Backlog sowie Hilfswerkzeuge für Issues, Project Board, Repository-Prüfung und HTTP-Beobachtung |
+| `tests/` | Vorhandene Tests für die Hilfswerkzeuge; noch keine Tests einer implementierten Agentenlösung |
+| `.github/`, `mkdocs.yml` und `requirements-docs.txt` | Issue-Vorlagen, Veröffentlichung und Build-Konfiguration |
+
+Fachmodell, JSON-Schema, Agent, Zustandsspeicher und MCP-Adapter sind geplante Laufzeitkomponenten. Ihre Quellcodeablage wird mit der Implementierung in Sprint 2 festgelegt; sie ist noch nicht als vorhandene Lösung ausgewiesen.
+
+#### Vorgehen und Prüfungen
+
 Zu Sprintbeginn werden Ziel, Abhängigkeiten und verfügbare Zeit geprüft. Höchstens zwei Issues stehen gleichzeitig auf In Progress. Ich arbeite direkt auf main und halte zusammengehörige Änderungen in kleinen, nachvollziehbaren Commits fest. Vor dem Commit prüfe ich die Änderungen lokal. Die Commit-Nachricht beschreibt die Änderung und nennt bei Bedarf die zugehörige User Story.
 
 Eine Story ist fertig, wenn ihre Akzeptanzkriterien erfüllt sind, die Änderung geprüft ist und der passende Nachweis vorliegt. Bei Infrastrukturarbeiten ist das ein Protokoll vom Zielsystem. Ein erfolgreicher Dokumentationsbuild beweist keine funktionierende Infrastruktur. Offene Nachweise werden ausdrücklich benannt.
@@ -286,7 +301,7 @@ Vor der Umsetzung wurde erhoben, welche Infrastruktur tatsächlich zur Verfügun
 
 #### 3.1.1 Freigegebene Hardware
 
-Für die Diplomarbeit habe ich vollen Zugang zur Hardware und darf den DL385 sowie die Terra-Rechner vollumfänglich nutzen. Es besteht keine ausstehende Nutzungsfreigabe für diese Maschinen.
+Für die Diplomarbeit habe ich vollen Zugang zur Hardware und darf den DL380 sowie die Terra-Rechner vollumfänglich nutzen. Es besteht keine ausstehende Nutzungsfreigabe für diese Maschinen.
 
 Die folgenden technischen Werte sind durch die Systemaufnahme der Hosts `dl380-01` und `kvcontrol` belegt. Hostnamen und Messwerte werden entsprechend den Rohprotokollen angegeben.
 
@@ -583,7 +598,7 @@ Die Adresse der Maschine wechselt. Während des Commissionings lautete sie `10.0
 
 Die Erstkonfiguration wird bei jedem Lauf von Hand eingefügt. Der Bereitstellungsdialog enthält ein Textfeld für cloud-init. Der im beobachteten Dialog eingefügte Inhalt wird dadurch nicht automatisch zusammen mit dem Modulprofil versioniert oder geprüft. Ein Tippfehler wird deshalb erst erkennbar, wenn die Maschine später nicht das erwartete Verhalten zeigt.
 
-Der Lauf belegt zugleich, dass sich über dieses Textfeld derselbe prüfbare Dienst einrichten lässt wie auf der Zielplattform dieser Arbeit. Damit ist das einheitliche Endkriterium des Messkonzepts auf beiden Seiten herstellbar. Die Prüfung ergab die erwartete Antwort des Testdienstes über Port 8080. Für die Vergleichsläufe ist `lernumgebung bereit` als gemeinsamer Antwortinhalt festgelegt. Der KubeVirt-Referenzversuch verwendete `testvm bereit`.
+Der Lauf belegt zugleich, dass sich über dieses Textfeld derselbe prüfbare Dienst einrichten lässt wie auf der Zielplattform dieser Arbeit. Damit ist das einheitliche Endkriterium des Messkonzepts auf beiden Seiten herstellbar. Die Prüfung ergab die erwartete Antwort des Testdienstes über Port 8080. Für die Vergleichsläufe ist `lernumgebung bereit` als gemeinsamer Antwortinhalt festgelegt. Der erste KubeVirt-Versuch vom 14.09.2026 verwendete `testvm bereit`; der Referenzlauf vom 22.09.2026 lieferte bereits `lernumgebung bereit`.
 
 #### 3.2.6 Abbau
 
@@ -646,7 +661,7 @@ Die Testumgebung übernimmt ausgewählte Merkmale aus m239, m254 und m426. Sie b
 | Dienst | HTTP, Gastport 8080 | Status 200 und Antwort `lernumgebung bereit`, abschliessender Zeilenumbruch zulässig |
 | Nutzbarkeit | VM läuft und Dienstprüfung erfolgreich | Externe Adresse und Port sind plattformspezifisch |
 
-Der KubeVirt-Referenzversuch verwendete 2 GiB RAM und 10 GiB Datenträger. Die Vergleichsläufe verwenden den festgelegten Systemdatenträger von 12 GiB. Bei EC2 sind CPU und RAM an Instanztypen gebunden. Der Adapter ordnet die Mindestanforderung einem unterstützten Typ zu und protokolliert dessen tatsächliche Kapazitäten. Für MAAS werden die Einheiten des verwendeten API-Aufrufs vor der Messung geprüft. Ungültige oder nicht unterstützte Anforderungen werden vor der Bereitstellung abgewiesen.
+Der erste KubeVirt-Versuch vom 14.09.2026 verwendete 2 GiB RAM und 10 GiB Datenträger. Der erfolgreiche Referenzlauf vom 22.09.2026 verwendete bereits 12 GiB und den gemeinsamen HTTP-Antwortinhalt `lernumgebung bereit`. Die Vergleichsläufe verwenden ebenfalls den festgelegten Systemdatenträger von 12 GiB. Bei EC2 sind CPU und RAM an Instanztypen gebunden. Der Adapter ordnet die Mindestanforderung einem unterstützten Typ zu und protokolliert dessen tatsächliche Kapazitäten. Für MAAS werden die Einheiten des verwendeten API-Aufrufs vor der Messung geprüft. Ungültige oder nicht unterstützte Anforderungen werden vor der Bereitstellung abgewiesen.
 
 NFS, Samba, Docker, Kubernetes innerhalb der Gast-VM und die Modul-Repositories werden nicht übernommen. Ihre bestehende Einbindung würde zusätzlichen Konfigurationsaufwand erzeugen, der für den Lebenszyklusnachweis nicht nötig ist. Diese Dienste wären grundsätzlich auch in der Cloud möglich.
 
@@ -728,13 +743,15 @@ AWS ist die zweite Zielplattform. Ausschlaggebend sind die vorhandenen Kenntniss
 | Kosten | Höchstens CHF 50 privat, keine Kosten für die TBZ | Kontoplan, Budgetwährung, Guthabenlaufzeit und erwartete Bruttokosten |
 | Vollständiger Abbau | Ressourceninventar und typspezifische API-Prüfungen | Endzustände und Abhängigkeiten im Smoke-Test |
 
-Der Antrag sieht einen Student-Account vor. Beim Smoke-Test werden das tatsächlich verwendete AWS-Angebot, dessen Berechtigungen und Kostenbedingungen dokumentiert. Eine allfällige Abweichung vom Antrag wird mit den Experten geklärt.
+Der Antrag sieht einen Student-Account vor. Als Zugang ist das AWS Academy Learner Lab vorgesehen. Dessen tatsächliche Berechtigungen und Kostenbedingungen sind noch nicht geprüft. Beim Smoke-Test werden das konkret verwendete Angebot und seine Bedingungen dokumentiert. Eine allfällige Abweichung vom Antrag wird mit den Experten geklärt.
 
 #### 3.6.2 Kostenkontrolle und Smoke-Test
 
 Vor dem ersten Aufbau werden Region, Kontoplan, Quotas, API-Rechte, Instanztyp, AMI-ID, Datenträger und Netzwerkressourcen protokolliert. Die geschätzten Kosten enthalten alle geplanten kostenpflichtigen Bestandteile, beispielsweise auch öffentliche IPv4-Adressen. Preise und Umrechnung werden zum Testdatum festgehalten; pauschale Gratisannahmen reichen nicht.
 
-Warnschwellen sollen bei einem Gegenwert von CHF 25 und CHF 40 liegen. Eine Warnung ist keine harte Kostensperre. AWS unterscheidet Free- und Paid-Pläne mit unterschiedlichen Bedingungen bei erschöpftem Guthaben. Massgeblich ist der tatsächliche Kontoplan. Verbrauch vor Anrechnung von Credits und effektiv belastete Kosten werden getrennt ausgewiesen. [AWS Free Tier FAQ](https://aws.amazon.com/free/free-tier-faqs/)
+Warnschwellen sollen bei einem Gegenwert von CHF 25 und CHF 40 liegen. Eine Warnung ist keine harte Kostensperre. Für das Learner Lab werden Guthaben, Währung, Laufzeit, Verbrauchsanzeige und verfügbare Warnmöglichkeiten im konkreten Angebot geprüft. Allgemeine Angaben zu regulären AWS-Kontoplänen gelten nicht als Nachweis für die Lab-Bedingungen. Verbrauch vor Anrechnung von Credits und effektiv belastete Kosten werden getrennt ausgewiesen; nicht verfügbare Angaben oder Warnfunktionen bleiben ausdrücklich als solche dokumentiert.
+
+Vor dem ersten Aufbau werden ausserdem die Sitzungsdauer, die Erneuerung temporärer Zugangsdaten, erlaubte Regionen und Ressourcen, benötigte API-Rechte sowie Quotas geprüft. Der vorbereitete Ablauf umfasst eine VM nach der Referenzspezifikation, HTTP und SSH, ein Ressourceninventar vor dem Löschen sowie typspezifische Abbaukontrollen. Neue Tests werden vor ihrer Durchführung angekündigt.
 
 Der Smoke-Test erzeugt eine einzelne VM, prüft SSH und HTTP und entfernt anschliessend sämtliche erzeugten Ressourcen. Das Inventar enthält auch Nebenressourcen wie eigene Security Groups, Volumes oder Adressen, soweit sie tatsächlich angelegt wurden. Geteilte Basisressourcen bleiben dokumentiert bestehen. Der Smoke-Test ist noch offen und ersetzt weder den automatisierten Durchstich in Sprint 2 noch die drei formalen AWS-Läufe.
 
@@ -823,7 +840,7 @@ Der Messplan beschreibt die Vorbereitung und Durchführung der Vergleichsläufe 
 | Reihenfolge | Aufgabe | Warum nötig | Fertig, wenn |
 | --- | --- | --- | --- |
 | 1 | Referenzspezifikation und Skriptstand sichern | Einheitliche Kapazitäten, Einheiten und Dienstprüfungen ermöglichen einen nachvollziehbaren Vergleich | Spezifikation versioniert, Originalprofile und tatsächlich ausgeführtes `createvms` mit vollständigem Commit und SHA-256 archiviert |
-| 2 | KubeVirt-Referenztest durchführen, US38 | SSH, Zeitgrenzen und vollständiger Abbau sind bisher nicht durchgängig belegt | Aufbau, HTTP- und SSH-Prüfung sowie Inventar vor und nach Abbau vorhanden |
+| 2 | KubeVirt-Referenztest, US38 | Am 22.09.2026 erfolgreich durchgeführt; Grundlage für den lokalen Adapter | Aufbau, HTTP, SSH und vollständiger Abbau einschliesslich PV und Datenverzeichnis belegt; siehe [Referenzlauf](#kv-ref-20260922-01) |
 | 3 | AWS-Smoke-Test, US15 | Konto, Rechte, Quotas, Kosten und technische Eignung sind noch nicht nachgewiesen | Eine passende VM erreichbar, Kontobedingungen dokumentiert, alle erzeugten Ressourcen entfernt |
 | 4 | Drei LernMAAS-Basisläufe, US10 | Aufbaudauer bis zur HTTP-Bereitschaft und aktive Bedienzeit getrennt erfassen | Drei Protokolle mit derselben Messgrenze, HTTP-Polling und Ressourcenabschluss |
 | 5 | Lokalen Lebenszyklus und AWS-Durchstich entwickeln, Sprint 2 | Früher Nachweis der Architektur und der Cloud-Anbindung | Lokal create/status/reset/status/delete mit Readiness; AWS automatisiert create/status/delete |
@@ -1057,7 +1074,7 @@ Eine erfolgreiche API-Abfrage mit `--ignore-not-found` lieferte keinen Test-PV m
 
 **Rohdateien**
 
-Die Nachweise werden gemeinsam mit dem ausgeführten Manifest unter `docs/messungen/laeufe/kv-ref-20260922-01/` versioniert. Das Commit des Nachweispakets gehört zum Abschluss von US38.
+Die Nachweise sind gemeinsam mit dem ausgeführten Manifest unter `docs/messungen/laeufe/kv-ref-20260922-01/` im Commit `309ac4e` versioniert. Der zugehörige Dokumentationsstand liegt im Commit `533bafe` vor. US38 ist nach dem Abgleich am 23.09.2026 abgeschlossen.
 
 | Nachweis | Dateien |
 | --- | --- |
@@ -1092,7 +1109,7 @@ Jeden Samstag oder Sonntag halte ich fest, was ich in der vergangenen Woche erle
 | Kalenderwoche | Bericht |
 | --- | --- |
 | KW38 | [14.09. bis 19.09.2026: Projektstart und Grundlagen](#statusbericht-kw38) |
-| KW39 | Noch nicht erstellt |
+| KW39 | [Zwischenstand vom 23.09.2026](#statusbericht-kw39); Wochenabschluss noch offen |
 | KW40 | Noch nicht erstellt |
 | KW41 | Noch nicht erstellt |
 | KW42 | Noch nicht erstellt |
@@ -1123,7 +1140,7 @@ In der ersten Projektwoche habe ich die Projektorganisation eingerichtet, die vo
 | Projektorganisation | Repository strukturiert und das öffentliche Project Board eingerichtet. User Stories, Akzeptanzkriterien, Prioritäten und Sprintzuordnung sind erfasst. Das Board zeigt Story Points sowie geplante Start- und Enddaten. |
 | Dokumentation | Die zentrale Dokumentation mit Projektplanung, Analyse, Architekturentwurf und Messkonzept aufgebaut. Die Veröffentlichung über GitHub Pages ist eingerichtet; US04 steht weiterhin auf In Progress. Alle Wochenberichte werden direkt in dieser Datei geführt. |
 | IST-Analyse | Die heutige Bereitstellung mit MAAS, LernMAAS, Profilen und Shellskripten untersucht. Aufbau, manuelle Bedienhandlungen, Abbau und mögliche Teilfehler sind beschrieben. |
-| Lokale Infrastruktur | Voller Zugang zum DL385 und den Terra-Rechnern sowie deren vollumfängliche Nutzung für die Diplomarbeit sind bestätigt. Die vorhandenen Systeme sowie den Kubernetes-Cluster und KubeVirt untersucht und dokumentiert. Die Storage-Eigenschaften und die nötige gesonderte Prüfung der PersistentVolumes sind erfasst. |
+| Lokale Infrastruktur | Voller Zugang zum DL380 und den Terra-Rechnern sowie deren vollumfängliche Nutzung für die Diplomarbeit sind bestätigt. Die vorhandenen Systeme sowie den Kubernetes-Cluster und KubeVirt untersucht und dokumentiert. Die Storage-Eigenschaften und die nötige gesonderte Prüfung der PersistentVolumes sind erfasst. |
 | Erste praktische Versuche | LernMAAS-Abläufe protokolliert. Auf KubeVirt wurde eine Referenz-VM gestartet und eine erfolgreiche HTTP-Antwort nachgewiesen. Für einen vollständigen Referenznachweis fehlen noch der SSH-Nachweis und die lückenlose Prüfung des Abbaus. |
 | Test-Lernumgebung | Eine reduzierte Testumgebung aus den Merkmalen von m239, m254 und m426 beschrieben. Die Spezifikation umfasst eine Ubuntu-VM, festgelegte Mindestressourcen, SSH-Zugang und einen HTTP-Testdienst. |
 | Messkonzept | Gemeinsame Start- und Endkriterien, getrennte Erfassung von aktiver Bedienzeit und Wartezeit sowie die Ressourcenprüfung nach dem Abbau festgelegt. Messplan und Protokollvorlage sind vorbereitet. |
@@ -1158,6 +1175,43 @@ Abgeschlossen sind US01 (Repository), US02 (Project Board), US03 (Vorlagen und R
 - Die bisherigen Versuche liefern noch keine vollständige Vergleichsserie. Insbesondere fehlen durchgängige Readiness-Zeitpunkte, belastbar gemessene aktive Bedienzeiten und vollständige Abbaunachweise.
 - Agent, JSON-Schema und MCP-Adapter sind noch zu implementieren. Die drei formalen PoC-Läufe je Zielplattform folgen nach der Umsetzung.
 - Die Roadmap-Ansicht benötigt noch die Zuordnung der vorhandenen Datumsfelder, damit die geplanten Zeiträume als Balken angezeigt werden.
+
+#### KW 39: Zwischenstand und Abgleich vom 23.09.2026 {#statusbericht-kw39}
+
+**Datum:** 23.09.2026
+
+**Berichtszeitraum:** 21.09. bis 23.09.2026
+
+**Sprint:** 1, 14.09. bis 18.10.2026
+
+**Stand:** Zwischenbericht; der Wochenabschluss folgt am Wochenende.
+
+**Belegte Ergebnisse**
+
+Der manuelle KubeVirt-Referenzlauf `kv-ref-20260922-01` vom 22.09.2026 ist erfolgreich abgeschlossen. HTTP, SSH und der vollständige Abbau einschliesslich PersistentVolume und Datenverzeichnis sind belegt. Die Dokumentation und Rohdateien liegen in den Commits `533bafe` und `309ac4e` vor. Der Nachweis ersetzt weder Reset noch Agent, MCP-Adapter oder formale Vergleichsläufe.
+
+Am 23.09.2026 wurden die GitHub-Issues mit `scripts/backlog.json`, der Dokumentation und den vorhandenen Nachweisen abgeglichen. Alle 38 aktiven Stories sind vorhanden; Titel, Anforderungen, Story Points im Issue, Sprintzuordnung, Epic und Priorität stimmen überein. US06 bleibt als nicht geplant geschlossen und ausserhalb des aktiven Boards. Die belegten Teilkriterien von US04, US05, US08, US11, US14 und US16 wurden nachgeführt. US38 ist geschlossen und im öffentlichen Board auf Done.
+
+| Board-Status am 23.09.2026 nach dem Abgleich | Anzahl |
+| --- | ---: |
+| Done | 8 |
+| In Progress | 2 |
+| Ready | 5 |
+| Backlog | 23 |
+
+Abgeschlossen sind US01, US02, US03, US07, US09, US12, US13 und US38. US04 und US05 stehen auf In Progress. Die Zahlen aus KW38 bleiben als damaliger Stand erhalten.
+
+Die Veröffentlichung der Dokumentation ist erreichbar. Der [Dokumentationslauf vom 22.09.2026](https://github.com/Cancani/diplomarbeit/actions/runs/35772702901) für Commit `309ac4e` war erfolgreich. Der Versand des Links an beide Experten und der geforderte negative Build-Nachweis sind noch nicht abschliessend belegt; US04 bleibt offen.
+
+**Offene Arbeiten und nächste Schritte**
+
+- US08: Die reduzierte Testumgebung ist beschrieben; die Abstimmung mit dem Firmenexperten ist noch zu dokumentieren. Originalprofile und ausgeführten LernMAAS-Skriptstand für die Vergleichsläufe sichern.
+- US11: Voller Zugriff auf DL380 und Terra ist bestätigt. Die ausdrückliche Aussage zur bestehenden Nutzung und zur fehlenden Unterrichtskollision bleibt als Nachweis offen. Ein Terra-Referenzlauf ist erst vor seiner Nutzung als nachgewiesener Ersatz nötig.
+- US14 und US15: Die konkreten Bedingungen des AWS Academy Learner Labs prüfen und den Smoke-Test anhand der gemeinsamen Referenzspezifikation vorbereiten. Allgemeine AWS-Kontobedingungen ersetzen diesen Nachweis nicht.
+- US17 und US18: Das plattformneutrale YAML-Modell und das JSON-Schema auf Grundlage der Referenzspezifikation vorbereiten. Agent und Adapter sind weiterhin offen.
+- US10 sowie US27 und US28: Drei LernMAAS-Basisläufe und sechs vollständige PoC-Läufe bleiben offen. Weitere Tests werden vor der Durchführung angekündigt.
+
+Die redaktionellen Korrekturen und der Zwischenbericht sind bis zum nächsten Commit und Push ein lokaler Arbeitsstand. Die Veröffentlichung dieses Stands ist damit noch nicht nachgewiesen.
 
 ### 8.2 Vorlage für den Statusbericht {#statusvorlage}
 
