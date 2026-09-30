@@ -1024,6 +1024,205 @@ Bei Timeout Rohdaten sichern, bekannte Restressourcen auflisten und den Versuch 
 
 Für Aufbau und endgültigen Abbau pro Plattform Minimum, Median und Maximum der beobachteten Dauer und der aktiven Bedienzeit nennen. Bedienhandlungen und korrigierende Eingriffe getrennt ausweisen. Reset separat bewerten. Unterschiede bei Hardware, Abbildimport und Cache benennen. Einsparungen nur aus vergleichbaren Messwerten berechnen. Drei erfolgreiche Läufe belegen die Wiederholbarkeit im Testumfang, aber keine allgemeine Zuverlässigkeit.
 
+#### Durchführung der LernMAAS-Messserie {#lernmaas-messserie-anleitung}
+
+**Vorbereiteter Ablauf, Stand 30.09.2026. Noch keine Ergebnisse der formalen Serie.** Drei vollständige Läufe mit unveränderten Eingaben sind geplant. Der Versuch `lernmaas-20260930-01` bleibt getrennt. Die nächsten Kennungen lauten `maas-b01-20260930`, `maas-b02-20260930` und `maas-b03-20260930`.
+
+Das Hilfsskript `scripts/maas-beobachten.py` führt nur lesende MAAS-Abfragen und HTTP-Prüfungen aus. Es speichert lokale Nachweise und Startmarken. Es erstellt, deployt oder löscht keine VM. Der Aufbau verwendet weiterhin das gesicherte Originalskript `createvms`; das Deployment erfolgt manuell in MAAS. Der Abbau verwendet den unten festgelegten MAAS-CLI-Block mit Identitätsprüfung. Diese Bedienweise gilt unverändert für alle drei Läufe und ist bei der späteren Zählung der Bedienhandlungen zu berücksichtigen.
+
+**Einmalige Vorbereitung ausserhalb der Messung**
+
+- Die vollständige Anleitung vor dem ersten Lauf lesen. Zwei SSH-Terminals zu `cloud-au-30` öffnen: Terminal A für Befehle, Terminal B für Beobachtung und Startmarken. MAAS im Browser öffnen.
+- `scripts/maas-beobachten.py` vom PC in das vorhandene Verzeichnis `~/diplomarbeit-laeufe/lernmaas-basis-20260930/` des Controllers kopieren.
+- Die vorhandene `cloud-init-referenz.yaml` auf den PC kopieren und unverändert in einem Texteditor öffnen. Nur diese Datei vollständig, einschliesslich `#cloud-config`, beim Deployment einfügen.
+- Der passende private Schlüssel liegt auf dem Controller unter `~/.ssh/diplomarbeit-lernmaas-20260930`. Er bleibt dort. Das Skript prüft die Übereinstimmung mit `zugang.pub` und der vorbereiteten Cloud-init-Datei.
+- Eine Stoppuhr mit Start/Pause bereitstellen. Aufbau, Prüfung und Abbau getrennt erfassen. Das Schreiben der Messnotizen und die Bedienung des Beobachters gehören zur Messführung; sie werden separat notiert und nicht als Bereitstellungsarbeit gezählt.
+- Alle Befehlsblöcke vorab bereitlegen. Der Startmarker wird vor dem Ausführen des ersten Bereitstellungsbefehls gesetzt. Die Gesamtdauer umfasst danach auch den Wechsel zu Terminal A und das Einfügen des Befehls. Damit entfällt die beim ersten Versuch fehlende Eingabephase.
+
+Dateiübertragung auf dem PC in Git Bash, vom Repository-Verzeichnis aus:
+
+```bash
+scp scripts/maas-beobachten.py \
+  ubuntu@10.1.40.45:diplomarbeit-laeufe/lernmaas-basis-20260930/
+
+scp ubuntu@10.1.40.45:diplomarbeit-laeufe/lernmaas-basis-20260930/cloud-init-referenz.yaml \
+  "$HOME/Downloads/cloud-init-referenz-20260930.yaml"
+```
+
+**Lauf vorbereiten**
+
+Die folgenden Blöcke zeigen `b01`. Für Lauf zwei wird an den ausdrücklich genannten Stellen `b02`, für Lauf drei `b03` verwendet. Die vorige Testmaschine und ihr Pool müssen vorher entfernt sein. Bei einem Fehlversuch bleibt das Protokoll erhalten; eine Wiederholung erhält eine neue Nummer ab `b04` und überschreibt keinen Lauf.
+
+In Terminal A und B auf dem Controller dieselbe Laufnummer setzen:
+
+```bash
+da_num=b01
+da_root="$HOME/diplomarbeit-laeufe/lernmaas-basis-20260930"
+da_run="$da_root/maas-$da_num-20260930"
+```
+
+Nur einmal, in Terminal A:
+
+```bash
+python3 "$da_root/maas-beobachten.py" prepare "$da_num"
+```
+
+Die Vorbereitung prüft Eingabe-Prüfsummen, SSH-Schlüssel, Zeitsynchronisation, eindeutige Namen und den unveränderten MAAS-Abbildstand. Sie sichert bereinigte Inventare, Eingaben und Prüfsummen in einem neuen Laufordner. MAAS-Pod 7 muss weiterhin der zuerst vom Originalskript verwendete Host sein. Die Vorbereitung erzeugt keine Testressourcen. Bei einem Fehler den Lauf nicht starten.
+
+**Aufbau und aktive Bedienzeit**
+
+In Terminal B:
+
+```bash
+python3 "$da_root/maas-beobachten.py" observe "$da_num"
+```
+
+Das Skript wartet auf Enter. Erst wenn Terminal A, MAAS, Cloud-init-Datei und Stoppuhr bereitstehen, Enter drücken und die Stoppuhr für aktive Aufbauarbeit starten. Anschliessend in Terminal A den vorbereiteten Block einfügen und ausführen:
+
+```bash
+(
+set -euo pipefail
+cd "$da_run"
+test -s start-utc.txt
+test ! -e erstellen.txt
+PROFILE=ubuntu bash ./createvms-original.sh \
+  ./config-referenz.yaml daref 1 "da20260930$da_num" 0 \
+  2>&1 | tee erstellen.txt
+)
+```
+
+Nach Absenden des Befehls die aktive Stoppuhr pausieren. Ausgabe kontrollieren: genau die erwartete VM muss angelegt werden. Notwendige aktive Kontrolle ebenfalls zeitlich erfassen; technische Wartezeit auf Commissioning und Tests zählt nicht als aktive Arbeit. Terminal B meldet die beobachteten Statuswechsel.
+
+Sobald die Maschine `Ready` ist, folgende GUI-Arbeit durchführen. Die Stoppuhr während der Bedienung laufen lassen und bei technischem Warten pausieren:
+
+1. Die Maschine `daref-01-da20260930b01` auswählen. Bei den nächsten Läufen muss der Name entsprechend auf `b02` beziehungsweise `b03` enden.
+2. Zone `10-1-45-0` setzen und bestätigen.
+3. Deployment-Dialog öffnen und Ubuntu 24.04 LTS (`noble`), amd64 und Kernel-Auswahl `ga-24.04` verwenden. Keine zusätzliche Funktion als VM-Host aktivieren.
+4. Den vollständigen Inhalt der vorbereiteten `cloud-init-referenz.yaml` einfügen. Der Text enthält den eigenen Ed25519-Schlüssel und `User=nobody` für den Testdienst.
+5. Deployment bestätigen. Aktive Stoppuhr sofort pausieren und die bisher gemessenen Abschnitte notieren.
+
+Der Beobachter beginnt mit HTTP-Polling, sobald die Zielmaschine im erwarteten Pool `Deploying` oder `Deployed` meldet und genau eine Adresse aus `10.0.45.0/24` besitzt. Anders als im ersten Versuch wartet er nicht ausdrücklich auf `Deployed`. Endpunkt-Erkennung, Antwortzeitpunkte und Fehler werden protokolliert. Die erste erfolgreiche Antwort mit Status 200 und dem Inhalt `lernumgebung bereit` bildet den beobachteten Endpunkt des Aufbaus. Ein erreichbarer Dienst der eindeutig zugeordneten Zielmaschine belegt zugleich, dass diese läuft.
+
+Zeitgrenzen: maximal 1800 Sekunden ab Aufbaustart; HTTP-Prüfung maximal 900 Sekunden, begrenzt durch die verbleibende Gesamtzeit. Das HTTP-Intervall beträgt zwei Sekunden mit zwei Sekunden Request-Timeout. Auch bei laufendem Beobachter keine zweite Erstellung starten.
+
+**SSH und Konfiguration prüfen**
+
+Nach erfolgreicher HTTP-Meldung in Terminal A ausführen. Die aktive Zeit dieser nachgelagerten Prüfung separat unter `Prüfung` erfassen; sie gehört nicht zur bereits abgeschlossenen Aufbaudauer.
+
+```bash
+(
+set -euo pipefail
+cd "$da_run"
+test ! -e ssh-pruefung.txt
+da_ip="$(cat vm-ip.txt)"
+
+ssh -i "$HOME/.ssh/diplomarbeit-lernmaas-20260930" \
+  -o IdentitiesOnly=yes -o BatchMode=yes -o ConnectTimeout=10 \
+  -o StrictHostKeyChecking=accept-new \
+  -o UserKnownHostsFile="$PWD/known_hosts" \
+  "ubuntu@$da_ip" \
+  'set -e; date -u; hostname; id; systemctl is-active testdienst.service; test "$(systemctl show testdienst.service -p User --value)" = nobody; test "$(systemctl show testdienst.service -p Group --value)" = nogroup; systemctl cat testdienst.service; lsblk -b -o NAME,TYPE,SIZE' \
+  2>&1 | tee ssh-pruefung.txt
+
+echo "SSH und Dienstbenutzer erfolgreich geprüft."
+)
+```
+
+Die Ausgabe muss zum Laufhost passen, den aktiven Testdienst und 13 000 000 000 Bytes für `vda` zeigen. Ein erfolgreicher HTTP-Test allein ersetzt diese SSH-Prüfung nicht. Bei einem Fehler Nachweise sichern und vor einer Korrektur die Ursache bestimmen; der Lauf gilt bis dahin nicht als vollständig bestanden.
+
+**Abbau messen**
+
+Den folgenden Abbaublock vorab bereitlegen. Er löscht nur die anhand von ID, Name und Pool geprüfte Testmaschine und anschliessend ihren leeren Testpool. In Terminal B zunächst die Startmarke vorbereiten:
+
+```bash
+python3 "$da_root/maas-beobachten.py" mark-delete "$da_num"
+```
+
+Bei der Enter-Abfrage die separate Stoppuhr für aktive Abbauarbeit bereitstellen. Mit Enter den Abbaustart markieren und die aktive Stoppuhr starten. Danach in Terminal A den folgenden Block einfügen und ausführen. Nach Absenden des Blocks aktive Zeit pausieren, technische Ausführung abwarten und die anschliessende aktive Ergebniskontrolle wieder separat erfassen.
+
+```bash
+(
+set -euo pipefail
+cd "$da_run"
+test -s abbau-start-utc.txt
+test -s ssh-pruefung.txt
+test ! -e vm-loeschen.txt
+da_id="$(cat system-id.txt)"
+da_name="daref-01-da20260930$da_num"
+da_poolname="daref-da20260930$da_num"
+
+timeout 30s maas ubuntu machine read "$da_id" |
+  jq '{system_id, hostname, status_name,
+       pool: {id: .pool.id, name: .pool.name},
+       pod: {id: .pod.id, name: .pod.name},
+       cpu_count, memory}' > inventar-vor-abbau.json
+
+jq -e --arg id "$da_id" --arg name "$da_name" --arg pool "$da_poolname" \
+  '.system_id == $id and .hostname == $name and .pool.name == $pool and .pod.id == 7' \
+  inventar-vor-abbau.json > /dev/null
+da_poolid="$(jq -r '.pool.id' inventar-vor-abbau.json)"
+
+date -u +'%Y-%m-%dT%H:%M:%S.%3NZ' > vm-loeschaufruf-start-utc.txt
+timeout 300s maas ubuntu machine delete "$da_id" 2>&1 | tee vm-loeschen.txt
+date -u +'%Y-%m-%dT%H:%M:%S.%3NZ' > vm-loeschaufruf-ende-utc.txt
+
+timeout 30s maas ubuntu machines read |
+  jq '[.[] | {system_id, hostname, pool: {id: .pool.id, name: .pool.name}}]' \
+  > maschinen-nachher.json
+jq -e --arg id "$da_id" --arg name "$da_name" --argjson pool "$da_poolid" \
+  'all(.[]; .system_id != $id and .hostname != $name and .pool.id != $pool)' \
+  maschinen-nachher.json > /dev/null
+jq -e --slurpfile vorher maschinen-vorher.json \
+  '(($vorher[0] | map(.system_id)) - map(.system_id)) == []' \
+  maschinen-nachher.json > /dev/null
+
+timeout 30s maas ubuntu resource-pool read "$da_poolid" |
+  jq -e --arg name "$da_poolname" '.name == $name' > /dev/null
+timeout 300s maas ubuntu resource-pool delete "$da_poolid" 2>&1 | tee pool-loeschen.txt
+timeout 30s maas ubuntu resource-pools read |
+  jq '[.[] | {id, name}]' > pools-nachher.json
+jq -e --argjson id "$da_poolid" --arg name "$da_poolname" \
+  'all(.[]; .id != $id and .name != $name)' pools-nachher.json > /dev/null
+
+timeout 30s maas ubuntu pods read |
+  jq '[.[] | {id, name, total, used, available}]' > hosts-nachher.json
+date -u +'%Y-%m-%dT%H:%M:%S.%3NZ' > abbau-kontrolle-utc.txt
+
+python3 - <<'PY'
+import json
+from pathlib import Path
+before = json.loads(Path('hosts-vorher.json').read_text())
+after = json.loads(Path('hosts-nachher.json').read_text())
+old = next(h for h in before if h['id'] == 7)
+new = next(h for h in after if h['id'] == 7)
+if old['used'] != new['used']:
+    raise SystemExit('Hostbelegung weicht ab. Abbau noch nicht abschliessend bestätigt.')
+print('Testmaschine und Testpool entfernt; Hostbelegung auf Ausgangsstand.')
+PY
+)
+```
+
+Jeder Löschaufruf hat eine Zeitgrenze von 300 Sekunden, jede Inventarabfrage von 30 Sekunden. Bei einem Fehler oder Timeout stoppt der Block. Keine Force-Löschung ergänzen und die Messdateien nicht überschreiben. Eine abweichende Hostbelegung wird untersucht, da auch parallele Nutzung die Werte verändern kann. Die Ressourcenfreigabe ist hier über MAAS belegt; eine zusätzliche direkte Dateisystemprüfung auf dem KVM-Host ist nicht Teil dieser Messmethode.
+
+**Bedienzeiten vor dem nächsten Lauf vervollständigen**
+
+Die folgende Struktur gilt für jeden Lauf. Die tatsächlich gestoppten Sekunden und ausgeführten Handlungen in `bedienung.csv` im Laufordner erfassen. Leere Felder bedeuten fehlende Messwerte, nicht null Sekunden. Keine Zeit aus technischen Wartephasen als aktive Arbeit übernehmen und fehlende Werte nicht nachträglich schätzen.
+
+Die vorbereitete Datei auf dem Controller mit `nano "$da_run/bedienung.csv"` bearbeiten. Mit Strg+O und Enter speichern, mit Strg+X schliessen. Die Stoppuhr für Bereitstellungsarbeit während des Schreibens der Messnotizen pausieren.
+
+| Phase | Abschnitt | Erfassung |
+| --- | --- | --- |
+| Aufbau | `createvms` einfügen, ausführen und Ausgabe kontrollieren | Aktive Sekunden und tatsächliche Bedienhandlungen; Wartezeit pausieren |
+| Aufbau | Zone setzen | Aktive Sekunden und tatsächliche GUI-Handlungen |
+| Aufbau | Deployment konfigurieren und bestätigen | Aktive Sekunden und tatsächliche GUI-Handlungen einschliesslich Cloud-init |
+| Prüfung | SSH-Prüfung auslösen und Ergebnis prüfen | Separat von der Aufbaudauer erfassen |
+| Abbau | Löschblock einfügen, ausführen und Ergebnis kontrollieren | Aktive Sekunden; technische Wartezeit pausieren |
+| Messführung | Beobachter bedienen und Messnotizen schreiben | Separater Aufwand, nicht in den Bereitstellungsvergleich einrechnen |
+
+Ein vollständiger Befehl beziehungsweise Befehlsblock zählt als eine Bedienhandlung. GUI-Dialog öffnen, zusammengehörige Werte setzen und Bestätigung sind getrennte Handlungen gemäss Kapitel 3.4.2. Die automatische Beobachtung und interne API-Aufrufe erzeugen keine zusätzlichen menschlichen Handlungen. Zusätzliche Fehlerkorrekturen erhalten einen eigenen Eintrag mit Zweck, Phase und aktiver Dauer.
+
+Der nächste Lauf startet erst nach erfolgreicher Prüfung von HTTP, SSH, Ressourcenabschluss und vollständiger Bedienzeitaufzeichnung. Für `b02` und `b03` die Laufnummer in beiden Terminals ändern, `prepare` einmal ausführen und denselben Ablauf unverändert wiederholen. Die Ergebnistabellen werden anschliessend anhand der gesicherten Protokolle unter [Messläufe](#messlaeufe) ergänzt.
+
 ### 5.2 Messprotokollvorlage {#messprotokollvorlage}
 
 Status: vorbereitet, noch nicht durchgeführt. Leere Felder sind keine Ergebnisse. Die Vorlage je Versuch unter [Messläufe](#messlaeufe) in dieser Datei übernehmen, auch für Fehlversuche.
@@ -1553,6 +1752,7 @@ Geplante Screenshots werden erst aufgenommen und nummeriert, wenn ein tatsächli
 
 Efekan Demirci, ITCNE24, TBZ Höhere Fachschule
 efekan.demirci@tbz.ch
+
 
 
 
