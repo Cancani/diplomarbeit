@@ -1,0 +1,36 @@
+#cloud-config
+manage_etc_hosts: true
+disable_root: true
+ssh_pwauth: false
+package_update: false
+package_upgrade: false
+users:
+  - name: ubuntu
+    groups: [sudo]
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    shell: /bin/bash
+    lock_passwd: true
+    ssh_authorized_keys:
+      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIL6Wc51Y1uV9uOCpGKvitetb8Emjd9VBAb//VjYPsmBU diplomarbeit-lernmaas-20260930
+write_files:
+  - path: /var/www/index.html
+    permissions: '0644'
+    content: |
+      lernumgebung bereit
+  - path: /etc/systemd/system/testdienst.service
+    permissions: '0644'
+    content: |
+      [Unit]
+      Description=HTTP-Testdienst der Referenz-Lernumgebung
+      After=network.target
+      [Service]
+      User=nobody
+      Group=nogroup
+      WorkingDirectory=/var/www
+      ExecStart=/usr/bin/python3 -m http.server 8080 --bind 0.0.0.0 --directory /var/www
+      Restart=on-failure
+      [Install]
+      WantedBy=multi-user.target
+runcmd:
+  - [systemctl, daemon-reload]
+  - [systemctl, enable, --now, testdienst.service]

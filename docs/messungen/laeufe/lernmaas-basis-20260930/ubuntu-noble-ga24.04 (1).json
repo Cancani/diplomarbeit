@@ -1,0 +1,32 @@
+[
+  {
+    "id": 11,
+    "name": "ubuntu/noble",
+    "architecture": "amd64/ga-24.04"
+  },
+  {
+    "id": 12,
+    "name": "ubuntu/noble",
+    "architecture": "amd64/ga-24.04-lowlatency"
+  },
+  {
+    "id": 13,
+    "name": "ubuntu/noble",
+    "architecture": "amd64/hwe-24.04"
+  },
+  {
+    "id": 14,
+    "name": "ubuntu/noble",
+    "architecture": "amd64/hwe-24.04-edge"
+  },
+  {
+    "id": 15,
+    "name": "ubuntu/noble",
+    "architecture": "amd64/hwe-24.04-lowlatency"
+  },
+  {
+    "id": 16,
+    "name": "ubuntu/noble",
+    "architecture": "amd64/hwe-24.04-lowlatency-edge"
+  }
+]

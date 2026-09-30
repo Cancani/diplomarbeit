@@ -1,0 +1,19 @@
+[
+  {
+    "system_id": "rf376m",
+    "hostname": "daref-01-da20260930a",
+    "status_name": "Commissioning",
+    "pool": {
+      "name": "daref-da20260930a",
+      "description": "",
+      "id": 16,
+      "resource_uri": "/MAAS/api/2.0/resourcepool/16/"
+    },
+    "zone": {
+      "name": "default",
+      "description": "",
+      "id": 1,
+      "resource_uri": "/MAAS/api/2.0/zones/default/"
+    }
+  }
+]

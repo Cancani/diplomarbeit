@@ -1,0 +1,31 @@
+{
+  "system_id": "rf376m",
+  "hostname": "daref-01-da20260930a",
+  "status_name": "Deployed",
+  "osystem": "ubuntu",
+  "distro_series": "noble",
+  "architecture": "amd64/generic",
+  "cpu_count": 2,
+  "memory": 2048,
+  "ip_addresses": [
+    "10.0.45.66"
+  ],
+  "pool": {
+    "name": "daref-da20260930a",
+    "description": "",
+    "id": 16,
+    "resource_uri": "/MAAS/api/2.0/resourcepool/16/"
+  },
+  "zone": {
+    "id": 2,
+    "name": "10-1-45-0"
+  },
+  "disks": [
+    {
+      "id": 257,
+      "name": "vda",
+      "size": 13000000000,
+      "type": "physical"
+    }
+  ]
+}

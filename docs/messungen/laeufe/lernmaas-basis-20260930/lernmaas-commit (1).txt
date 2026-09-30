@@ -1,0 +1,135 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: da-kv-ref-20260922-01
+  labels:
+    diplomarbeit-run: kv-ref-20260922-01
+---
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  name: referenzvm
+  namespace: da-kv-ref-20260922-01
+  labels:
+    diplomarbeit-run: kv-ref-20260922-01
+  annotations:
+    diplomarbeit/image-build: "20260911"
+    diplomarbeit/image-sha256-publisher: "612b2c0cc1bc413a6cb8c38fd611794caf0f2b436c50013d8b3794db12ad7354"
+spec:
+  runStrategy: Always
+  dataVolumeTemplates:
+    - metadata:
+        name: referenzvm-disk
+        labels:
+          diplomarbeit-run: kv-ref-20260922-01
+      spec:
+        storage:
+          storageClassName: microk8s-hostpath
+          accessModes:
+            - ReadWriteOnce
+          volumeMode: Filesystem
+          resources:
+            requests:
+              storage: 12Gi
+        source:
+          http:
+            url: https://cloud-images.ubuntu.com/noble/20260911/noble-server-cloudimg-amd64.img
+  template:
+    metadata:
+      labels:
+        app: referenzvm
+        diplomarbeit-run: kv-ref-20260922-01
+    spec:
+      terminationGracePeriodSeconds: 30
+      domain:
+        cpu:
+          cores: 2
+          sockets: 1
+          threads: 1
+        memory:
+          guest: 2Gi
+        devices:
+          disks:
+            - name: rootdisk
+              disk:
+                bus: virtio
+            - name: cloudinit
+              disk:
+                bus: virtio
+          interfaces:
+            - name: default
+              masquerade: {}
+              ports:
+                - name: ssh
+                  port: 22
+                - name: http
+                  port: 8080
+      networks:
+        - name: default
+          pod: {}
+      volumes:
+        - name: rootdisk
+          dataVolume:
+            name: referenzvm-disk
+        - name: cloudinit
+          cloudInitNoCloud:
+            userData: |
+              #cloud-config
+              hostname: referenzvm
+              manage_etc_hosts: true
+              disable_root: true
+              ssh_pwauth: false
+              package_update: false
+              package_upgrade: false
+              users:
+                - name: ubuntu
+                  groups: [sudo]
+                  sudo: ALL=(ALL) NOPASSWD:ALL
+                  shell: /bin/bash
+                  lock_passwd: true
+                  ssh_authorized_keys:
+                    - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICDeni6OPrsYaCfeayWMiGPRKbpcOZf+4Q6T+lFv9tAz diplomarbeit-referenz
+              write_files:
+                - path: /var/www/index.html
+                  permissions: '0644'
+                  content: |
+                    lernumgebung bereit
+                - path: /etc/systemd/system/testdienst.service
+                  permissions: '0644'
+                  content: |
+                    [Unit]
+                    Description=HTTP-Testdienst der Referenz-Lernumgebung
+                    After=network.target
+                    [Service]
+                    User=nobody
+                    Group=nogroup
+                    WorkingDirectory=/var/www
+                    ExecStart=/usr/bin/python3 -m http.server 8080 --bind 0.0.0.0 --directory /var/www
+                    Restart=on-failure
+                    [Install]
+                    WantedBy=multi-user.target
+              runcmd:
+                - [systemctl, daemon-reload]
+                - [systemctl, enable, --now, testdienst.service]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: referenzvm
+  namespace: da-kv-ref-20260922-01
+  labels:
+    diplomarbeit-run: kv-ref-20260922-01
+spec:
+  type: NodePort
+  selector:
+    app: referenzvm
+    diplomarbeit-run: kv-ref-20260922-01
+  ports:
+    - name: ssh
+      port: 22
+      targetPort: 22
+      protocol: TCP
+    - name: http
+      port: 8080
+      targetPort: 8080
+      protocol: TCP

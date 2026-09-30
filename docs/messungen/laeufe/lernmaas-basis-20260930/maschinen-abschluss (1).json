@@ -1,0 +1,451 @@
+{
+  "numanode_set": [
+    {
+      "index": 0,
+      "memory": 2048,
+      "cores": [
+        0,
+        1
+      ],
+      "hugepages_set": []
+    }
+  ],
+  "hostname": "daref-01-da20260930a",
+  "system_id": "rf376m",
+  "current_testing_result_id": 749,
+  "status": 6,
+  "cpu_speed": 3600,
+  "netboot": false,
+  "storage": 13000.0,
+  "cpu_test_status_name": "Unknown",
+  "virtualmachine_id": 242,
+  "blockdevice_set": [
+    {
+      "firmware_version": null,
+      "serial": "",
+      "path": "/dev/disk/by-dname/vda",
+      "id": 257,
+      "uuid": null,
+      "system_id": "rf376m",
+      "filesystem": null,
+      "model": "",
+      "used_for": "GPT partitioned with 1 partition",
+      "numa_node": 0,
+      "partitions": [
+        {
+          "uuid": "63c715d6-752d-4655-ba2a-a21ae2f219c7",
+          "size": 12989759488,
+          "bootable": false,
+          "tags": [],
+          "used_for": "ext4 formatted filesystem mounted at /",
+          "path": "/dev/disk/by-dname/vda-part2",
+          "id": 261,
+          "type": "partition",
+          "system_id": "rf376m",
+          "filesystem": {
+            "fstype": "ext4",
+            "label": "root",
+            "uuid": "5080f490-458c-4fd8-b6c3-80265368b5bc",
+            "mount_point": "/",
+            "mount_options": null
+          },
+          "device_id": 257,
+          "resource_uri": "/MAAS/api/2.0/nodes/rf376m/blockdevices/257/partition/261"
+        }
+      ],
+      "partition_table_type": "GPT",
+      "used_size": 12996050944,
+      "id_path": "/dev/vda",
+      "tags": [
+        "rotary",
+        "1rpm"
+      ],
+      "name": "vda",
+      "available_size": 0,
+      "storage_pool": "6e89bb0f-d6fb-41a4-8e70-acd78014b4a9",
+      "block_size": 512,
+      "type": "physical",
+      "size": 13000000000,
+      "resource_uri": "/MAAS/api/2.0/nodes/rf376m/blockdevices/257/"
+    }
+  ],
+  "default_gateways": {
+    "ipv4": {
+      "gateway_ip": "10.0.45.1",
+      "link_id": null
+    },
+    "ipv6": {
+      "gateway_ip": null,
+      "link_id": null
+    }
+  },
+  "cache_sets": [],
+  "interface_set": [
+    {
+      "firmware_version": null,
+      "id": 280,
+      "sriov_max_vf": 0,
+      "vendor": "Red Hat, Inc.",
+      "system_id": "rf376m",
+      "numa_node": 0,
+      "link_speed": 0,
+      "children": [],
+      "link_connected": true,
+      "enabled": true,
+      "product": null,
+      "params": {},
+      "effective_mtu": 1500,
+      "vlan": {
+        "vid": 0,
+        "mtu": 1500,
+        "dhcp_on": true,
+        "external_dhcp": null,
+        "relay_vlan": null,
+        "space": "undefined",
+        "fabric": "fabric-0",
+        "id": 1,
+        "secondary_rack": null,
+        "primary_rack": "6mmf8m",
+        "fabric_id": 0,
+        "name": "untagged",
+        "resource_uri": "/MAAS/api/2.0/vlans/1/"
+      },
+      "mac_address": "52:54:00:1b:6f:eb",
+      "tags": [],
+      "name": "ens4",
+      "links": [
+        {
+          "id": 1266,
+          "mode": "auto",
+          "ip_address": "10.0.45.66",
+          "subnet": {
+            "name": "10.0.45.0/24",
+            "description": "",
+            "vlan": {
+              "vid": 0,
+              "mtu": 1500,
+              "dhcp_on": true,
+              "external_dhcp": null,
+              "relay_vlan": null,
+              "space": "undefined",
+              "fabric": "fabric-0",
+              "id": 1,
+              "secondary_rack": null,
+              "primary_rack": "6mmf8m",
+              "fabric_id": 0,
+              "name": "untagged",
+              "resource_uri": "/MAAS/api/2.0/vlans/1/"
+            },
+            "cidr": "10.0.45.0/24",
+            "rdns_mode": 2,
+            "gateway_ip": "10.0.45.1",
+            "dns_servers": [
+              "208.67.222.222",
+              "208.67.220.220"
+            ],
+            "allow_dns": true,
+            "allow_proxy": true,
+            "active_discovery": false,
+            "managed": true,
+            "disabled_boot_architectures": [],
+            "space": "undefined",
+            "id": 1,
+            "resource_uri": "/MAAS/api/2.0/subnets/1/"
+          }
+        }
+      ],
+      "discovered": [],
+      "interface_speed": 0,
+      "type": "physical",
+      "parents": [],
+      "resource_uri": "/MAAS/api/2.0/nodes/rf376m/interfaces/280/"
+    }
+  ],
+  "status_name": "Deployed",
+  "ip_addresses": [
+    "10.0.45.66"
+  ],
+  "physicalblockdevice_set": [
+    {
+      "firmware_version": null,
+      "serial": "",
+      "path": "/dev/disk/by-dname/vda",
+      "id": 257,
+      "uuid": null,
+      "system_id": "rf376m",
+      "filesystem": null,
+      "model": "",
+      "used_for": "GPT partitioned with 1 partition",
+      "numa_node": 0,
+      "partitions": [
+        {
+          "uuid": "63c715d6-752d-4655-ba2a-a21ae2f219c7",
+          "size": 12989759488,
+          "bootable": false,
+          "tags": [],
+          "used_for": "ext4 formatted filesystem mounted at /",
+          "path": "/dev/disk/by-dname/vda-part2",
+          "id": 261,
+          "type": "partition",
+          "system_id": "rf376m",
+          "filesystem": {
+            "fstype": "ext4",
+            "label": "root",
+            "uuid": "5080f490-458c-4fd8-b6c3-80265368b5bc",
+            "mount_point": "/",
+            "mount_options": null
+          },
+          "device_id": 257,
+          "resource_uri": "/MAAS/api/2.0/nodes/rf376m/blockdevices/257/partition/261"
+        }
+      ],
+      "partition_table_type": "GPT",
+      "used_size": 12996050944,
+      "id_path": "/dev/vda",
+      "tags": [
+        "rotary",
+        "1rpm"
+      ],
+      "name": "vda",
+      "available_size": 0,
+      "storage_pool": "6e89bb0f-d6fb-41a4-8e70-acd78014b4a9",
+      "block_size": 512,
+      "type": "physical",
+      "size": 13000000000,
+      "resource_uri": "/MAAS/api/2.0/nodes/rf376m/blockdevices/257/"
+    }
+  ],
+  "node_type": 0,
+  "boot_interface": {
+    "firmware_version": null,
+    "id": 280,
+    "sriov_max_vf": 0,
+    "vendor": "Red Hat, Inc.",
+    "system_id": "rf376m",
+    "numa_node": 0,
+    "link_speed": 0,
+    "children": [],
+    "link_connected": true,
+    "enabled": true,
+    "product": null,
+    "params": {},
+    "effective_mtu": 1500,
+    "vlan": {
+      "vid": 0,
+      "mtu": 1500,
+      "dhcp_on": true,
+      "external_dhcp": null,
+      "relay_vlan": null,
+      "space": "undefined",
+      "fabric": "fabric-0",
+      "id": 1,
+      "secondary_rack": null,
+      "primary_rack": "6mmf8m",
+      "fabric_id": 0,
+      "name": "untagged",
+      "resource_uri": "/MAAS/api/2.0/vlans/1/"
+    },
+    "mac_address": "52:54:00:1b:6f:eb",
+    "tags": [],
+    "name": "ens4",
+    "links": [
+      {
+        "id": 1266,
+        "mode": "auto",
+        "ip_address": "10.0.45.66",
+        "subnet": {
+          "name": "10.0.45.0/24",
+          "description": "",
+          "vlan": {
+            "vid": 0,
+            "mtu": 1500,
+            "dhcp_on": true,
+            "external_dhcp": null,
+            "relay_vlan": null,
+            "space": "undefined",
+            "fabric": "fabric-0",
+            "id": 1,
+            "secondary_rack": null,
+            "primary_rack": "6mmf8m",
+            "fabric_id": 0,
+            "name": "untagged",
+            "resource_uri": "/MAAS/api/2.0/vlans/1/"
+          },
+          "cidr": "10.0.45.0/24",
+          "rdns_mode": 2,
+          "gateway_ip": "10.0.45.1",
+          "dns_servers": [
+            "208.67.222.222",
+            "208.67.220.220"
+          ],
+          "allow_dns": true,
+          "allow_proxy": true,
+          "active_discovery": false,
+          "managed": true,
+          "disabled_boot_architectures": [],
+          "space": "undefined",
+          "id": 1,
+          "resource_uri": "/MAAS/api/2.0/subnets/1/"
+        }
+      }
+    ],
+    "discovered": [],
+    "interface_speed": 0,
+    "type": "physical",
+    "parents": [],
+    "resource_uri": "/MAAS/api/2.0/nodes/rf376m/interfaces/280/"
+  },
+  "next_sync": null,
+  "power_type": "virsh",
+  "osystem": "ubuntu",
+  "interface_test_status_name": "Unknown",
+  "status_message": "Deployed",
+  "workload_annotations": {},
+  "testing_status": 2,
+  "bcaches": [],
+  "address_ttl": null,
+  "locked": false,
+  "network_test_status_name": "Unknown",
+  "current_installation_result_id": 750,
+  "owner_data": {},
+  "domain": {
+    "authoritative": true,
+    "ttl": null,
+    "id": 0,
+    "resource_record_count": 0,
+    "is_default": true,
+    "name": "maas",
+    "resource_uri": "/MAAS/api/2.0/domains/0/"
+  },
+  "sync_interval": null,
+  "fqdn": "daref-01-da20260930a.maas",
+  "min_hwe_kernel": null,
+  "zone": {
+    "id": 2,
+    "name": "10-1-45-0"
+  },
+  "bios_boot_method": "ipxe",
+  "error_description": "",
+  "other_test_status": -1,
+  "pod": {
+    "id": 7,
+    "name": "cloud-au-32",
+    "resource_uri": "/MAAS/api/2.0/pods/7/"
+  },
+  "architecture": "amd64/generic",
+  "virtualblockdevice_set": [],
+  "storage_test_status": 2,
+  "cpu_count": 2,
+  "ephemeral_deploy": false,
+  "boot_disk": {
+    "firmware_version": null,
+    "serial": "",
+    "path": "/dev/disk/by-dname/vda",
+    "id": 257,
+    "uuid": null,
+    "system_id": "rf376m",
+    "filesystem": null,
+    "model": "",
+    "used_for": "GPT partitioned with 1 partition",
+    "numa_node": 0,
+    "partitions": [
+      {
+        "uuid": "63c715d6-752d-4655-ba2a-a21ae2f219c7",
+        "size": 12989759488,
+        "bootable": false,
+        "tags": [],
+        "used_for": "ext4 formatted filesystem mounted at /",
+        "path": "/dev/disk/by-dname/vda-part2",
+        "id": 261,
+        "type": "partition",
+        "system_id": "rf376m",
+        "filesystem": {
+          "fstype": "ext4",
+          "label": "root",
+          "uuid": "5080f490-458c-4fd8-b6c3-80265368b5bc",
+          "mount_point": "/",
+          "mount_options": null
+        },
+        "device_id": 257,
+        "resource_uri": "/MAAS/api/2.0/nodes/rf376m/blockdevices/257/partition/261"
+      }
+    ],
+    "partition_table_type": "GPT",
+    "used_size": 12996050944,
+    "id_path": "/dev/vda",
+    "tags": [
+      "rotary",
+      "1rpm"
+    ],
+    "name": "vda",
+    "available_size": 0,
+    "storage_pool": "6e89bb0f-d6fb-41a4-8e70-acd78014b4a9",
+    "block_size": 512,
+    "type": "physical",
+    "size": 13000000000,
+    "resource_uri": "/MAAS/api/2.0/nodes/rf376m/blockdevices/257/"
+  },
+  "cpu_test_status": -1,
+  "swap_size": null,
+  "storage_test_status_name": "Passed",
+  "interface_test_status": -1,
+  "node_type_name": "Machine",
+  "special_filesystems": [],
+  "disable_ipv4": false,
+  "description": "",
+  "memory_test_status_name": "Unknown",
+  "pool": {
+    "name": "daref-da20260930a",
+    "description": "",
+    "id": 16,
+    "resource_uri": "/MAAS/api/2.0/resourcepool/16/"
+  },
+  "enable_hw_sync": false,
+  "status_action": "",
+  "commissioning_status": 2,
+  "other_test_status_name": "Unknown",
+  "power_state": "on",
+  "memory": 2048,
+  "network_test_status": -1,
+  "testing_status_name": "Passed",
+  "tag_names": [
+    "virtual",
+    "pod-console-logging"
+  ],
+  "memory_test_status": -1,
+  "hwe_kernel": "ga-24.04",
+  "hardware_info": {
+    "system_vendor": "QEMU",
+    "system_product": "Standard PC (i440FX + PIIX, 1996)",
+    "system_family": "Unknown",
+    "system_version": "pc-i440fx-jammy",
+    "system_sku": "Unknown",
+    "system_serial": "Unknown",
+    "cpu_model": "Intel(R) Core(TM) i7-4790 CPU",
+    "mainboard_vendor": "Unknown",
+    "mainboard_product": "Unknown",
+    "mainboard_serial": "Unknown",
+    "mainboard_version": "Unknown",
+    "mainboard_firmware_vendor": "SeaBIOS",
+    "mainboard_firmware_date": "04/01/2014",
+    "mainboard_firmware_version": "1.15.0-1",
+    "chassis_vendor": "QEMU",
+    "chassis_type": "Other",
+    "chassis_serial": "Unknown",
+    "chassis_version": "pc-i440fx-jammy"
+  },
+  "volume_groups": [],
+  "hardware_uuid": "b8a96987-b657-4511-8ba3-25674930fa2e",
+  "last_sync": null,
+  "raids": [],
+  "current_commissioning_result_id": 748,
+  "distro_series": "noble",
+  "owner": "ubuntu",
+  "commissioning_status_name": "Passed",
+  "parent": {
+    "system_id": "dcpbmm",
+    "resource_uri": "/MAAS/api/2.0/machines/dcpbmm/",
+    "__incomplete__": true
+  },
+  "resource_uri": "/MAAS/api/2.0/machines/rf376m/"
+}

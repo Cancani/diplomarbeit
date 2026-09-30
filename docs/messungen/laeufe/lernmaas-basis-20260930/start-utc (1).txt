@@ -1,0 +1,11 @@
+Wed Sep 30 10:18:11 UTC 2026
+daref-01-da20260930a
+uid=1000(ubuntu) gid=1000(ubuntu) groups=1000(ubuntu),4(adm),24(cdrom),27(sudo),30(dip),105(lxd)
+active
+ExecStart={ path=/usr/bin/python3 ; argv[]=/usr/bin/python3 -m http.server 8080 --directory /var/www ; ignore_errors=no ; start_time=[Wed 2026-09-30 09:55:22 UTC] ; stop_time=[n/a] ; pid=1342 ; code=(null) ; status=0/0 }
+User=
+Group=
+NAME   TYPE        SIZE
+vda    disk 13000000000
+|-vda1 part     1048576
+`-vda2 part 12997885952

@@ -1,0 +1,332 @@
+[
+  {
+    "system_id": "674sem",
+    "hostname": "cloud-au-31",
+    "status_name": "Deployed",
+    "pool": {
+      "name": "default",
+      "description": "Default pool",
+      "id": 0,
+      "resource_uri": "/MAAS/api/2.0/resourcepool/0/"
+    }
+  },
+  {
+    "system_id": "dcpbmm",
+    "hostname": "cloud-au-32",
+    "status_name": "Deployed",
+    "pool": {
+      "name": "default",
+      "description": "Default pool",
+      "id": 0,
+      "resource_uri": "/MAAS/api/2.0/resourcepool/0/"
+    }
+  },
+  {
+    "system_id": "43fwkf",
+    "hostname": "cloud-au-33",
+    "status_name": "Deployed",
+    "pool": {
+      "name": "default",
+      "description": "Default pool",
+      "id": 0,
+      "resource_uri": "/MAAS/api/2.0/resourcepool/0/"
+    }
+  },
+  {
+    "system_id": "6p68gt",
+    "hostname": "cloud-au-35",
+    "status_name": "Deployed",
+    "pool": {
+      "name": "default",
+      "description": "Default pool",
+      "id": 0,
+      "resource_uri": "/MAAS/api/2.0/resourcepool/0/"
+    }
+  },
+  {
+    "system_id": "rthpwm",
+    "hostname": "cloud-au-36",
+    "status_name": "Deployed",
+    "pool": {
+      "name": "default",
+      "description": "Default pool",
+      "id": 0,
+      "resource_uri": "/MAAS/api/2.0/resourcepool/0/"
+    }
+  },
+  {
+    "system_id": "ahnmpr",
+    "hostname": "cloud-au-34",
+    "status_name": "Deployed",
+    "pool": {
+      "name": "default",
+      "description": "Default pool",
+      "id": 0,
+      "resource_uri": "/MAAS/api/2.0/resourcepool/0/"
+    }
+  },
+  {
+    "system_id": "7dck46",
+    "hostname": "m437-11-ICT23d",
+    "status_name": "Deployed",
+    "pool": {
+      "name": "m437-ICT23d",
+      "description": "",
+      "id": 3,
+      "resource_uri": "/MAAS/api/2.0/resourcepool/3/"
+    }
+  },
+  {
+    "system_id": "xpn87b",
+    "hostname": "m437-12-ICT23d",
+    "status_name": "Deployed",
+    "pool": {
+      "name": "m437-ICT23d",
+      "description": "",
+      "id": 3,
+      "resource_uri": "/MAAS/api/2.0/resourcepool/3/"
+    }
+  },
+  {
+    "system_id": "wx36bm",
+    "hostname": "m437-13-ICT23d",
+    "status_name": "Deployed",
+    "pool": {
+      "name": "m437-ICT23d",
+      "description": "",
+      "id": 3,
+      "resource_uri": "/MAAS/api/2.0/resourcepool/3/"
+    }
+  },
+  {
+    "system_id": "xearb6",
+    "hostname": "m437-14-ICT23d",
+    "status_name": "Deployed",
+    "pool": {
+      "name": "m437-ICT23d",
+      "description": "",
+      "id": 3,
+      "resource_uri": "/MAAS/api/2.0/resourcepool/3/"
+    }
+  },
+  {
+    "system_id": "fyb7a6",
+    "hostname": "m437-15-ICT23d",
+    "status_name": "Deployed",
+    "pool": {
+      "name": "m437-ICT23d",
+      "description": "",
+      "id": 3,
+      "resource_uri": "/MAAS/api/2.0/resourcepool/3/"
+    }
+  },
+  {
+    "system_id": "64s7fm",
+    "hostname": "m437-16-ICT23d",
+    "status_name": "Deployed",
+    "pool": {
+      "name": "m437-ICT23d",
+      "description": "",
+      "id": 3,
+      "resource_uri": "/MAAS/api/2.0/resourcepool/3/"
+    }
+  },
+  {
+    "system_id": "7dpeg4",
+    "hostname": "m437-17-ICT23d",
+    "status_name": "Deployed",
+    "pool": {
+      "name": "m437-ICT23d",
+      "description": "",
+      "id": 3,
+      "resource_uri": "/MAAS/api/2.0/resourcepool/3/"
+    }
+  },
+  {
+    "system_id": "nes66n",
+    "hostname": "m437-18-ICT23d",
+    "status_name": "Deployed",
+    "pool": {
+      "name": "m437-ICT23d",
+      "description": "",
+      "id": 3,
+      "resource_uri": "/MAAS/api/2.0/resourcepool/3/"
+    }
+  },
+  {
+    "system_id": "dxbdqt",
+    "hostname": "m437-19-ICT23d",
+    "status_name": "Deployed",
+    "pool": {
+      "name": "m437-ICT23d",
+      "description": "",
+      "id": 3,
+      "resource_uri": "/MAAS/api/2.0/resourcepool/3/"
+    }
+  },
+  {
+    "system_id": "ws7xqd",
+    "hostname": "m437-20-ICT23d",
+    "status_name": "Deployed",
+    "pool": {
+      "name": "m437-ICT23d",
+      "description": "",
+      "id": 3,
+      "resource_uri": "/MAAS/api/2.0/resourcepool/3/"
+    }
+  },
+  {
+    "system_id": "4873fy",
+    "hostname": "m437-21-ICT23d",
+    "status_name": "Deployed",
+    "pool": {
+      "name": "m437-ICT23d",
+      "description": "",
+      "id": 3,
+      "resource_uri": "/MAAS/api/2.0/resourcepool/3/"
+    }
+  },
+  {
+    "system_id": "f8yxxd",
+    "hostname": "m437-22-ICT23d",
+    "status_name": "Deployed",
+    "pool": {
+      "name": "m437-ICT23d",
+      "description": "",
+      "id": 3,
+      "resource_uri": "/MAAS/api/2.0/resourcepool/3/"
+    }
+  },
+  {
+    "system_id": "gpt6na",
+    "hostname": "m437-23-ICT23d",
+    "status_name": "Deployed",
+    "pool": {
+      "name": "m437-ICT23d",
+      "description": "",
+      "id": 3,
+      "resource_uri": "/MAAS/api/2.0/resourcepool/3/"
+    }
+  },
+  {
+    "system_id": "f8bd4y",
+    "hostname": "m437-24-ICT23d",
+    "status_name": "Deployed",
+    "pool": {
+      "name": "m437-ICT23d",
+      "description": "",
+      "id": 3,
+      "resource_uri": "/MAAS/api/2.0/resourcepool/3/"
+    }
+  },
+  {
+    "system_id": "xe3yhn",
+    "hostname": "m437-25-ICT23d",
+    "status_name": "Deployed",
+    "pool": {
+      "name": "m437-ICT23d",
+      "description": "",
+      "id": 3,
+      "resource_uri": "/MAAS/api/2.0/resourcepool/3/"
+    }
+  },
+  {
+    "system_id": "mywn3b",
+    "hostname": "m437-26-ICT23d",
+    "status_name": "Deployed",
+    "pool": {
+      "name": "m437-ICT23d",
+      "description": "",
+      "id": 3,
+      "resource_uri": "/MAAS/api/2.0/resourcepool/3/"
+    }
+  },
+  {
+    "system_id": "gpwfqm",
+    "hostname": "m437-27-ICT23d",
+    "status_name": "Deployed",
+    "pool": {
+      "name": "m437-ICT23d",
+      "description": "",
+      "id": 3,
+      "resource_uri": "/MAAS/api/2.0/resourcepool/3/"
+    }
+  },
+  {
+    "system_id": "amxbkh",
+    "hostname": "m437-28-ICT23d",
+    "status_name": "Deployed",
+    "pool": {
+      "name": "m437-ICT23d",
+      "description": "",
+      "id": 3,
+      "resource_uri": "/MAAS/api/2.0/resourcepool/3/"
+    }
+  },
+  {
+    "system_id": "pc76gy",
+    "hostname": "m437-29-ICT23d",
+    "status_name": "Failed deployment",
+    "pool": {
+      "name": "m437-ICT23d",
+      "description": "",
+      "id": 3,
+      "resource_uri": "/MAAS/api/2.0/resourcepool/3/"
+    }
+  },
+  {
+    "system_id": "y447qt",
+    "hostname": "m437-30-ICT23d",
+    "status_name": "Deployed",
+    "pool": {
+      "name": "m437-ICT23d",
+      "description": "",
+      "id": 3,
+      "resource_uri": "/MAAS/api/2.0/resourcepool/3/"
+    }
+  },
+  {
+    "system_id": "fsycxq",
+    "hostname": "m437-31-ICT23d",
+    "status_name": "Deployed",
+    "pool": {
+      "name": "m437-ICT23d",
+      "description": "",
+      "id": 3,
+      "resource_uri": "/MAAS/api/2.0/resourcepool/3/"
+    }
+  },
+  {
+    "system_id": "katseb",
+    "hostname": "m437-32-ICT23d",
+    "status_name": "Deployed",
+    "pool": {
+      "name": "m437-ICT23d",
+      "description": "",
+      "id": 3,
+      "resource_uri": "/MAAS/api/2.0/resourcepool/3/"
+    }
+  },
+  {
+    "system_id": "qfmphc",
+    "hostname": "m437-33-ICT23d",
+    "status_name": "Deployed",
+    "pool": {
+      "name": "m437-ICT23d",
+      "description": "",
+      "id": 3,
+      "resource_uri": "/MAAS/api/2.0/resourcepool/3/"
+    }
+  },
+  {
+    "system_id": "pdcw66",
+    "hostname": "m437-34-ICT23d",
+    "status_name": "Deployed",
+    "pool": {
+      "name": "m437-ICT23d",
+      "description": "",
+      "id": 3,
+      "resource_uri": "/MAAS/api/2.0/resourcepool/3/"
+    }
+  }
+]

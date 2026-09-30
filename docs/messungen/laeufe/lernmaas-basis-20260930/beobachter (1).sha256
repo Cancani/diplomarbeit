@@ -1,0 +1,349 @@
+{
+  "auswertung_am": "2026-09-30",
+  "quellarchiv": "lernmaas-basis-20260930.tar.gz",
+  "quellarchiv_sha256": "b185e86a6fdd0004f35ad89975ddcf5b67d2777000be220b993f2f487267a786",
+  "hinweis": "Originalarchiv privat aufbewahren. Vier JSON-Dateien enthalten eingebettete VPN-Konfigurationen in Zonenbeschreibungen. Die öffentlichen Auszüge führen die Zone nur mit id und name. Die übrigen Quelldateien sind unverändert.",
+  "dateien": [
+    {
+      "originaldatei": "SHA256SUMS",
+      "original_sha256": "64ec14eccb4d4e82c55b71e38ef03d28b03941a0b8610029fbaab31c3cdca0c2",
+      "datei": "SHA256SUMS",
+      "sha256": "64ec14eccb4d4e82c55b71e38ef03d28b03941a0b8610029fbaab31c3cdca0c2",
+      "aufbereitung": "Unveränderte Kopie"
+    },
+    {
+      "originaldatei": "SHA256SUMS-vorbereitung",
+      "original_sha256": "c526605005bc2f0c44a6fccb22fdaa0013979282376388f14471c588cb9c9c5e",
+      "datei": "SHA256SUMS-vorbereitung",
+      "sha256": "c526605005bc2f0c44a6fccb22fdaa0013979282376388f14471c588cb9c9c5e",
+      "aufbereitung": "Unveränderte Kopie"
+    },
+    {
+      "originaldatei": "beobachter.sha256",
+      "original_sha256": "2055c4b2daa941ec45ee56d670de29f032d79bf0f2e326c470c3a45cb8f7dc1b",
+      "datei": "beobachter.sha256",
+      "sha256": "2055c4b2daa941ec45ee56d670de29f032d79bf0f2e326c470c3a45cb8f7dc1b",
+      "aufbereitung": "Unveränderte Kopie"
+    },
+    {
+      "originaldatei": "cloud-init-referenz.yaml",
+      "original_sha256": "8e8469f6fd3888e7143cb623bd6b8f86cb1d29ce4efeeb6915dc4ca169c206ab",
+      "datei": "cloud-init-referenz.yaml",
+      "sha256": "8e8469f6fd3888e7143cb623bd6b8f86cb1d29ce4efeeb6915dc4ca169c206ab",
+      "aufbereitung": "Unveränderte Kopie"
+    },
+    {
+      "originaldatei": "config-original.yaml",
+      "original_sha256": "6bcf07ad687f45f01b2f9eee7cafdf445359da40f4d1dc626e7896734171ece2",
+      "datei": "config-original.yaml",
+      "sha256": "6bcf07ad687f45f01b2f9eee7cafdf445359da40f4d1dc626e7896734171ece2",
+      "aufbereitung": "Unveränderte Kopie"
+    },
+    {
+      "originaldatei": "config-referenz.yaml",
+      "original_sha256": "0bf18b0e06f159d21364db12318652afdfd5cc2c947be8b3c544eaa645ddc191",
+      "datei": "config-referenz.yaml",
+      "sha256": "0bf18b0e06f159d21364db12318652afdfd5cc2c947be8b3c544eaa645ddc191",
+      "aufbereitung": "Unveränderte Kopie"
+    },
+    {
+      "originaldatei": "controller.txt",
+      "original_sha256": "ca3454190cf4b24da1fb7bc444c654c3e4b09ffd55623acbe80590cdbba9f203",
+      "datei": "controller.txt",
+      "sha256": "ca3454190cf4b24da1fb7bc444c654c3e4b09ffd55623acbe80590cdbba9f203",
+      "aufbereitung": "Unveränderte Kopie"
+    },
+    {
+      "originaldatei": "createvms-original.sh",
+      "original_sha256": "36996fbb2805facb85c86041abfce3a8caecb5b54b904b916532ce31c0468f04",
+      "datei": "createvms-original.sh",
+      "sha256": "36996fbb2805facb85c86041abfce3a8caecb5b54b904b916532ce31c0468f04",
+      "aufbereitung": "Unveränderte Kopie"
+    },
+    {
+      "originaldatei": "hosts-vorbereitung.json",
+      "original_sha256": "ad0f5d7211400c5a98041f36cb1a58951f8751df5a58b5da3e3999b65970430b",
+      "datei": "hosts-vorbereitung.json",
+      "sha256": "ad0f5d7211400c5a98041f36cb1a58951f8751df5a58b5da3e3999b65970430b",
+      "aufbereitung": "Unveränderte Kopie"
+    },
+    {
+      "originaldatei": "kubevirt-referenz-original.yaml",
+      "original_sha256": "a305121b22d02413cd5ed1747be4f1cde0a7f183e23e6afaa959e35c533cfaa4",
+      "datei": "kubevirt-referenz-original.yaml",
+      "sha256": "a305121b22d02413cd5ed1747be4f1cde0a7f183e23e6afaa959e35c533cfaa4",
+      "aufbereitung": "Unveränderte Kopie"
+    },
+    {
+      "originaldatei": "lauf-01/abbau-nachkontrolle-utc.txt",
+      "original_sha256": "77160a824593c65e25df589085a8c5f0b4475ac85a8e6a02058d67fef9c415f1",
+      "datei": "lauf-01/abbau-nachkontrolle-utc.txt",
+      "sha256": "77160a824593c65e25df589085a8c5f0b4475ac85a8e6a02058d67fef9c415f1",
+      "aufbereitung": "Unveränderte Kopie"
+    },
+    {
+      "originaldatei": "lauf-01/abbau-start-utc.txt",
+      "original_sha256": "8d00a803c42bed5fdf2441c86c92e7d9a4dd3d5879be8269ebba41787867212c",
+      "datei": "lauf-01/abbau-start-utc.txt",
+      "sha256": "8d00a803c42bed5fdf2441c86c92e7d9a4dd3d5879be8269ebba41787867212c",
+      "aufbereitung": "Unveränderte Kopie"
+    },
+    {
+      "originaldatei": "lauf-01/beobachten.py",
+      "original_sha256": "1e343241daad43c48ee12982c45e42bb547f3c760b744842cf9d392b91dccefe",
+      "datei": "lauf-01/beobachten.py",
+      "sha256": "1e343241daad43c48ee12982c45e42bb547f3c760b744842cf9d392b91dccefe",
+      "aufbereitung": "Unveränderte Kopie"
+    },
+    {
+      "originaldatei": "lauf-01/erstellen.txt",
+      "original_sha256": "e42a88cf317812ac380d09e47151d676f4e4863e2c075b93def161855cdb58ce",
+      "datei": "lauf-01/erstellen.txt",
+      "sha256": "e42a88cf317812ac380d09e47151d676f4e4863e2c075b93def161855cdb58ce",
+      "aufbereitung": "Unveränderte Kopie"
+    },
+    {
+      "originaldatei": "lauf-01/hosts-nach-loeschaufruf.json",
+      "original_sha256": "27a17a5ae47a19dc2e8ea93c4ab8269b02878fbea957e2c65047160e85b33e0d",
+      "datei": "lauf-01/hosts-nach-loeschaufruf.json",
+      "sha256": "27a17a5ae47a19dc2e8ea93c4ab8269b02878fbea957e2c65047160e85b33e0d",
+      "aufbereitung": "Unveränderte Kopie"
+    },
+    {
+      "originaldatei": "lauf-01/hosts-vor-abbau.json",
+      "original_sha256": "68b275213afdd996dc5f351d7fd10cdd54d1f5844cb3426a82056553e547348e",
+      "datei": "lauf-01/hosts-vor-abbau.json",
+      "sha256": "68b275213afdd996dc5f351d7fd10cdd54d1f5844cb3426a82056553e547348e",
+      "aufbereitung": "Unveränderte Kopie"
+    },
+    {
+      "originaldatei": "lauf-01/http-create.jsonl",
+      "original_sha256": "d1336568de70cbf5a969fe86e4e9a699199b5ade8f852645d81a69c6c5a89761",
+      "datei": "lauf-01/http-create.jsonl",
+      "sha256": "d1336568de70cbf5a969fe86e4e9a699199b5ade8f852645d81a69c6c5a89761",
+      "aufbereitung": "Unveränderte Kopie"
+    },
+    {
+      "originaldatei": "lauf-01/inventar-vor-abbau.json",
+      "original_sha256": "d14820c35429f6be2b8552e5224468b8c1736ba7f37f3dec66b8f0811f8e0379",
+      "datei": "lauf-01/inventar-vor-abbau.auszug.json",
+      "sha256": "2c66d1b430374c3864f0e6cc0c331b54572ecfc1479741c41192c4f7cb3380b5",
+      "aufbereitung": "Bereinigter Auszug: zone enthält nur id und name; eingebettete Konfiguration entfernt"
+    },
+    {
+      "originaldatei": "lauf-01/loeschaufruf-beendet-utc.txt",
+      "original_sha256": "0c89e68829e7b62699e3ae10f80ff472d26b0ae06fc04de65ce0ea169f18e6b3",
+      "datei": "lauf-01/loeschaufruf-beendet-utc.txt",
+      "sha256": "0c89e68829e7b62699e3ae10f80ff472d26b0ae06fc04de65ce0ea169f18e6b3",
+      "aufbereitung": "Unveränderte Kopie"
+    },
+    {
+      "originaldatei": "lauf-01/maschine-angelegt.json",
+      "original_sha256": "cc7c4f75ca8be75e2a9d15c6688f6351074869af91a5150a7d1c340821ff2322",
+      "datei": "lauf-01/maschine-angelegt.json",
+      "sha256": "cc7c4f75ca8be75e2a9d15c6688f6351074869af91a5150a7d1c340821ff2322",
+      "aufbereitung": "Unveränderte Kopie"
+    },
+    {
+      "originaldatei": "lauf-01/maschine-nach-http.json",
+      "original_sha256": "1e3fb8417430ba00163e1e868a56544f8650255bdf2cb44b6faaf275805bafb7",
+      "datei": "lauf-01/maschine-nach-http.auszug.json",
+      "sha256": "49692d63b92c3c53976f6f43f11df9971937b3da3212e013db4c3708b1ab63fc",
+      "aufbereitung": "Bereinigter Auszug: zone enthält nur id und name; eingebettete Konfiguration entfernt"
+    },
+    {
+      "originaldatei": "lauf-01/maschinen-abschluss.json",
+      "original_sha256": "0b874c4ec7bf712ae53d7a1249ed95db4973672a26e7df979af13d3c38c19ddf",
+      "datei": "lauf-01/maschinen-abschluss.json",
+      "sha256": "0b874c4ec7bf712ae53d7a1249ed95db4973672a26e7df979af13d3c38c19ddf",
+      "aufbereitung": "Unveränderte Kopie"
+    },
+    {
+      "originaldatei": "lauf-01/maschinen-nach-loeschaufruf.json",
+      "original_sha256": "3cef3a649c6369407cb183bedd350066d3948b19b94d367dd6bb2b7905400040",
+      "datei": "lauf-01/maschinen-nach-loeschaufruf.json",
+      "sha256": "3cef3a649c6369407cb183bedd350066d3948b19b94d367dd6bb2b7905400040",
+      "aufbereitung": "Unveränderte Kopie"
+    },
+    {
+      "originaldatei": "lauf-01/maschinen-vorher.json",
+      "original_sha256": "0ff387973df926a5008d03c700f84c67f2df70de1d26d63d1820e0078dc07d9e",
+      "datei": "lauf-01/maschinen-vorher.auszug.json",
+      "sha256": "df090abdf7767a014863f4cd08c456cf656e95030191297a691e04eb9e1e19bb",
+      "aufbereitung": "Bereinigter Auszug: zone enthält nur id und name; eingebettete Konfiguration entfernt"
+    },
+    {
+      "originaldatei": "lauf-01/pool-abbau-start-utc.txt",
+      "original_sha256": "bcd344bbcacff97d46f8a6168329004480e24cb13c1691f6bc3bd574d2af4d70",
+      "datei": "lauf-01/pool-abbau-start-utc.txt",
+      "sha256": "bcd344bbcacff97d46f8a6168329004480e24cb13c1691f6bc3bd574d2af4d70",
+      "aufbereitung": "Unveränderte Kopie"
+    },
+    {
+      "originaldatei": "lauf-01/pool-entfernt-utc.txt",
+      "original_sha256": "38bc745e8e0a3058547f31484f0445b3f78aea0c4dbd573b9a6f3ea44ed9e177",
+      "datei": "lauf-01/pool-entfernt-utc.txt",
+      "sha256": "38bc745e8e0a3058547f31484f0445b3f78aea0c4dbd573b9a6f3ea44ed9e177",
+      "aufbereitung": "Unveränderte Kopie"
+    },
+    {
+      "originaldatei": "lauf-01/pool-loeschen.txt",
+      "original_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "datei": "lauf-01/pool-loeschen.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "aufbereitung": "Unveränderte Kopie"
+    },
+    {
+      "originaldatei": "lauf-01/pools-abschluss.json",
+      "original_sha256": "2a791354f7d7b0d2bff006f3c95fcf480e0e95bd36c24fe1db47d185bda5c95c",
+      "datei": "lauf-01/pools-abschluss.json",
+      "sha256": "2a791354f7d7b0d2bff006f3c95fcf480e0e95bd36c24fe1db47d185bda5c95c",
+      "aufbereitung": "Unveränderte Kopie"
+    },
+    {
+      "originaldatei": "lauf-01/pools-vorher.json",
+      "original_sha256": "2a791354f7d7b0d2bff006f3c95fcf480e0e95bd36c24fe1db47d185bda5c95c",
+      "datei": "lauf-01/pools-vorher.json",
+      "sha256": "2a791354f7d7b0d2bff006f3c95fcf480e0e95bd36c24fe1db47d185bda5c95c",
+      "aufbereitung": "Unveränderte Kopie"
+    },
+    {
+      "originaldatei": "lauf-01/ssh-pruefung-02.txt",
+      "original_sha256": "6cd6fc30318a98264308c43bf41d169b3728ae5a36dac52a60bf2068cf3b35bf",
+      "datei": "lauf-01/ssh-pruefung-02.txt",
+      "sha256": "6cd6fc30318a98264308c43bf41d169b3728ae5a36dac52a60bf2068cf3b35bf",
+      "aufbereitung": "Unveränderte Kopie"
+    },
+    {
+      "originaldatei": "lauf-01/start-utc.txt",
+      "original_sha256": "efe006d4097d0af263a65d6c289fca30aaf701a611a4a65a9fac6a0558068932",
+      "datei": "lauf-01/start-utc.txt",
+      "sha256": "efe006d4097d0af263a65d6c289fca30aaf701a611a4a65a9fac6a0558068932",
+      "aufbereitung": "Unveränderte Kopie"
+    },
+    {
+      "originaldatei": "lauf-01/statusbeobachtung-vorbereitung-01.jsonl",
+      "original_sha256": "e1a8499a3ee45a32af98fc381beeee69340c53cbe6e95d16942e802f996ab9f0",
+      "datei": "lauf-01/statusbeobachtung-vorbereitung-01.jsonl",
+      "sha256": "e1a8499a3ee45a32af98fc381beeee69340c53cbe6e95d16942e802f996ab9f0",
+      "aufbereitung": "Unveränderte Kopie"
+    },
+    {
+      "originaldatei": "lauf-01/statusbeobachtung.jsonl",
+      "original_sha256": "5c6d13460849b80fad394ae12c3bd6c91ccc81e989c1a12dac732723625a2cad",
+      "datei": "lauf-01/statusbeobachtung.jsonl",
+      "sha256": "5c6d13460849b80fad394ae12c3bd6c91ccc81e989c1a12dac732723625a2cad",
+      "aufbereitung": "Unveränderte Kopie"
+    },
+    {
+      "originaldatei": "lauf-01/system-id.txt",
+      "original_sha256": "a8ee06c0f0de25b358e77aed7700cf0602f19e5c00f6666bf950c9cbbf7d065a",
+      "datei": "lauf-01/system-id.txt",
+      "sha256": "a8ee06c0f0de25b358e77aed7700cf0602f19e5c00f6666bf950c9cbbf7d065a",
+      "aufbereitung": "Unveränderte Kopie"
+    },
+    {
+      "originaldatei": "lauf-01/testdienst-tatsaechlich.txt",
+      "original_sha256": "28e277fc0907dbc9d30c164202cfe2eb9ead974de3fccc3eab2fdfb3f5acca23",
+      "datei": "lauf-01/testdienst-tatsaechlich.txt",
+      "sha256": "28e277fc0907dbc9d30c164202cfe2eb9ead974de3fccc3eab2fdfb3f5acca23",
+      "aufbereitung": "Unveränderte Kopie"
+    },
+    {
+      "originaldatei": "lauf-01/vm-ip.txt",
+      "original_sha256": "13359ef981b316c640db8bb38ce46810bf5891de7200ff53f0093240d16f6fbd",
+      "datei": "lauf-01/vm-ip.txt",
+      "sha256": "13359ef981b316c640db8bb38ce46810bf5891de7200ff53f0093240d16f6fbd",
+      "aufbereitung": "Unveränderte Kopie"
+    },
+    {
+      "originaldatei": "lauf-01/vm-loeschen.txt",
+      "original_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "datei": "lauf-01/vm-loeschen.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "aufbereitung": "Unveränderte Kopie"
+    },
+    {
+      "originaldatei": "lernmaas-commit.txt",
+      "original_sha256": "e0f371db6cfc363096a11183aded9046f7bff8f2a554215acd1d1a130a46e21b",
+      "datei": "lernmaas-commit.txt",
+      "sha256": "e0f371db6cfc363096a11183aded9046f7bff8f2a554215acd1d1a130a46e21b",
+      "aufbereitung": "Unveränderte Kopie"
+    },
+    {
+      "originaldatei": "lernmaas-status.txt",
+      "original_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "datei": "lernmaas-status.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "aufbereitung": "Unveränderte Kopie"
+    },
+    {
+      "originaldatei": "maschinen-vorbereitung.json",
+      "original_sha256": "a804f7491697928c62364c531a53a047274e71e95e1a68196918af5df8472a75",
+      "datei": "maschinen-vorbereitung.auszug.json",
+      "sha256": "6c20cf8c44875c6d85245eb26db77f60203d396dc7dbf4b7c9cbac406775deed",
+      "aufbereitung": "Bereinigter Auszug: zone enthält nur id und name; eingebettete Konfiguration entfernt"
+    },
+    {
+      "originaldatei": "pools-vorbereitung.json",
+      "original_sha256": "2a791354f7d7b0d2bff006f3c95fcf480e0e95bd36c24fe1db47d185bda5c95c",
+      "datei": "pools-vorbereitung.json",
+      "sha256": "2a791354f7d7b0d2bff006f3c95fcf480e0e95bd36c24fe1db47d185bda5c95c",
+      "aufbereitung": "Unveränderte Kopie"
+    },
+    {
+      "originaldatei": "probe-http.py",
+      "original_sha256": "fa1dd65e0dc9aeebed8bb99307a63d1812de0e737779c905187ee305a13e474e",
+      "datei": "probe-http.py",
+      "sha256": "fa1dd65e0dc9aeebed8bb99307a63d1812de0e737779c905187ee305a13e474e",
+      "aufbereitung": "Unveränderte Kopie"
+    },
+    {
+      "originaldatei": "probe-http.sha256",
+      "original_sha256": "78ddea518379df3ec12c1c1376ce26aa36898a53619e63eeeb4b24346a657959",
+      "datei": "probe-http.sha256",
+      "sha256": "78ddea518379df3ec12c1c1376ce26aa36898a53619e63eeeb4b24346a657959",
+      "aufbereitung": "Unveränderte Kopie"
+    },
+    {
+      "originaldatei": "ubuntu-abbilder.json",
+      "original_sha256": "43609e53ce6af7afbfc70a30b864cf161cf1385bb0e0253ffd9b56d5ce653879",
+      "datei": "ubuntu-abbilder.json",
+      "sha256": "43609e53ce6af7afbfc70a30b864cf161cf1385bb0e0253ffd9b56d5ce653879",
+      "aufbereitung": "Unveränderte Kopie"
+    },
+    {
+      "originaldatei": "ubuntu-noble-ga24.04.json",
+      "original_sha256": "46d719892d45a34d7c28c136d3787e36b7452d7795216c55628cf4bd5c63ef34",
+      "datei": "ubuntu-noble-ga24.04.json",
+      "sha256": "46d719892d45a34d7c28c136d3787e36b7452d7795216c55628cf4bd5c63ef34",
+      "aufbereitung": "Unveränderte Kopie"
+    },
+    {
+      "originaldatei": "vorbereitung-utc.txt",
+      "original_sha256": "50c10b823963a3371881cd0ecd8ad01daef16f1dad1b043bbc45118b5ece218c",
+      "datei": "vorbereitung-utc.txt",
+      "sha256": "50c10b823963a3371881cd0ecd8ad01daef16f1dad1b043bbc45118b5ece218c",
+      "aufbereitung": "Unveränderte Kopie"
+    },
+    {
+      "originaldatei": "zeitsynchronisation.txt",
+      "original_sha256": "c35c4aa439992b1fa6edde557f0713d0c3abd08cd25a810c56d889f7d7539bbc",
+      "datei": "zeitsynchronisation.txt",
+      "sha256": "c35c4aa439992b1fa6edde557f0713d0c3abd08cd25a810c56d889f7d7539bbc",
+      "aufbereitung": "Unveränderte Kopie"
+    },
+    {
+      "originaldatei": "zugang.pub",
+      "original_sha256": "4f3acbc400247e91b2028dc080fc1faaed83651f4b77f24c2f121dfce3565edf",
+      "datei": "zugang.pub",
+      "sha256": "4f3acbc400247e91b2028dc080fc1faaed83651f4b77f24c2f121dfce3565edf",
+      "aufbereitung": "Unveränderte Kopie"
+    }
+  ],
+  "rekonstruktion": {
+    "datei": "lauf-01/cloud-init-verwendet-rekonstruiert.yaml",
+    "quelle": "Vom Durchführenden im Gespräch am 30.09.2026 als eingefügt gemeldete Cloud-init-Vorlage; Einrückung normalisiert.",
+    "grenze": "Nachträgliche Rekonstruktion, kein vor Deployment gesicherter Eingabenachweis. Gastnachweise bestätigen Dienstkonfiguration und HTTP-Inhalt, nicht die vollständige ursprüngliche Eingabe."
+  }
+}
