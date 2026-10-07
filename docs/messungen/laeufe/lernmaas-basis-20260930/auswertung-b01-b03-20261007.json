@@ -1,0 +1,170 @@
+{
+  "date": "2026-10-07",
+  "original_archive": "lernmaas-basis-b01-b03-20261007-v2.tar.gz",
+  "original_archive_sha256": "8a9937ebefff82c5f56403597fcab7ce60211cfacd9fc16b0caa0d58ca9074ff",
+  "formulas": {
+    "build": "ready_observed.time_utc - start-utc.txt",
+    "teardown": "abbau-kontrolle-utc.txt - abbau-start-utc.txt"
+  },
+  "input_files_equal": [
+    "createvms-original.sh",
+    "config-referenz.yaml",
+    "cloud-init-referenz.yaml",
+    "zugang.pub",
+    "probe-http.py",
+    "maas-beobachten.py"
+  ],
+  "image_fields_equal": [
+    "name",
+    "architecture",
+    "sets"
+  ],
+  "active_time_limit": "b01 vom Diplomanden gemeldet; b02/b03 übernommen; keine Handlungszahl oder zeitgestempelte Handlungsliste",
+  "teardown_evidence": "MAAS-Inventare und gemeldete Hostzuteilung; keine direkte libvirt- oder Datenträgerprüfung",
+  "runs": [
+    {
+      "short": "b01",
+      "run_id": "maas-b01-20260930",
+      "machine_id": "ggnhct",
+      "hostname": "daref-01-da20260930b01",
+      "pool_id": 17,
+      "pool_name": "daref-da20260930b01",
+      "ip": "10.0.45.52",
+      "host_id": 7,
+      "host_name": "cloud-au-32",
+      "times": {
+        "start-utc.txt": "2026-10-07T09:42:22.468+00:00",
+        "abbau-start-utc.txt": "2026-10-07T09:56:39.450+00:00",
+        "vm-loeschaufruf-start-utc.txt": "2026-10-07T09:56:51.152Z",
+        "vm-loeschaufruf-ende-utc.txt": "2026-10-07T09:56:56.227Z",
+        "abbau-kontrolle-utc.txt": "2026-10-07T09:57:05.493Z"
+      },
+      "statuses": {
+        "Commissioning": "2026-10-07T09:42:40.964+00:00",
+        "Testing": "2026-10-07T09:45:01.370+00:00",
+        "Ready": "2026-10-07T09:45:08.778+00:00",
+        "Deploying": "2026-10-07T09:46:12.381+00:00"
+      },
+      "ready_utc": "2026-10-07T09:51:50.800+00:00",
+      "http_start_utc": "2026-10-07T09:46:12.429+00:00",
+      "http_attempts": 170,
+      "build_s": 568.332,
+      "teardown_s": 26.043,
+      "marker_to_delete_s": 11.702,
+      "delete_to_check_s": 14.341,
+      "ready_to_deploy_s": 63.603,
+      "active_s": 55,
+      "active_provenance": "Stoppuhrwerte vom Diplomanden gemeldet",
+      "machine_absent": true,
+      "pool_absent": true,
+      "prior_machines_present": true,
+      "host_used_equal": true,
+      "host_used_before": {
+        "cores": 8,
+        "memory": 8192,
+        "local_storage": 48000000000
+      },
+      "host_used_after": {
+        "cores": 8,
+        "memory": 8192,
+        "local_storage": 48000000000
+      }
+    },
+    {
+      "short": "b02",
+      "run_id": "maas-b02-20260930",
+      "machine_id": "83md8a",
+      "hostname": "daref-01-da20260930b02",
+      "pool_id": 18,
+      "pool_name": "daref-da20260930b02",
+      "ip": "10.0.45.65",
+      "host_id": 7,
+      "host_name": "cloud-au-32",
+      "times": {
+        "start-utc.txt": "2026-10-07T10:01:21.946+00:00",
+        "abbau-start-utc.txt": "2026-10-07T10:17:33.867+00:00",
+        "vm-loeschaufruf-start-utc.txt": "2026-10-07T10:17:37.077Z",
+        "vm-loeschaufruf-ende-utc.txt": "2026-10-07T10:17:41.643Z",
+        "abbau-kontrolle-utc.txt": "2026-10-07T10:17:50.944Z"
+      },
+      "statuses": {
+        "Commissioning": "2026-10-07T10:01:40.028+00:00",
+        "Testing": "2026-10-07T10:04:04.701+00:00",
+        "Ready": "2026-10-07T10:04:14.947+00:00",
+        "Deploying": "2026-10-07T10:06:28.390+00:00"
+      },
+      "ready_utc": "2026-10-07T10:12:54.855+00:00",
+      "http_start_utc": "2026-10-07T10:06:28.432+00:00",
+      "http_attempts": 194,
+      "build_s": 692.909,
+      "teardown_s": 17.077,
+      "marker_to_delete_s": 3.21,
+      "delete_to_check_s": 13.867,
+      "ready_to_deploy_s": 133.443,
+      "active_s": 55,
+      "active_provenance": "Von b01 übernommen, nicht separat gemessen",
+      "machine_absent": true,
+      "pool_absent": true,
+      "prior_machines_present": true,
+      "host_used_equal": true,
+      "host_used_before": {
+        "cores": 8,
+        "memory": 8192,
+        "local_storage": 48000000000
+      },
+      "host_used_after": {
+        "cores": 8,
+        "memory": 8192,
+        "local_storage": 48000000000
+      }
+    },
+    {
+      "short": "b03",
+      "run_id": "maas-b03-20260930",
+      "machine_id": "rbggst",
+      "hostname": "daref-01-da20260930b03",
+      "pool_id": 19,
+      "pool_name": "daref-da20260930b03",
+      "ip": "10.0.45.73",
+      "host_id": 7,
+      "host_name": "cloud-au-32",
+      "times": {
+        "start-utc.txt": "2026-10-07T11:05:38.523+00:00",
+        "abbau-start-utc.txt": "2026-10-07T11:25:01.290+00:00",
+        "vm-loeschaufruf-start-utc.txt": "2026-10-07T11:25:03.656Z",
+        "vm-loeschaufruf-ende-utc.txt": "2026-10-07T11:25:08.625Z",
+        "abbau-kontrolle-utc.txt": "2026-10-07T11:25:18.046Z"
+      },
+      "statuses": {
+        "Commissioning": "2026-10-07T11:05:56.606+00:00",
+        "Testing": "2026-10-07T11:08:19.148+00:00",
+        "Ready": "2026-10-07T11:08:24.357+00:00",
+        "Deploying": "2026-10-07T11:15:23.574+00:00"
+      },
+      "ready_utc": "2026-10-07T11:20:57.986+00:00",
+      "http_start_utc": "2026-10-07T11:15:23.620+00:00",
+      "http_attempts": 168,
+      "build_s": 919.463,
+      "teardown_s": 16.756,
+      "marker_to_delete_s": 2.366,
+      "delete_to_check_s": 14.39,
+      "ready_to_deploy_s": 419.217,
+      "active_s": 55,
+      "active_provenance": "Von b01 übernommen, nicht separat gemessen",
+      "machine_absent": true,
+      "pool_absent": true,
+      "prior_machines_present": true,
+      "host_used_equal": true,
+      "host_used_before": {
+        "cores": 8,
+        "memory": 8192,
+        "local_storage": 48000000000
+      },
+      "host_used_after": {
+        "cores": 8,
+        "memory": 8192,
+        "local_storage": 48000000000
+      }
+    }
+  ]
+}

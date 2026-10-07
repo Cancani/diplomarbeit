@@ -1,0 +1,7 @@
+phase;abschnitt;aktive_sekunden;anzahl_handlungen;bemerkung
+Aufbau;createvms ausführen und Ausgabe prüfen;;;
+Aufbau;Zone setzen;;;
+Aufbau;Deployment konfigurieren und bestätigen;;;
+Prüfung;SSH und Konfiguration prüfen;;;
+Abbau;Löschblock ausführen und Ergebnis prüfen;;;
+Messführung;Beobachter bedienen und Messnotizen schreiben;;;

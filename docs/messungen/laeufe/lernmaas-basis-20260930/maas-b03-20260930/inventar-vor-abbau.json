@@ -1,0 +1,15 @@
+{
+  "system_id": "rbggst",
+  "hostname": "daref-01-da20260930b03",
+  "status_name": "Deployed",
+  "pool": {
+    "id": 19,
+    "name": "daref-da20260930b03"
+  },
+  "pod": {
+    "id": 7,
+    "name": "cloud-au-32"
+  },
+  "cpu_count": 2,
+  "memory": 2048
+}

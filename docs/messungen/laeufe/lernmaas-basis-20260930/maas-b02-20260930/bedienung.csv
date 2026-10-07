@@ -1,0 +1,5 @@
+phase;abschnitt;aktive_sekunden;anzahl_handlungen;bemerkung
+Aufbau;YAML kopieren und CLI bedienen;15;;Von b01 übernommen, bei b02 nicht separat gemessen
+Aufbau;Zonenwechsel und Deployment;25;;Von b01 übernommen, bei b02 nicht separat gemessen
+Prüfung;SSH-Prüfung;5;;Von b01 übernommen, bei b02 nicht separat gemessen
+Abbau;Löschen und Nachkontrolle;10;;Von b01 übernommen, bei b02 nicht separat gemessen

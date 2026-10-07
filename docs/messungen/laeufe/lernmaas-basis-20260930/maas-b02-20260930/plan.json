@@ -1,0 +1,14 @@
+{
+  "run_id": "maas-b02-20260930",
+  "hostname": "daref-01-da20260930b02",
+  "pool_name": "daref-da20260930b02",
+  "suffix": "da20260930b02",
+  "pod_id": 7,
+  "prepared_utc": "2026-10-07T10:00:06.541+00:00",
+  "observer_timeout_s": 1800,
+  "http_timeout_s": 900,
+  "observer_interval_s": 2,
+  "guest_port": 8080,
+  "active_time_method": "Externe Stoppuhr; Abschnitte nach Anleitung getrennt erfassen",
+  "private_key_path": "/home/ubuntu/.ssh/diplomarbeit-lernmaas-20260930"
+}

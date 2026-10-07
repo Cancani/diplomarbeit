@@ -1,7 +1,7 @@
 # Diplomarbeit: Agentenbasierte Hybrid-Cloud-Bereitstellung von Lernumgebungen mit Kubernetes, KubeVirt und MCP
 
 !!! info "Lesehinweis"
-    Arbeitsstand vom 30.09.2026. Die Infrastrukturaufnahme, ein manueller KubeVirt-Referenzlauf und ein LernMAAS-Lauf mit HTTP, SSH und geprüftem Ressourcenabschluss liegen vor. Beim LernMAAS-Lauf ist die aktive Bedienzeit unvollständig erfasst; er ersetzt keinen vollständigen Vergleichslauf. Das plattformneutrale Modell und seine lokale Validierung sind implementiert; ihr Prüfstand steht in Kapitel 4.2. Agent, Adapter und formale Vergleichsmessungen sind noch offen. Planung und Entwürfe sind als solche gekennzeichnet.
+    Arbeitsstand vom 07.10.2026. Die Infrastrukturaufnahme, der manuelle KubeVirt-Referenzlauf und drei technisch erfolgreiche LernMAAS-Basisläufe mit HTTP, SSH und geprüftem MAAS-Ressourcenabschluss liegen vor. Die Basisserie ist in Kapitel 5.3 dokumentiert. Die Bedienzeit von b01 wurde für b02 und b03 übernommen; die Anzahl der Bedienhandlungen bleibt offen. Der Versuch vom 30.09.2026 ist separat ausgewiesen. Das plattformneutrale Modell und seine lokale Validierung sind implementiert; ihr Prüfstand steht in Kapitel 4.2. Agent, Adapter und die sechs formalen PoC-Läufe sind noch offen. Planung und Entwürfe sind als solche gekennzeichnet.
 
 | | |
 | --- | --- |
@@ -731,9 +731,11 @@ Jede Handlung erhält Beginn, Ende, Zweck und Lifecycle-Phase. Aktive Bedienzeit
 
 Die Handlungsliste ist weitgehend unabhängig von der Rechenleistung. Erfolg, Readiness und Abbau können durch Hardware, Netzwerk und Berechtigungen beeinflusst werden. Diese Einflüsse werden als Kontext erfasst.
 
+**Abweichende Erfassung in der Basisserie vom 07.10.2026:** Für b01 wurden Stoppuhrwerte vom Diplomanden gemeldet. Bei b02 und b03 wurde derselbe Bedienzeitansatz von insgesamt 55 s übernommen und in den CSV-Dateien als solcher gekennzeichnet. Die Anzahl der Bedienhandlungen und eine zeitgestempelte Handlungsliste fehlen. Die übernommenen Werte werden bei der Auswertung nicht als unabhängige Messungen behandelt; die verstrichenen Aufbau- und Abbauzeiten stammen für jeden Lauf aus eigenen UTC-Zeitstempeln.
+
 #### 3.4.3 Umfang der Serien
 
-Geplant sind drei LernMAAS-Basisläufe mit Aufbau, Dienstprüfung und vollständigem Abbau. Hinzu kommen die sechs im Antrag geforderten PoC-Läufe: drei auf KubeVirt und drei auf AWS. Ein PoC-Lauf umfasst create, status, Readiness, reset, status, erneute Readiness, delete und Ressourcenprüfung. Reset enthält einen vollständigen Abbau und eine Neuerstellung aus demselben gespeicherten Modell.
+Drei LernMAAS-Basisläufe mit Aufbau, Dienstprüfung und geprüftem MAAS-Ressourcenabschluss wurden am 07.10.2026 durchgeführt, siehe [Basisserie](#lernmaas-basisserie-20261007). Die Bedienzeit von b01 wurde bei b02 und b03 übernommen; die Handlungszahl ist offen. Hinzu kommen die sechs im Antrag geforderten PoC-Läufe: drei auf KubeVirt und drei auf AWS. Ein PoC-Lauf umfasst create, status, Readiness, reset, status, erneute Readiness, delete und Ressourcenprüfung. Reset enthält einen vollständigen Abbau und eine Neuerstellung aus demselben gespeicherten Modell.
 
 Die drei aufeinanderfolgenden PoC-Läufe pro Plattform müssen ohne korrigierenden manuellen Eingriff bestehen. Ein fehlgeschlagener Versuch bleibt dokumentiert. Nach einer Fehlerkorrektur beginnt die Serie für die betroffene Plattform erneut; Fehlversuche werden nicht gelöscht. Smoke-Tests, Referenzversuche und Lernläufe zählen nicht zu diesen neun Vergleichsläufen.
 
@@ -964,7 +966,7 @@ Der Messplan beschreibt die Vorbereitung und Durchführung der Vergleichsläufe 
 | 1 | Referenzspezifikation und Skriptstand sichern | Einheitliche Kapazitäten, Einheiten und Dienstprüfungen ermöglichen einen nachvollziehbaren Vergleich | Spezifikation versioniert, Originalprofile und tatsächlich ausgeführtes `createvms` mit vollständigem Commit und SHA-256 archiviert |
 | 2 | KubeVirt-Referenztest, US38 | Am 22.09.2026 erfolgreich durchgeführt; Grundlage für den lokalen Adapter | Aufbau, HTTP, SSH und vollständiger Abbau einschliesslich PV und Datenverzeichnis belegt; siehe [Referenzlauf](#kv-ref-20260922-01) |
 | 3 | AWS-Smoke-Test, US15 | Konto, Rechte, Quotas, Kosten und technische Eignung sind noch nicht nachgewiesen | Eine passende VM erreichbar, Kontobedingungen dokumentiert, alle erzeugten Ressourcen entfernt |
-| 4 | Drei LernMAAS-Basisläufe, US10 | Aufbaudauer bis zur HTTP-Bereitschaft und aktive Bedienzeit getrennt erfassen | Drei Protokolle mit derselben Messgrenze, HTTP-Polling und Ressourcenabschluss |
+| 4 | Drei LernMAAS-Basisläufe, US10 | Am 07.10.2026 technisch erfolgreich durchgeführt; aktive Bedienzeit bei b02/b03 übernommen, Handlungszahl offen | Drei Protokolle mit derselben Zeitgrenze, HTTP-Polling und MAAS-Ressourcenabschluss liegen vor; Einschränkung der Bedienzeiterfassung siehe [Basisserie](#lernmaas-basisserie-20261007) |
 | 5 | Lokalen Lebenszyklus und AWS-Durchstich entwickeln, Sprint 2 | Früher Nachweis der Architektur und der Cloud-Anbindung | Lokal create/status/reset/status/delete mit Readiness; AWS automatisiert create/status/delete |
 | 6 | Fehlerfälle und AWS-Reset ergänzen | Eine erfolgreiche Bereitstellung belegt keine Wiederaufnahme | Fehler, Timeouts, erneutes create/delete und abgebrochener Reset nachvollziehbar behandelt |
 | 7 | Drei PoC-Läufe je Plattform | Verbindliches Erfolgskriterium des Antrags | Je drei aufeinanderfolgende vollständige Läufe ohne manuelle Korrektur |
@@ -1026,7 +1028,7 @@ Für Aufbau und endgültigen Abbau pro Plattform Minimum, Median und Maximum der
 
 #### Durchführung der LernMAAS-Messserie {#lernmaas-messserie-anleitung}
 
-**Vorbereiteter Ablauf, Stand 30.09.2026. Noch keine Ergebnisse der formalen Serie.** Drei vollständige Läufe mit unveränderten Eingaben sind geplant. Der Versuch `lernmaas-20260930-01` bleibt getrennt. Die nächsten Kennungen lauten `maas-b01-20260930`, `maas-b02-20260930` und `maas-b03-20260930`.
+**Ablauf vorbereitet am 30.09.2026, drei technische Läufe durchgeführt am 07.10.2026.** Die Ergebnisse und Abweichungen der Bedienzeiterfassung stehen unter [LernMAAS-Basisserie](#lernmaas-basisserie-20261007). Der Versuch `lernmaas-20260930-01` bleibt getrennt. Die verwendeten Kennungen lauten `maas-b01-20260930`, `maas-b02-20260930` und `maas-b03-20260930`. Die folgende Anleitung beschreibt die vorgesehene vollständige Erfassung; tatsächlich wurden die Bedienzeiten für b02 und b03 von b01 übernommen und die Handlungszahlen nicht gezählt.
 
 Das Hilfsskript `scripts/maas-beobachten.py` führt nur lesende MAAS-Abfragen und HTTP-Prüfungen aus. Es speichert lokale Nachweise und Startmarken. Es erstellt, deployt oder löscht keine VM. Der Aufbau verwendet weiterhin das gesicherte Originalskript `createvms`; das Deployment erfolgt manuell in MAAS. Der Abbau verwendet den unten festgelegten MAAS-CLI-Block mit Identitätsprüfung. Diese Bedienweise gilt unverändert für alle drei Läufe und ist bei der späteren Zählung der Bedienhandlungen zu berücksichtigen.
 
@@ -1330,7 +1332,7 @@ Verlinkte Rohdaten und unabhängiger Nachvollzug:
 
 ### 5.3 Messläufe {#messlaeufe}
 
-Die drei vollständig gemessenen LernMAAS-Basisläufe und die sechs formalen PoC-Läufe sind noch offen. Der KubeVirt-Referenzlauf belegt die lokale Machbarkeit. Der LernMAAS-Lauf vom 30.09.2026 erprobt Aufbau, Dienstprüfung und Abbau; seine Messgrenzen und Abweichungen sind separat ausgewiesen.
+Die drei LernMAAS-Basisläufe wurden am 07.10.2026 technisch erfolgreich durchgeführt. Aufbau- und Abbauzeiten sind je Lauf protokolliert; die Bedienzeit von b01 wurde für b02 und b03 übernommen, die Handlungszahl bleibt offen. Die sechs formalen PoC-Läufe auf KubeVirt und AWS stehen noch aus. Der KubeVirt-Referenzlauf belegt die lokale Machbarkeit. Der LernMAAS-Lauf vom 30.09.2026 bleibt als eigener Versuch mit seinen Messgrenzen und Abweichungen ausgewiesen.
 
 #### KubeVirt-Referenzlauf vom 22.09.2026 {#kv-ref-20260922-01}
 
@@ -1528,11 +1530,141 @@ Vier JSON-Dateien enthalten in den MAAS-Zonenbeschreibungen eingebettete VPN-Kon
 
 **Folgerung für die Vergleichsserie**
 
-US10 bleibt offen. Vor der Serie werden die tatsächlich einzufügende Cloud-init-Datei und der SSH-Zugangsweg festgelegt. Die aktive Bedienzeit wird für Aufbau und Abbau vollständig getrennt von der Wartezeit erfasst. Start- und Endgrenzen werden unverändert auf alle Vergleichsläufe angewendet. Die drei vollständigen LernMAAS-Basisläufe stehen noch aus. Reset ist nicht Teil eines LernMAAS-Basislaufs; Agent, MCP und die sechs PoC-Läufe werden durch diesen Versuch nicht nachgewiesen.
+Die aus diesem Versuch abgeleiteten Anforderungen wurden für die [Basisserie vom 07.10.2026](#lernmaas-basisserie-20261007) konkretisiert: identische vollständige Cloud-init-Eingaben, festgelegter SSH-Zugang, Startmarker vor `createvms`, HTTP-Polling und identische Abbaugrenzen. Drei technische Läufe sind inzwischen nachgewiesen. Die ursprünglich vorgesehene Bedienzeiterfassung wurde nur teilweise erfüllt: b02 und b03 verwenden die Werte von b01, die Handlungszahl ist offen. US10 hat damit einen technischen Nachweis, aber weiterhin eine Einschränkung für den quantitativen Arbeitsvergleich. Reset ist nicht Teil eines LernMAAS-Basislaufs; Agent, MCP und die sechs PoC-Läufe werden durch den Versuch vom 30.09.2026 nicht nachgewiesen.
+
+#### LernMAAS-Basisserie vom 07.10.2026 {#lernmaas-basisserie-20261007}
+
+Am 07.10.2026 wurden drei LernMAAS-Basisläufe mit derselben Referenzdefinition durchgeführt. Jeder Lauf umfasst das Erstellen einer VM, das manuelle Deployment, die HTTP- und SSH-Prüfung sowie das Löschen mit anschliessender MAAS-Ressourcenprüfung. Alle drei technischen Abläufe waren erfolgreich. Die aktive Bedienzeit wurde für b01 mit einer Stoppuhr erfasst und vom Diplomanden gemeldet. Für b02 und b03 wurden diese Werte übernommen. Die Zahl der Bedienhandlungen wurde nicht erfasst.
+
+**Identität und gemeinsame Voraussetzungen**
+
+Die Laufkennungen enden weiterhin auf `20260930`, weil die am 30.09.2026 vorbereitete Serie diese Namen festlegt. Das Durchführungsdatum ist bei allen drei Läufen der 07.10.2026. Die Rohdateien liegen unter `docs/messungen/laeufe/lernmaas-basis-20260930/maas-b01-20260930/` bis `maas-b03-20260930/`.
+
+| Merkmal | Gemeinsamer Stand |
+| --- | --- |
+| Controller und MAAS-Profil | `cloud-au-30`, CLI-Profil `ubuntu` |
+| KVM-Host | `cloud-au-32`, MAAS-Pod 7 |
+| Referenzprofil | `daref`, eine VM, 2 vCPU, 2048 MiB RAM, 13 GB Datenträger |
+| Gastabbild | Ubuntu 24.04 LTS, `noble`, amd64, Kernel `ga-24.04`; identischer gesicherter MAAS-Abbildstand |
+| Zone | `10-1-45-0`; Deployment-Adresse im Netz `10.0.45.0/24` |
+| Aufbau | Gesichertes `createvms-original.sh`, danach Zone und Deployment manuell in MAAS |
+| Cloud-init | Identische vollständige `cloud-init-referenz.yaml` mit öffentlichem SSH-Schlüssel und HTTP-Testdienst |
+| Readiness | HTTP 200 auf Gastport 8080 und Inhalt `lernumgebung bereit` |
+| SSH | Benutzer `ubuntu`; Dienst aktiv, `User=nobody`, `Group=nogroup`, Datenträger `vda` mit 13 000 000 000 Bytes |
+| Zeitführung | UTC mit Millisekunden; vor jedem Lauf `NTPSynchronized=yes` |
+| Beobachtungsgrenzen | 1800 s ab Aufbaustart, HTTP-Polling maximal 900 s innerhalb dieser Gesamtgrenze; Sollintervall 2 s, Request-Timeout 2 s |
+| Abbaugrenzen | Je Löschaufruf maximal 300 s, je MAAS-Inventarabfrage maximal 30 s |
+| Reset | Nicht Teil eines LernMAAS-Basislaufs |
+
+Cloud-init, Referenzprofil, ausgeführtes Erstellungsskript, öffentlicher Zugangsschlüssel, HTTP-Prüfer und MAAS-Beobachter sind über ihre SHA-256-Werte in allen drei Laufordnern identisch. Im gesicherten MAAS-Abbild stimmen Name, Architektur und die Abbildsätze (`sets`) überein. Das Nutzungsfeld `last_deployed` unterscheidet sich zwischen den Aufnahmen und wird nicht als Bestandteil der Abbildversion bewertet. Die Eingabe-Prüfsummen stimmen mit den archivierten Dateien überein. Ein identischer Abbildstand belegt keine identische Cache- oder Hintergrundlast auf dem Host; diese Einflüsse wurden während der Läufe nicht separat gemessen.
+
+| Lauf | VM-Name | Maschinen-ID | Pool-ID | Deployment-IP |
+| --- | --- | --- | ---: | --- |
+| b01 | `daref-01-da20260930b01` | `ggnhct` | 17 | `10.0.45.52` |
+| b02 | `daref-01-da20260930b02` | `83md8a` | 18 | `10.0.45.65` |
+| b03 | `daref-01-da20260930b03` | `rbggst` | 19 | `10.0.45.73` |
+
+Die Poolnamen lauten entsprechend `daref-da20260930b01`, `daref-da20260930b02` und `daref-da20260930b03`. Der Beobachter prüft vor dem Messstart, dass Zielmaschine und Testpool noch nicht vorhanden sind. Vor dem nächsten Lauf darf kein Testpool der Serie verbleiben.
+
+**Zeitmessung und Ergebnisse**
+
+Die Aufbaudauer reicht vom Startmarker in `start-utc.txt` vor dem Ausführen von `createvms` bis zum ersten Ereignis `ready_observed` in `http-create.jsonl`. Sie enthält die Zeit bis zur Anlage der Maschine, Commissioning, Tests, den manuellen Zonenwechsel und das Deployment sowie die Zeit bis zur erfolgreichen Dienstantwort. Der HTTP-Prüfer wird beim erkannten Deployment-Endpunkt gestartet; seine eigene Laufzeit ist deshalb nicht die gesamte Aufbaudauer.
+
+Die Abbaudauer reicht von `abbau-start-utc.txt` bis `abbau-kontrolle-utc.txt`. Dazwischen liegen Identitätsprüfung, VM-Löschaufruf, Kontrolle der Maschinenliste, Pool-Löschaufruf und Kontrolle von Pools und Hostzuteilung. Die Auswertung verwendet dieselben Grenzen für alle drei Läufe.
+
+| Lauf | Aufbau bis HTTP in s | Abbau mit Nachkontrolle in s | Dienstprüfung | Ressourcenabschluss |
+| --- | ---: | ---: | --- | --- |
+| [b01](messungen/laeufe/lernmaas-basis-20260930/maas-b01-20260930/http-create.jsonl) | 568,332 | 26,043 | HTTP 200 und Inhalt passend; SSH bestanden | Maschine und Pool entfernt; Hostzuteilung wiederhergestellt |
+| [b02](messungen/laeufe/lernmaas-basis-20260930/maas-b02-20260930/http-create.jsonl) | 692,909 | 17,077 | HTTP 200 und Inhalt passend; SSH bestanden | Maschine und Pool entfernt; Hostzuteilung wiederhergestellt |
+| [b03](messungen/laeufe/lernmaas-basis-20260930/maas-b03-20260930/http-create.jsonl) | 919,463 | 16,756 | HTTP 200 und Inhalt passend; SSH bestanden | Maschine und Pool entfernt; Hostzuteilung wiederhergestellt |
+
+Alle folgenden Uhrzeiten sind UTC am 07.10.2026. Die Zustandswechsel geben den ersten protokollierten Beobachtungszeitpunkt an, nicht den exakten internen Zustandswechsel von MAAS. Die Vorbereitungszeit und die nachgelagerte SSH-Prüfung sind nicht Teil der Aufbaudauer.
+
+| Ereignis | b01 | b02 | b03 |
+| --- | --- | --- | --- |
+| Aufbaustart | 09:42:22.468 | 10:01:21.946 | 11:05:38.523 |
+| Commissioning erstmals beobachtet | 09:42:40.964 | 10:01:40.028 | 11:05:56.606 |
+| Testing erstmals beobachtet | 09:45:01.370 | 10:04:04.701 | 11:08:19.148 |
+| Ready erstmals beobachtet | 09:45:08.778 | 10:04:14.947 | 11:08:24.357 |
+| Deploying erstmals beobachtet | 09:46:12.381 | 10:06:28.390 | 11:15:23.574 |
+| HTTP-Polling gestartet | 09:46:12.429 | 10:06:28.432 | 11:15:23.620 |
+| HTTP-Bereitschaft beobachtet | 09:51:50.800 | 10:12:54.855 | 11:20:57.986 |
+| Abbaustartmarker | 09:56:39.450 | 10:17:33.867 | 11:25:01.290 |
+| VM-Löschaufruf begonnen | 09:56:51.152 | 10:17:37.077 | 11:25:03.656 |
+| VM-Löschaufruf beendet | 09:56:56.227 | 10:17:41.643 | 11:25:08.625 |
+| MAAS-Nachkontrolle abgeschlossen | 09:57:05.493 | 10:17:50.944 | 11:25:18.046 |
+
+Für den Abbau werden zusätzlich die Zeit vor dem eigentlichen Löschaufruf und die anschliessende Zeit bis zum MAAS-Abschluss ausgewiesen. Die Zeit vor dem Löschaufruf enthält auch die vorgelagerte Inventar- und Identitätsprüfung; sie ist keine reine Löschzeit und kein eigener Messwert für aktive Bedienung.
+
+| Lauf | Startmarker bis VM-Löschaufruf in s | VM-Löschaufruf bis Nachkontrolle in s | Gesamter Abbau in s |
+| --- | ---: | ---: | ---: |
+| b01 | 11,702 | 14,341 | 26,043 |
+| b02 | 3,210 | 13,867 | 17,077 |
+| b03 | 2,366 | 14,390 | 16,756 |
+
+**Bedienzeit und Aussagegrenzen**
+
+Für b01 wurden folgende Stoppuhrwerte vom Diplomanden gemeldet. Die beiden Aufbauabschnitte wurden jeweils gemeinsam erfasst. Für b02 und b03 wurde auf Anweisung des Diplomanden derselbe Bedienzeitansatz verwendet; die jeweilige `bedienung.csv` kennzeichnet die Übernahme ausdrücklich.
+
+| Abschnitt | b01 in s | b02 in s | b03 in s |
+| --- | ---: | ---: | ---: |
+| YAML kopieren und CLI bedienen | 15 | 15 | 15 |
+| Zonenwechsel und Deployment | 25 | 25 | 25 |
+| SSH-Prüfung | 5 | 5 | 5 |
+| Löschen und Nachkontrolle | 10 | 10 | 10 |
+| Gesamt | 55 | 55 | 55 |
+| Herkunft | Stoppuhrwerte vom Diplomanden gemeldet | Von b01 übernommen | Von b01 übernommen |
+
+Der gemeinsame Ansatz ergibt 40 s für den Aufbau, 5 s für die nachgelagerte SSH-Prüfung und 10 s für den Abbau. Beobachterbedienung und Messnotizen wurden nicht separat zeitlich erfasst. Eine zeitgestempelte Handlungsliste und die Anzahl der Bedienhandlungen fehlen für alle drei Läufe. Die gesicherte CSV-Vorlage bleibt neben den ergänzten Werten erhalten.
+
+Die 55 s sind bei b02 und b03 keine unabhängigen Messwerte. Deshalb wird daraus keine Streuung oder Wiederholbarkeit der aktiven Bedienzeit abgeleitet. Im späteren Vergleich können sie als gekennzeichneter Bedienzeitansatz verwendet werden. Aussagen über eine gemessene Arbeitseinsparung müssen die abweichende Erfassung berücksichtigen. Die verstrichene Gesamtdauer abzüglich des Bedienzeitansatzes wird nicht als gemessene technische Wartezeit ausgewiesen.
+
+Die drei technischen Läufe sind nachgewiesen. Die ursprünglich vorgesehene vollständige Erfassung von aktiver Arbeit und Handlungszahl ist nur teilweise erfüllt. Diese Abweichung wird im Messkonzept und in der Bewertung weitergeführt.
+
+**Ressourcenabschluss**
+
+Vor dem Abbau wurden Maschinen-ID, Host, Pool, CPU und RAM der Testmaschine gesichert und geprüft. Nach dem Abbau zeigen die MAAS-Abfragen, dass die jeweilige Maschinen-ID, der VM-Name und die Pool-ID nicht mehr vorhanden sind. Alle Maschinen aus dem Vorher-Inventar sind weiterhin in der Nachher-Liste enthalten. Der gesamte `used`-Wert von Pod 7 ist in allen drei Vorher-Nachher-Vergleichen identisch: 8 zugeteilte Kerne, 8192 MiB RAM und 48 000 000 000 Bytes lokaler Speicher.
+
+Damit ist der Ressourcenabschluss über MAAS-Inventare und die gemeldete Hostzuteilung belegt. Eine direkte Prüfung der libvirt-Domänen oder Datenträgerdateien auf `cloud-au-32` wurde nicht durchgeführt. Die leeren Dateien der Löschaufrufe sind allein kein Löschbeleg; entscheidend sind die anschliessenden Inventarabfragen und der Ressourcenvergleich.
+
+**Einordnung der Gesamtdauer**
+
+Die längere Aufbaudauer von b03 wird unverändert übernommen. Zwischen dem erstmals beobachteten Zustand `Ready` und `Deploying` liegen folgende Zeiten:
+
+| Lauf | Beobachtetes Ready bis Deploying in s |
+| --- | ---: |
+| b01 | 63,603 |
+| b02 | 133,443 |
+| b03 | 419,217 |
+
+Dieser Abstand enthält den manuellen Deployment-Schritt sowie mögliche Zeit bis zu dessen Ausführung und zur erneuten Statusbeobachtung. Er ist nicht ausschliesslich technische Provisionierungszeit und nicht mit aktiver Bedienzeit gleichzusetzen. Der genaue Grund der unterschiedlichen Abstände wurde nicht separat protokolliert. Insbesondere bei b03 lässt sich die längere Gesamtdauer deshalb nicht allein der Plattformleistung zuschreiben. Der Lauf bleibt innerhalb der Gesamtgrenze von 1800 s; die 900-s-Grenze betrifft das später gestartete HTTP-Polling.
+
+**Nachweise und Integrität**
+
+Das übertragene Originalarchiv `lernmaas-basis-b01-b03-20261007-v2.tar.gz` hat SHA-256 `8a9937ebefff82c5f56403597fcab7ce60211cfacd9fc16b0caa0d58ca9074ff`. Die extrahierten Laufdateien werden bytegleich übernommen. Der MAAS-Beobachter speichert bei Zonen nur ID und Namen; private Zonenbeschreibungen sind nicht Bestandteil dieser Laufdateien. Die [abgeleitete Auswertung](messungen/laeufe/lernmaas-basis-20260930/auswertung-b01-b03-20261007.json) nennt Formeln, Eingabeherkunft, Zeiten und Prüfergebnisse. [SHA256SUMS-b01-b03](messungen/laeufe/lernmaas-basis-20260930/SHA256SUMS-b01-b03) erfasst die übernommenen Nachweise und die Auswertung.
+
+| Lauf | Plan und Eingaben | Aufbau und Dienst | Ressourcen | Bedienzeit |
+| --- | --- | --- | --- | --- |
+| b01 | [Plan](messungen/laeufe/lernmaas-basis-20260930/maas-b01-20260930/plan.json), [Eingabe-Prüfsummen](messungen/laeufe/lernmaas-basis-20260930/maas-b01-20260930/SHA256SUMS-eingaben) | [Status](messungen/laeufe/lernmaas-basis-20260930/maas-b01-20260930/statusbeobachtung.jsonl), [HTTP](messungen/laeufe/lernmaas-basis-20260930/maas-b01-20260930/http-create.jsonl), [SSH](messungen/laeufe/lernmaas-basis-20260930/maas-b01-20260930/ssh-pruefung.txt) | [Vorher](messungen/laeufe/lernmaas-basis-20260930/maas-b01-20260930/maschinen-vorher.json), [VM-Inventar](messungen/laeufe/lernmaas-basis-20260930/maas-b01-20260930/inventar-vor-abbau.json), [Nachher](messungen/laeufe/lernmaas-basis-20260930/maas-b01-20260930/maschinen-nachher.json), [Pools danach](messungen/laeufe/lernmaas-basis-20260930/maas-b01-20260930/pools-nachher.json), [Host vorher](messungen/laeufe/lernmaas-basis-20260930/maas-b01-20260930/hosts-vorher.json), [Host danach](messungen/laeufe/lernmaas-basis-20260930/maas-b01-20260930/hosts-nachher.json) | [Bedienzeit](messungen/laeufe/lernmaas-basis-20260930/maas-b01-20260930/bedienung.csv), [ursprüngliche Vorlage](messungen/laeufe/lernmaas-basis-20260930/maas-b01-20260930/bedienung-vorlage.csv) |
+| b02 | [Plan](messungen/laeufe/lernmaas-basis-20260930/maas-b02-20260930/plan.json), [Eingabe-Prüfsummen](messungen/laeufe/lernmaas-basis-20260930/maas-b02-20260930/SHA256SUMS-eingaben) | [Status](messungen/laeufe/lernmaas-basis-20260930/maas-b02-20260930/statusbeobachtung.jsonl), [HTTP](messungen/laeufe/lernmaas-basis-20260930/maas-b02-20260930/http-create.jsonl), [SSH](messungen/laeufe/lernmaas-basis-20260930/maas-b02-20260930/ssh-pruefung.txt) | [Vorher](messungen/laeufe/lernmaas-basis-20260930/maas-b02-20260930/maschinen-vorher.json), [VM-Inventar](messungen/laeufe/lernmaas-basis-20260930/maas-b02-20260930/inventar-vor-abbau.json), [Nachher](messungen/laeufe/lernmaas-basis-20260930/maas-b02-20260930/maschinen-nachher.json), [Pools danach](messungen/laeufe/lernmaas-basis-20260930/maas-b02-20260930/pools-nachher.json), [Host vorher](messungen/laeufe/lernmaas-basis-20260930/maas-b02-20260930/hosts-vorher.json), [Host danach](messungen/laeufe/lernmaas-basis-20260930/maas-b02-20260930/hosts-nachher.json) | [Bedienzeit](messungen/laeufe/lernmaas-basis-20260930/maas-b02-20260930/bedienung.csv), [ursprüngliche Vorlage](messungen/laeufe/lernmaas-basis-20260930/maas-b02-20260930/bedienung-vorlage.csv) |
+| b03 | [Plan](messungen/laeufe/lernmaas-basis-20260930/maas-b03-20260930/plan.json), [Eingabe-Prüfsummen](messungen/laeufe/lernmaas-basis-20260930/maas-b03-20260930/SHA256SUMS-eingaben) | [Status](messungen/laeufe/lernmaas-basis-20260930/maas-b03-20260930/statusbeobachtung.jsonl), [HTTP](messungen/laeufe/lernmaas-basis-20260930/maas-b03-20260930/http-create.jsonl), [SSH](messungen/laeufe/lernmaas-basis-20260930/maas-b03-20260930/ssh-pruefung.txt) | [Vorher](messungen/laeufe/lernmaas-basis-20260930/maas-b03-20260930/maschinen-vorher.json), [VM-Inventar](messungen/laeufe/lernmaas-basis-20260930/maas-b03-20260930/inventar-vor-abbau.json), [Nachher](messungen/laeufe/lernmaas-basis-20260930/maas-b03-20260930/maschinen-nachher.json), [Pools danach](messungen/laeufe/lernmaas-basis-20260930/maas-b03-20260930/pools-nachher.json), [Host vorher](messungen/laeufe/lernmaas-basis-20260930/maas-b03-20260930/hosts-vorher.json), [Host danach](messungen/laeufe/lernmaas-basis-20260930/maas-b03-20260930/hosts-nachher.json) | [Bedienzeit](messungen/laeufe/lernmaas-basis-20260930/maas-b03-20260930/bedienung.csv), [ursprüngliche Vorlage](messungen/laeufe/lernmaas-basis-20260930/maas-b03-20260930/bedienung-vorlage.csv) |
+
+Die Basisserie liefert die Ausgangswerte für den späteren Plattformvergleich. Sie weist noch keinen automatisierten Agenten, keinen Reset und keinen MCP-Adapter nach. Die sechs formalen PoC-Läufe auf KubeVirt und AWS bleiben offen.
 
 ## 6 Bewertung und Vergleich
 
-Noch offen. Die Bewertung verwendet die Messwerte der festgelegten Vergleichsläufe. Ausgewertet werden Bedienhandlungen, aktive Arbeit und verstrichene Zeit für gemeinsame Phasen, ergänzt um Reset, Fehlerverhalten und Abbauvollständigkeit. Die MCP-Bewertung und Wirtschaftlichkeitsbetrachtung folgen den oben festgelegten Grenzen. Die Referenzversuche liefern Anforderungen, aber keine fertige Einsparungsrechnung.
+Die [LernMAAS-Basisserie vom 07.10.2026](#lernmaas-basisserie-20261007) liefert die ersten protokollierten Ausgangswerte. Für die drei technisch erfolgreichen Läufe ergeben sich folgende verstrichene Zeiten:
+
+| Phase | Minimum in s | Median in s | Maximum in s |
+| --- | ---: | ---: | ---: |
+| Aufbau bis HTTP-Bereitschaft | 568,332 | 692,909 | 919,463 |
+| Endgültiger Abbau mit MAAS-Nachkontrolle | 16,756 | 17,077 | 26,043 |
+
+Die Aufbaudauer umfasst den manuellen Bereitstellungsablauf ab Startmarker bis zur beobachteten HTTP-Bereitschaft. Insbesondere der Abstand zwischen `Ready` und `Deploying` unterscheidet sich; die Gesamtdauer misst damit nicht isoliert die technische Plattformleistung. Der Ressourcenabschluss ist für alle drei Läufe durch MAAS-Inventare und die wiederhergestellte Hostzuteilung belegt.
+
+Für die Bedienzeit wird ein gemeinsamer Ansatz von 40 s Aufbau, 5 s SSH-Prüfung und 10 s Abbau, insgesamt 55 s, verwendet. Die Werte stammen aus der gemeldeten Stoppuhrmessung von b01 und wurden bei b02 und b03 übernommen. Daraus wird keine statistische Auswertung dreier unabhängiger Bedienzeitmessungen abgeleitet. Die Anzahl der Bedienhandlungen ist nicht erfasst.
+
+Der Plattformvergleich bleibt offen, bis die drei vollständigen PoC-Läufe je Plattform vorliegen. Ausgewertet werden dann gemeinsame Aufbau- und endgültige Abbauphasen, ergänzt um Reset, Fehlerverhalten und Ressourcenabschluss. Ein Vergleich der aktiven Arbeit weist die abweichende Erfassung der Basisserie ausdrücklich aus. Die MCP-Bewertung und Wirtschaftlichkeitsbetrachtung folgen den festgelegten Grenzen. Aus diesen drei Basisläufen allein werden keine Automatisierungsersparnis, allgemeine Zuverlässigkeit oder statistische Signifikanz abgeleitet.
 
 ## 7 Betrieb und Schulung
 
@@ -1718,10 +1850,11 @@ Interne Betriebsunterlagen und die Reservationsliste sind in der IST-Analyse ben
 
 ### Nachweise und Aussagegrenzen {#nachweise}
 
-Die Dateien dokumentieren die Infrastrukturaufnahme und die Versuche vom 14., 16., 22. und 30.09.2026. Die Tabelle ordnet ein, welche Aussagen die jeweiligen Belege stützen und welche Nachweise noch fehlen.
+Die Dateien dokumentieren die Infrastrukturaufnahme, die Versuche vom 14., 16., 22. und 30.09.2026 sowie die drei LernMAAS-Basisläufe vom 07.10.2026. Die Tabelle ordnet ein, welche Aussagen die jeweiligen Belege stützen und welche Nachweise noch fehlen.
 
 | Datei | Nutzbarer Inhalt | Grenze |
 | --- | --- | --- |
+| [LernMAAS-Basisserie b01 bis b03, 07.10.2026](#lernmaas-basisserie-20261007) | Drei identische Laufdefinitionen; Aufbau- und Abbauzeiten je Lauf; HTTP und SSH erfolgreich; Maschine und Pool entfernt; MAAS-Hostzuteilung wiederhergestellt | Bedienzeit bei b01 vom Diplomanden gemeldet, bei b02/b03 übernommen; Handlungszahl offen; keine direkte libvirt- oder Datenträgerprüfung |
 | [LernMAAS-Lauf lernmaas-20260930-01](#lernmaas-20260930-01) | HTTP nach 652,061 s beobachtet, SSH erfolgreich, Testmaschine und Pool entfernt, Hostbelegung auf Ausgangsstand | Bedienzeit unvollständig, Cloud-init abweichend, kein formaler Vergleichslauf; veröffentlichte Inventare um private Zoneninhalte bereinigt |
 | [Referenzlauf kv-ref-20260922-01](#kv-ref-20260922-01) | VM läuft, HTTP und SSH erfolgreich, Namespace, PV und Datenverzeichnis entfernt | Manueller Referenzlauf; keine aktive Bedienzeit, kein Reset, keine formale Vergleichsserie |
 | [Lernlauf](nachweise/lernlauf-lernmaas-00-20260916.txt) | Heutiger Ablauf, Commissioning, IP-Wechsel, einzelne Abbauaktionen | Kein Zeitstempel der ersten HTTP-Bereitschaft; aktive Zeiten sind nicht belastbar gemessen |

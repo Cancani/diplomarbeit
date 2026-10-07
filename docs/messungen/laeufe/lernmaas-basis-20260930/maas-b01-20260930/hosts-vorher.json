@@ -1,0 +1,128 @@
+[
+  {
+    "id": 7,
+    "name": "cloud-au-32",
+    "total": {
+      "cores": 8,
+      "memory": 31983,
+      "local_storage": 250902839296
+    },
+    "used": {
+      "cores": 8,
+      "memory": 8192,
+      "local_storage": 48000000000
+    },
+    "available": {
+      "cores": 0,
+      "memory": 23791,
+      "local_storage": 202902839296
+    },
+    "cpu_over_commit_ratio": 10.0,
+    "memory_over_commit_ratio": 1.0
+  },
+  {
+    "id": 9,
+    "name": "cloud-au-36",
+    "total": {
+      "cores": 8,
+      "memory": 31983,
+      "local_storage": 250902839296
+    },
+    "used": {
+      "cores": 8,
+      "memory": 8192,
+      "local_storage": 48000000000
+    },
+    "available": {
+      "cores": 0,
+      "memory": 23791,
+      "local_storage": 202902839296
+    },
+    "cpu_over_commit_ratio": 10.0,
+    "memory_over_commit_ratio": 1.0
+  },
+  {
+    "id": 10,
+    "name": "cloud-au-34",
+    "total": {
+      "cores": 8,
+      "memory": 31983,
+      "local_storage": 250902839296
+    },
+    "used": {
+      "cores": 8,
+      "memory": 8192,
+      "local_storage": 48000000000
+    },
+    "available": {
+      "cores": 0,
+      "memory": 23791,
+      "local_storage": 202902839296
+    },
+    "cpu_over_commit_ratio": 10.0,
+    "memory_over_commit_ratio": 1.0
+  },
+  {
+    "id": 11,
+    "name": "cloud-au-35",
+    "total": {
+      "cores": 8,
+      "memory": 31983,
+      "local_storage": 250902839296
+    },
+    "used": {
+      "cores": 8,
+      "memory": 8192,
+      "local_storage": 48000000000
+    },
+    "available": {
+      "cores": 0,
+      "memory": 23791,
+      "local_storage": 202902839296
+    },
+    "cpu_over_commit_ratio": 10.0,
+    "memory_over_commit_ratio": 1.0
+  },
+  {
+    "id": 12,
+    "name": "cloud-au-33",
+    "total": {
+      "cores": 8,
+      "memory": 31983,
+      "local_storage": 250902839296
+    },
+    "used": {
+      "cores": 8,
+      "memory": 8192,
+      "local_storage": 48000000000
+    },
+    "available": {
+      "cores": 0,
+      "memory": 23791,
+      "local_storage": 202902839296
+    },
+    "cpu_over_commit_ratio": 10.0,
+    "memory_over_commit_ratio": 1.0
+  },
+  {
+    "id": 13,
+    "name": "cloud-au-31",
+    "total": {
+      "cores": 8,
+      "memory": 31983,
+      "local_storage": 983349022720
+    },
+    "used": {
+      "cores": 8,
+      "memory": 8192,
+      "local_storage": 48000000000
+    },
+    "available": {
+      "cores": 0,
+      "memory": 23791,
+      "local_storage": 935349022720
+    },
+    "cpu_over_commit_ratio": 10.0,
+    "memory_over_commit_ratio": 1.0
+  }
+]

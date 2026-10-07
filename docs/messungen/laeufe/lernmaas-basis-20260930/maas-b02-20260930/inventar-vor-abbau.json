@@ -1,0 +1,15 @@
+{
+  "system_id": "83md8a",
+  "hostname": "daref-01-da20260930b02",
+  "status_name": "Deployed",
+  "pool": {
+    "id": 18,
+    "name": "daref-da20260930b02"
+  },
+  "pod": {
+    "id": 7,
+    "name": "cloud-au-32"
+  },
+  "cpu_count": 2,
+  "memory": 2048
+}

@@ -1,0 +1,5 @@
+phase;abschnitt;aktive_sekunden;anzahl_handlungen;bemerkung
+Aufbau;YAML kopieren und CLI bedienen;15;;Vom Benutzer gemessen, gemeinsam erfasst
+Aufbau;Zonenwechsel und Deployment;25;;Vom Benutzer gemessen, gemeinsam erfasst
+Prüfung;SSH-Prüfung;5;;Vom Benutzer gemessen
+Abbau;Löschen und Nachkontrolle;10;;Vom Benutzer gemessen

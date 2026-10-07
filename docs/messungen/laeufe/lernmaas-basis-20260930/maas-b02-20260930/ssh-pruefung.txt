@@ -1,0 +1,20 @@
+Wed Oct  7 10:15:12 UTC 2026
+daref-01-da20260930b02
+uid=1000(ubuntu) gid=1000(ubuntu) groups=1000(ubuntu),27(sudo)
+active
+# /etc/systemd/system/testdienst.service
+[Unit]
+Description=HTTP-Testdienst der Referenz-Lernumgebung
+After=network.target
+[Service]
+User=nobody
+Group=nogroup
+WorkingDirectory=/var/www
+ExecStart=/usr/bin/python3 -m http.server 8080 --bind 0.0.0.0 --directory /var/www
+Restart=on-failure
+[Install]
+WantedBy=multi-user.target
+NAME   TYPE        SIZE
+vda    disk 13000000000
+|-vda1 part     1048576
+`-vda2 part 12997885952

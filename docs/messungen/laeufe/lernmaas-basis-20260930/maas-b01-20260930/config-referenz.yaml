@@ -1,0 +1,6 @@
+daref:
+  vm:
+    cores: 2
+    memory: 2048
+    storage: 13
+    count: 1

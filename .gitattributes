@@ -1,0 +1,9 @@
+
+# Messnachweise bytegleich erhalten
+docs/messungen/laeufe/lernmaas-basis-20260930/maas-b0[123]-20260930/** -text
+docs/messungen/laeufe/lernmaas-basis-20260930/maas-beobachten.py -text
+docs/messungen/laeufe/lernmaas-basis-20260930/auswertung-b01-b03-20261007.json -text
+docs/messungen/laeufe/lernmaas-basis-20260930/SHA256SUMS-b01-b03 -text
+
+# Originalnachweise behalten ihre vorhandenen Leerzeichen
+docs/messungen/laeufe/lernmaas-basis-20260930/maas-b0[123]-20260930/** -text -whitespace

@@ -1,0 +1,26 @@
+{
+  "system_id": "83md8a",
+  "hostname": "daref-01-da20260930b02",
+  "status_name": "Deployed",
+  "ip_addresses": [
+    "10.0.45.65"
+  ],
+  "cpu_count": 2,
+  "memory": 2048,
+  "osystem": "ubuntu",
+  "distro_series": "noble",
+  "architecture": "amd64/generic",
+  "hwe_kernel": "ga-24.04",
+  "zone": {
+    "id": 2,
+    "name": "10-1-45-0"
+  },
+  "pool": {
+    "id": 18,
+    "name": "daref-da20260930b02"
+  },
+  "pod": {
+    "id": 7,
+    "name": "cloud-au-32"
+  }
+}

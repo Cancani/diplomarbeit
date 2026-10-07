@@ -1,0 +1,43 @@
+{
+  "id": 11,
+  "type": "Synced",
+  "name": "ubuntu/noble",
+  "architecture": "amd64/ga-24.04",
+  "resource_uri": "/MAAS/api/2.0/boot-resources/11/",
+  "last_deployed": "2026-09-30T11:55:12.932",
+  "subarches": "generic,hwe-p,hwe-q,hwe-r,hwe-s,hwe-t,hwe-u,hwe-v,hwe-w,ga-16.04,ga-16.10,ga-17.04,ga-17.10,ga-18.04,ga-18.10,ga-19.04,ga-19.10,ga-20.04,ga-20.10,ga-21.04,ga-21.10,ga-22.04,ga-22.10,ga-23.04,ga-23.10,ga-24.04",
+  "sets": {
+    "20260223": {
+      "version": "20260223",
+      "label": "stable",
+      "size": 375740445,
+      "complete": true,
+      "files": {
+        "boot-kernel": {
+          "filename": "boot-kernel",
+          "filetype": "boot-kernel",
+          "sha256": "528d909745819a1464848a2c4d91c609db4f54b33ccae7069aad4178fb34606f",
+          "filename_on_disk": "528d909",
+          "size": 15030664,
+          "complete": true
+        },
+        "squashfs": {
+          "filename": "squashfs",
+          "filetype": "squashfs",
+          "sha256": "5f64c83baf4cd30eb1ec8a4532fd25548706790f186f2b7ae9d45f47c28d1518",
+          "filename_on_disk": "5f64c83",
+          "size": 280154112,
+          "complete": true
+        },
+        "boot-initrd": {
+          "filename": "boot-initrd",
+          "filetype": "boot-initrd",
+          "sha256": "a790210fca06f9b1d5a4e6dc6b4ffa5b86c9f4bcff66422ac82f34e73e6dcd8f",
+          "filename_on_disk": "a790210",
+          "size": 80555669,
+          "complete": true
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,10 @@
+{
+    "name": "daref-da20260930b02",
+    "description": "",
+    "id": 18,
+    "resource_uri": "/MAAS/api/2.0/resourcepool/18/"
+}maas ubuntu pod compose 7 memory=2048 cores=2 storage=13 pool=18 hostname=daref-01-da20260930b02
+{
+    "system_id": "83md8a",
+    "resource_uri": "/MAAS/api/2.0/machines/83md8a/"
+}
