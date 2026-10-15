@@ -1,0 +1,42 @@
+AWS-Budget: Auswertungsnotiz vom 15.10.2026
+
+Diese Notiz ist eine abgeleitete Auswertung, kein AWS-Originalexport.
+Originalquelle: budgets.csv, unverändert aus dem vom Diplomanden
+bereitgestellten Export übernommen.
+
+Im CSV belegt:
+Budgettyp Cost, Name diplomarbeit-gesamt, Status HEALTHY,
+Budgetbetrag 50.0 USD, Zeitraum Custom, Beginn 10/15/26,
+Ende 02/01/27. In deutscher Datumsdarstellung: 15.10.2026
+bis 01.02.2027. Aktuelle und prognostizierte Kosten sind ohne Betrag.
+Der Bindestrich ist keine numerische Null.
+Filters Applied enthält wörtlich: undefined: undefined.
+Dieser Feldinhalt bestätigt keinen konkreten Kostenfilter.
+
+Ergänzende Konsolenbeobachtungen aus den bereitgestellten Bildern:
+image(20261015-095932).png: Warnschwelle 50 Prozent, Actual,
+entsprechend USD 25; eigene E-Mail-Adresse eingetragen.
+image(20261015-095937).png: Warnschwelle 80 Prozent, Actual,
+entsprechend USD 40; dieselbe eigene E-Mail-Adresse eingetragen.
+image(20261015-095957).png: Review mit beiden Warnschwellen,
+keine automatischen Aktionen; zusätzliche Budgetparameter eingeklappt.
+image(20261015-094935).png: Vorschau bezeichnet Kosten als Unblended costs.
+image(20261015-100352).png: historische Anzeige USD 0.92 für
+June 29, 2026 - October 15, 2026; Budget USD 50 und Schwellen USD 25/40.
+Die Bilder sind nicht Bestandteil dieser Nachweisablage.
+Die E-Mail-Adresse wird in dieser Notiz nicht veröffentlicht.
+
+Einordnung:
+Die Erstellung wurde vom Diplomanden am 15.10.2026 bestätigt und
+wird durch den CSV-Export des Budgets gestützt. Der beibehaltene
+Zeitraum beginnt nach dem Smoke-Test vom 13.10.2026 und endet nach
+dem Projektende vom 18.12.2026. Das Budgetdatum ist kein Nachweis
+der Gültigkeit des Lab-Guthabens. USD 0.92 ist kein dem einzelnen
+Smoke-Test zugeordneter Kostenbetrag. USD- und CHF-Beträge sind nicht
+gleichgesetzt. Die Warnungen führen keine automatischen Aktionen aus.
+
+Offen:
+Bestätigung des E-Mail-Empfängers und erfolgreiche Warnzustellung,
+gespeicherte Filter für Credit/Refund und vollständige Kostenabgrenzung,
+Preisabschätzung mit Bezug zum privaten CHF-Limit, Ablaufdatum des
+Lab-Guthabens und separat belegte Löschung des Transfer-Buckets.

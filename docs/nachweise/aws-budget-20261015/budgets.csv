@@ -1,0 +1,2 @@
+Budget Type,Budget Name,Health status,Billing View ARN,Billing View,Budgeted Cost,Current Cost,Forecasted Cost,Unit,Filters Applied,Budget Period,Start Date,End Date,Current vs Budgeted Costs (Absolute Variance),Forecasted vs Budgeted Costs (Absolute Variance),Current vs Budgeted Costs (% Variance),Forecasted vs Budgeted Costs (% Variance)
+Cost,diplomarbeit-gesamt,HEALTHY,arn:aws:billing::219462215738:billingview/primary,Primary View,50.0,"'-","'-",USD,undefined: undefined,Custom,10/15/26,02/01/27,0,0,0,0

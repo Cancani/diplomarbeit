@@ -11,7 +11,7 @@ docs/messungen/laeufe/lernmaas-basis-20260930/maas-b0[123]-20260930/** -text -wh
 # AWS-Smoke-Test als Originalnachweis bytegleich erhalten
 docs/messungen/laeufe/aws-smoke-20261013/** -text -whitespace
 
-# Aeltere Nachweise anhand ihrer bestehenden Pruefsummen bytegleich erhalten
+# Ältere Nachweise anhand ihrer bestehenden Prüfsummen bytegleich erhalten
 docs/messungen/cloud-init-messlauf.yaml -text -whitespace
 docs/messungen/messprotokoll-mess01.txt -text -whitespace
 docs/messungen/messprotokoll-parallel01.txt -text -whitespace
@@ -23,3 +23,6 @@ docs/nachweise/recon-dl380-01-20260914.txt -text -whitespace
 docs/nachweise/recon-k8s-20260914.txt -text -whitespace
 docs/nachweise/recon-kvcontrol-20260914.txt -text -whitespace
 docs/nachweise/testvm.yaml -text -whitespace
+
+# Budgetexport und Auswertung bytegleich erhalten
+docs/nachweise/aws-budget-20261015/** -text -whitespace

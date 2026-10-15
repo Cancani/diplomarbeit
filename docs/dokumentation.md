@@ -1,7 +1,7 @@
 # Diplomarbeit: Agentenbasierte Hybrid-Cloud-Bereitstellung von Lernumgebungen mit Kubernetes, KubeVirt und MCP
 
 !!! info "Lesehinweis"
-    Arbeitsstand vom 13.10.2026. Die Infrastrukturaufnahme, der manuelle KubeVirt-Referenzlauf und drei technisch erfolgreiche LernMAAS-Basisläufe liegen vor. Die Basisserie und ihre Messgrenzen stehen in Kapitel 5.3. Der AWS-Smoke-Test vom 13.10.2026 belegt die Erstellung einer Referenz-VM, HTTP, SSH und den vollständigen Abbau der VM-Ressourcen. AWS-Zugang und Lab-Beschränkungen sind in Kapitel 3.6 konkretisiert; offene Kosten- und Guthabenangaben bleiben benannt. Das plattformneutrale Modell und seine lokale Validierung sind implementiert; ihr Prüfstand steht in Kapitel 4.2. Agent, Adapter und die sechs formalen PoC-Läufe sind noch offen. Planung und Entwürfe sind als solche gekennzeichnet.
+    Arbeitsstand vom 15.10.2026. Die Infrastrukturaufnahme, der manuelle KubeVirt-Referenzlauf und drei technisch erfolgreiche LernMAAS-Basisläufe liegen vor. Die Basisserie und ihre Messgrenzen stehen in Kapitel 5.3. Der AWS-Smoke-Test vom 13.10.2026 belegt die Erstellung einer Referenz-VM, HTTP, SSH und den vollständigen Abbau der VM-Ressourcen. AWS-Zugang, Lab-Beschränkungen und das am 15.10.2026 eingerichtete USD-50-Budget sind in Kapitel 3.6 konkretisiert; offene Kosten- und Guthabenangaben bleiben benannt. Das plattformneutrale Modell und seine lokale Validierung sind implementiert; ihr Prüfstand steht in Kapitel 4.2. Agent, Adapter und die sechs formalen PoC-Läufe sind noch offen. Planung und Entwürfe sind als solche gekennzeichnet.
 
 | | |
 | --- | --- |
@@ -11,7 +11,7 @@
 | Schulexperte | Thanam Pangri, HF-Lehrgangsleitung |
 | Bewilligter Zeitraum | 11.09.2026 bis 18.12.2026 |
 | Arbeitsplanung | 14.09.2026 bis 18.12.2026 |
-| Version | 0.3, Arbeitsstand |
+| Version | 0.4, Arbeitsstand |
 | Grundlage | Bewilligte Projektbeschreibung vom 10.09.2026; schulische Vorgaben gemäss gültigem Merkblatt |
 
 ---
@@ -317,7 +317,7 @@ Die folgende Risikobewertung ist eine Planungseinschätzung. Eintrittswahrschein
 | ID | Risiko | EW | AW | Wert | Strategie | Frühwarnindikator | Massnahme |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | R01 | Technische Komplexität der Kombination aus Kubernetes, KubeVirt, Zustandsführung, MCP und Public Cloud | 4 | 4 | 16 | Vermindern | Eine Story aus E6 oder E7 überschreitet ihre Schätzung um mehr als das Doppelte | Frühe Smoke-Tests auf beiden Zielplattformen, Verzicht auf optionale Erweiterungen zugunsten des vollständigen Lebenszyklus, Zeitbox von zwei Arbeitseinheiten pro Blockade mit anschliessendem Entscheid über einen Alternativweg |
-| R02 | Cloud-Ressourcen und Kosten: ungenügende Quotas, eingeschränkte Dienstverfügbarkeit oder unerwartete Kosten | 3 | 3 | 9 | Vermindern | Quota-Fehlermeldung beim Smoke-Test, Budgetwarnung über 50 Prozent | Quotas und Dienste im Cloud-Smoke-Test in Sprint 1 prüfen, Budgetwarnungen bei CHF 25 und CHF 40, Ressourcen minimal halten, nach jedem Test sofort löschen |
+| R02 | Cloud-Ressourcen und Kosten: ungenügende Quotas, eingeschränkte Dienstverfügbarkeit oder unerwartete Kosten | 3 | 3 | 9 | Vermindern | Quota-Fehlermeldung beim Smoke-Test, Budgetwarnung über 50 Prozent | Quotas und Dienste im Cloud-Smoke-Test in Sprint 1 prüfen, Warnschwellen seit 15.10.2026 bei USD 25 und USD 40 gemäss Kapitel 3.6; privates CHF-50-Limit separat beachten, Ressourcen minimal halten, nach jedem Test sofort löschen |
 | R03 | Zeitmanagement: der Umfang überschreitet die verfügbare Projektzeit | 4 | 5 | 20 | Vermindern | Kritischer Durchstich bleibt offen oder die nächste Meilensteinprognose verschiebt sich | Verbindlich begrenzter Kernumfang, eine technisch reduzierte Test-Lernumgebung, Scope-Freeze am 04.12.2026, festgelegte Reihenfolge der Umfangsreduktion, Abschlusszeit ab Scope-Freeze, deren tatsächliche Verfügbarkeit wöchentlich geprüft wird |
 | R05 | Unvollständiger Teardown und Zustandsabweichungen: nach delete bleiben Ressourcen zurück oder der gespeicherte Zustand weicht vom tatsächlichen ab | 3 | 3 | 9 | Vermindern | Ein Lauf findet nach delete noch zugeordnete Ressourcen | Wiederholbare Operationen, Statusprüfung vor und nach jeder Aktion, Ressourceninventar mit IDs und ergänzender Laufkennzeichnung, automatisierter Cleanup-Test mit Warten auf den Endzustand |
 | R06 | Hardwareausfall im HF-Labor | 2 | 3 | 6 | Vermindern | Ein Knoten erscheint nach einem Neustart nicht mehr | Clusteraufbau und Konfiguration reproduzierbar dokumentiert, kvcontrol als möglicher Ersatz; Referenztest vor Nutzung erforderlich |
@@ -805,9 +805,28 @@ Die folgenden Grenzen stammen aus der im Lab bereitgestellten Readme, Stand 24.0
 
 Die erste CLI-Abfrage verwendete die Infrastrukturrolle des Webterminals statt des Lab-Kontos. Ein eigenes Zugangsprofil und die Prüfung der Konto-ID vor Änderungen stellten anschliessend den richtigen Zugang sicher. Die temporären Zugangsdaten und privaten SSH-Schlüssel liegen ausserhalb der Nachweisablage.
 
-Die Anzeige USD 0 belegt keine kostenlosen Ressourcen und keine tatsächlichen Gesamtkosten von null. Eine Preisabschätzung für EC2, EBS und öffentliche IPv4-Adresse, die Umrechnung zum privaten CHF-Limit sowie das Ablaufdatum des Lab-Guthabens sind noch offen. Die geplanten Warnschwellen bei CHF 25 und CHF 40 sind nicht eingerichtet; auch ihre Verfügbarkeit im Lab wurde nicht abschliessend geprüft. Eine Budgetwarnung ist keine harte Kostensperre. Die Lab-Anleitung nennt dagegen eine Deaktivierung des Kontos bei Überschreitung des Guthabens.
+Die Anzeige USD 0 unmittelbar nach dem Test belegt keine kostenlosen Ressourcen und keine tatsächlichen Gesamtkosten von null. Die spätere Kostenansicht vom 15.10.2026 zeigt USD 0,92 für den historischen Zeitraum 29.06. bis 15.10.2026. Dieser Betrag ist dem Smoke-Test nicht eindeutig zuzuordnen. Eine Preisabschätzung für EC2, EBS und öffentliche IPv4-Adresse, die Umrechnung zum privaten CHF-Limit sowie das Ablaufdatum des Lab-Guthabens sind noch offen. Eine Budgetwarnung ist keine harte Kostensperre. Die Lab-Anleitung nennt dagegen eine Deaktivierung des Kontos bei Überschreitung des Guthabens.
 
 Der technische Smoke-Test ist abgeschlossen. Er ersetzt weder den automatisierten AWS-Durchstich in Sprint 2 noch die drei formalen AWS-Läufe. US14 und US15 besitzen damit einen praktischen Nachweis; ihre noch offenen Kosten- und Guthabenbedingungen bleiben vor dem vollständigen Story-Abschluss zu klären.
+
+#### 3.6.3 Budgetwarnungen und Kostenstand vom 15.10.2026 {#aws-budget-20261015}
+
+Am 15.10.2026 wurde das Kostenbudget `diplomarbeit-gesamt` erstellt. Der [unveränderte CSV-Export](nachweise/aws-budget-20261015/budgets.csv) bestätigt Budgetname, Betrag, benutzerdefinierten Zeitraum und Status `HEALTHY`. Die Einstellungen der Warnungen und der angezeigte historische Kostenstand wurden zusätzlich in der Konsole geprüft; die [Auswertungsnotiz](nachweise/aws-budget-20261015/auswertung.txt) trennt diese Beobachtungen vom Inhalt des Exports.
+
+| Einstellung | Nachgewiesener Stand |
+| --- | --- |
+| Budgetbetrag | USD 50 für den gesamten benutzerdefinierten Budgetzeitraum |
+| Zeitraum | Im CSV-Export: 15.10.2026 bis 01.02.2027; dieser Zeitraum wurde beibehalten |
+| Erste Warnung | 50 Prozent der tatsächlichen Kosten, entsprechend USD 25 |
+| Zweite Warnung | 80 Prozent der tatsächlichen Kosten, entsprechend USD 40 |
+| Empfänger | Eigene E-Mail-Adresse hinterlegt; Bestätigung und tatsächlicher Warnempfang noch nicht nachgewiesen |
+| Automatische Aktionen | Keine eingerichtet |
+| Aktuelle Budgetkosten | Im Export noch ohne Betrag (`-`); daraus folgt kein Verbrauch von null |
+| Historische Kostenanzeige | USD 0,92 für 29.06. bis 15.10.2026; kein Einzelkostennachweis des Smoke-Tests |
+
+Das Budget beginnt nach dem Smoke-Test vom 13.10.2026 und deckt diesen deshalb nicht rückwirkend ab. Es bleibt über das geplante Projektende am 18.12.2026 hinaus bestehen. Das Ablaufdatum des Budgets belegt nicht das Ablaufdatum des Lab-Guthabens. Die Warnschwellen sind in USD eingerichtet; sie ersetzen die ursprünglich vorgesehenen CHF-Warnwerte nicht durch eine nachgewiesene Währungsumrechnung. Das private Limit von CHF 50 bleibt separat bestehen.
+
+Der CSV-Export weist unter `Filters Applied` lediglich `undefined: undefined` aus. Damit sind der Ausschluss von Gutschriften und Rückerstattungen sowie die vollständige Kostenabgrenzung nicht bestätigt. Die Vorschau zeigte `Unblended costs`; eine unabhängige Prüfung der gespeicherten Detailkonfiguration steht noch aus. Budgetstatus und konfigurierte Schwellen belegen noch keine erfolgreiche Warnzustellung. Die [Prüfsummen](nachweise/aws-budget-20261015/SHA256SUMS) sichern den übernommenen CSV-Export und die daraus abgeleitete Auswertungsnotiz.
 
 ### 3.7 Zielarchitektur
 
@@ -1904,10 +1923,11 @@ Interne Betriebsunterlagen und die Reservationsliste sind in der IST-Analyse ben
 
 ### Nachweise und Aussagegrenzen {#nachweise}
 
-Die Dateien dokumentieren die Infrastrukturaufnahme, die Versuche vom 14., 16., 22. und 30.09.2026, die drei LernMAAS-Basisläufe vom 07.10.2026 und den AWS-Smoke-Test vom 13.10.2026. Die Tabelle ordnet ein, welche Aussagen die jeweiligen Belege stützen und welche Nachweise noch fehlen.
+Die Dateien dokumentieren die Infrastrukturaufnahme, die Versuche vom 14., 16., 22. und 30.09.2026, die drei LernMAAS-Basisläufe vom 07.10.2026 und den AWS-Smoke-Test vom 13.10.2026 sowie die Budgeteinrichtung vom 15.10.2026. Die Tabelle ordnet ein, welche Aussagen die jeweiligen Belege stützen und welche Nachweise noch fehlen.
 
 | Datei | Nutzbarer Inhalt | Grenze |
 | --- | --- | --- |
+| [AWS-Budget, 15.10.2026](#aws-budget-20261015) | CSV-Export des erstellten USD-50-Budgets; Warnschwellen bei 50 und 80 Prozent in der Konsole geprüft | Empfang der Warnung und gespeicherte Kostenfilter nicht bestätigt; Zeitraum beginnt nach dem Smoke-Test; historische USD 0,92 nicht dem einzelnen Test zugeordnet |
 | [AWS-Smoke-Test, 13.10.2026](#aws-smoke-20261013) | Referenz-VM mit HTTP und SSH; Instanz terminiert, Datenträger, Netzwerkinterface und eigene Security Group über IDs entfernt; alle 48 Rohdateien mit Prüfsummen gesichert | Einzelner Machbarkeitstest mit manueller SSH-Firewallkorrektur, ohne Agent, MCP, Reset und Bedienzeitmessung; Kosten- und Guthabenangaben teilweise offen; Transfer-Bucket-Löschung nicht separat belegt |
 | [LernMAAS-Basisserie b01 bis b03, 07.10.2026](#lernmaas-basisserie-20261007) | Drei identische Laufdefinitionen; Aufbau- und Abbauzeiten je Lauf; HTTP und SSH erfolgreich; Maschine und Pool entfernt; MAAS-Hostzuteilung wiederhergestellt | Bedienzeit bei b01 vom Diplomanden gemeldet, bei b02/b03 übernommen; Handlungszahl offen; keine direkte libvirt- oder Datenträgerprüfung |
 | [LernMAAS-Lauf lernmaas-20260930-01](#lernmaas-20260930-01) | HTTP nach 652,061 s beobachtet, SSH erfolgreich, Testmaschine und Pool entfernt, Hostbelegung auf Ausgangsstand | Bedienzeit unvollständig, Cloud-init abweichend, kein formaler Vergleichslauf; veröffentlichte Inventare um private Zoneninhalte bereinigt |
