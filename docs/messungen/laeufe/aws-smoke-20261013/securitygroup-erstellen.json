@@ -1,0 +1,13 @@
+{
+    "GroupId": "sg-0bb906f137fcbca0c",
+    "Tags": [
+        {
+            "Key": "Project",
+            "Value": "diplomarbeit"
+        },
+        {
+            "Key": "Run",
+            "Value": "aws-smoke-20261013"
+        }
+    ]
+}

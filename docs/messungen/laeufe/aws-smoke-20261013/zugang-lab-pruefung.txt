@@ -1,0 +1,5 @@
+Tue 13 Oct 2026 12:46:29 PM UTC
+{
+    "Account": "219462215738",
+    "Arn": "arn:aws:sts::219462215738:assumed-role/voclabs/user2744942=Efekan"
+}

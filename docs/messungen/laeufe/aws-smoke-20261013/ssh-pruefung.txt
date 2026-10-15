@@ -1,0 +1,40 @@
+Tue Oct 13 13:36:05 UTC 2026
+ubuntu
+PRETTY_NAME="Ubuntu 24.04.5 LTS"
+NAME="Ubuntu"
+VERSION_ID="24.04"
+VERSION="24.04.5 LTS (Noble Numbat)"
+VERSION_CODENAME=noble
+ID=ubuntu
+ID_LIKE=debian
+HOME_URL="https://www.ubuntu.com/"
+SUPPORT_URL="https://help.ubuntu.com/"
+BUG_REPORT_URL="https://bugs.launchpad.net/ubuntu/"
+PRIVACY_POLICY_URL="https://www.ubuntu.com/legal/terms-and-policies/privacy-policy"
+UBUNTU_CODENAME=noble
+LOGO=ubuntu-logo
+2
+               total        used        free      shared  buff/cache   available
+Mem:            1905         389        1322           2         357        1516
+Swap:              0           0           0
+NAME                SIZE TYPE MOUNTPOINT
+loop0           29777920 loop /snap/amazon-ssm-agent/13349
+loop1           77574144 loop /snap/core22/2955
+loop2           46882816 loop /snap/snapd/28254
+nvme0n1      12884901888 disk 
+├─nvme0n1p1  11810094592 part /
+├─nvme0n1p14     4194304 part 
+├─nvme0n1p15   111149056 part /boot/efi
+└─nvme0n1p16   957350400 part /boot
+status: done
+extended_status: done
+boot_status_code: enabled-by-generator
+last_update: Thu, 01 Jan 1970 00:00:17 +0000
+detail: DataSourceEc2Local
+errors: []
+recoverable_errors: {}
+active
+ExecStart={ path=/usr/bin/python3 ; argv[]=/usr/bin/python3 -m http.server 8080 --bind 0.0.0.0 --directory /var/www ; ignore_errors=no ; start_time=[Tue 2026-10-13 13:22:37 UTC] ; stop_time=[n/a] ; pid=1181 ; code=(null) ; status=0/0 }
+User=nobody
+Group=nogroup
+SSH-, Ressourcen- und Dienstprüfung erfolgreich.

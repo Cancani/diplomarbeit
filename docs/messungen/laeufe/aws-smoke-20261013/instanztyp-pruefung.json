@@ -1,0 +1,10 @@
+[
+    {
+        "Typ": "t3.small",
+        "vCPU": 2,
+        "RAM_MiB": 2048,
+        "Architekturen": [
+            "x86_64"
+        ]
+    }
+]

@@ -1,0 +1,134 @@
+{
+    "AmiLaunchIndex": 0,
+    "ImageId": "ami-0fa5967347d08d2df",
+    "InstanceId": "i-0a0774aadaba3d3f8",
+    "InstanceType": "t3.small",
+    "KeyName": "vockey",
+    "LaunchTime": "2026-10-13T13:22:15+00:00",
+    "Monitoring": {
+        "State": "disabled"
+    },
+    "Placement": {
+        "AvailabilityZone": "us-east-1a",
+        "GroupName": "",
+        "Tenancy": "default"
+    },
+    "PrivateDnsName": "ip-172-31-46-150.ec2.internal",
+    "PrivateIpAddress": "172.31.46.150",
+    "ProductCodes": [],
+    "PublicDnsName": "ec2-54-87-161-148.compute-1.amazonaws.com",
+    "PublicIpAddress": "54.87.161.148",
+    "State": {
+        "Code": 16,
+        "Name": "running"
+    },
+    "StateTransitionReason": "",
+    "SubnetId": "subnet-0b0980f2f5eb26dfd",
+    "VpcId": "vpc-0e4593e41d9827499",
+    "Architecture": "x86_64",
+    "BlockDeviceMappings": [
+        {
+            "DeviceName": "/dev/sda1",
+            "Ebs": {
+                "AttachTime": "2026-10-13T13:22:16+00:00",
+                "DeleteOnTermination": true,
+                "Status": "attached",
+                "VolumeId": "vol-081d7155d44444f52"
+            }
+        }
+    ],
+    "ClientToken": "da-aws-smoke-20261013-01",
+    "EbsOptimized": false,
+    "EnaSupport": true,
+    "Hypervisor": "xen",
+    "NetworkInterfaces": [
+        {
+            "Association": {
+                "IpOwnerId": "amazon",
+                "PublicDnsName": "ec2-54-87-161-148.compute-1.amazonaws.com",
+                "PublicIp": "54.87.161.148"
+            },
+            "Attachment": {
+                "AttachTime": "2026-10-13T13:22:15+00:00",
+                "AttachmentId": "eni-attach-04125a2a3a5d0ad9d",
+                "DeleteOnTermination": true,
+                "DeviceIndex": 0,
+                "Status": "attached",
+                "NetworkCardIndex": 0
+            },
+            "Description": "",
+            "Groups": [
+                {
+                    "GroupName": "da-aws-smoke-20261013",
+                    "GroupId": "sg-0bb906f137fcbca0c"
+                }
+            ],
+            "Ipv6Addresses": [],
+            "MacAddress": "0e:ff:f3:d6:a8:c1",
+            "NetworkInterfaceId": "eni-0e285a28037829c01",
+            "OwnerId": "219462215738",
+            "PrivateDnsName": "ip-172-31-46-150.ec2.internal",
+            "PrivateIpAddress": "172.31.46.150",
+            "PrivateIpAddresses": [
+                {
+                    "Association": {
+                        "IpOwnerId": "amazon",
+                        "PublicDnsName": "ec2-54-87-161-148.compute-1.amazonaws.com",
+                        "PublicIp": "54.87.161.148"
+                    },
+                    "Primary": true,
+                    "PrivateDnsName": "ip-172-31-46-150.ec2.internal",
+                    "PrivateIpAddress": "172.31.46.150"
+                }
+            ],
+            "SourceDestCheck": true,
+            "Status": "in-use",
+            "SubnetId": "subnet-0b0980f2f5eb26dfd",
+            "VpcId": "vpc-0e4593e41d9827499",
+            "InterfaceType": "interface"
+        }
+    ],
+    "RootDeviceName": "/dev/sda1",
+    "RootDeviceType": "ebs",
+    "SecurityGroups": [
+        {
+            "GroupName": "da-aws-smoke-20261013",
+            "GroupId": "sg-0bb906f137fcbca0c"
+        }
+    ],
+    "SourceDestCheck": true,
+    "Tags": [
+        {
+            "Key": "Project",
+            "Value": "diplomarbeit"
+        },
+        {
+            "Key": "Name",
+            "Value": "da-aws-smoke-20261013"
+        },
+        {
+            "Key": "Run",
+            "Value": "aws-smoke-20261013"
+        }
+    ],
+    "VirtualizationType": "hvm",
+    "CpuOptions": {
+        "CoreCount": 1,
+        "ThreadsPerCore": 2
+    },
+    "CapacityReservationSpecification": {
+        "CapacityReservationPreference": "open"
+    },
+    "HibernationOptions": {
+        "Configured": false
+    },
+    "MetadataOptions": {
+        "State": "applied",
+        "HttpTokens": "required",
+        "HttpPutResponseHopLimit": 2,
+        "HttpEndpoint": "enabled"
+    },
+    "EnclaveOptions": {
+        "Enabled": false
+    }
+}

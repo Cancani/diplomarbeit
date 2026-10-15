@@ -1,0 +1,7 @@
+Tue 13 Oct 2026 12:04:48 PM UTC
+aws-cli/2.1.11 Python/3.7.3 Linux/4.4.0-210-generic exe/x86_64.ubuntu.16 prompt/off
+Konfigurierte Region: us-east-1
+{
+    "Account": "036136800740",
+    "Arn": "arn:aws:sts::036136800740:assumed-role/runserver/i-0e55efc500b8fe706"
+}

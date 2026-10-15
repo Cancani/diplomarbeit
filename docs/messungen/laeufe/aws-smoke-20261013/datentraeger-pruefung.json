@@ -1,0 +1,37 @@
+{
+    "Volumes": [
+        {
+            "Attachments": [
+                {
+                    "AttachTime": "2026-10-13T13:22:16+00:00",
+                    "Device": "/dev/sda1",
+                    "InstanceId": "i-0a0774aadaba3d3f8",
+                    "State": "attached",
+                    "VolumeId": "vol-081d7155d44444f52",
+                    "DeleteOnTermination": true
+                }
+            ],
+            "AvailabilityZone": "us-east-1a",
+            "CreateTime": "2026-10-13T13:22:16.879000+00:00",
+            "Encrypted": false,
+            "Size": 12,
+            "SnapshotId": "snap-067b29aebf0e07731",
+            "State": "in-use",
+            "VolumeId": "vol-081d7155d44444f52",
+            "Iops": 3000,
+            "Tags": [
+                {
+                    "Key": "Run",
+                    "Value": "aws-smoke-20261013"
+                },
+                {
+                    "Key": "Project",
+                    "Value": "diplomarbeit"
+                }
+            ],
+            "VolumeType": "gp3",
+            "MultiAttachEnabled": false,
+            "Throughput": 125
+        }
+    ]
+}

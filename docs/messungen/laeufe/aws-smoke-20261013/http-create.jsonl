@@ -1,0 +1,4 @@
+{"utc": "2026-10-13T13:22:16.321838+00:00", "event": "probe", "fehler": "URLError"}
+{"utc": "2026-10-13T13:22:27.379571+00:00", "event": "probe", "fehler": "URLError"}
+{"utc": "2026-10-13T13:22:35.444823+00:00", "event": "probe", "fehler": "URLError"}
+{"utc": "2026-10-13T13:22:40.633776+00:00", "event": "ready_observed", "http_status": 200, "sekunden_ab_start": 27.63379}

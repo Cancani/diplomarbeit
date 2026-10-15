@@ -1,0 +1,50 @@
+[
+    {
+        "SubnetId": "subnet-0b039df2b9ee014ee",
+        "AvailabilityZone": "us-east-1f",
+        "CidrBlock": "172.31.64.0/20",
+        "State": "available",
+        "MapPublicIpOnLaunch": true,
+        "AvailableIpAddressCount": 4091
+    },
+    {
+        "SubnetId": "subnet-09af7f97a6eb7b75c",
+        "AvailabilityZone": "us-east-1b",
+        "CidrBlock": "172.31.0.0/20",
+        "State": "available",
+        "MapPublicIpOnLaunch": true,
+        "AvailableIpAddressCount": 4091
+    },
+    {
+        "SubnetId": "subnet-0b4be8fb2175c17ad",
+        "AvailabilityZone": "us-east-1e",
+        "CidrBlock": "172.31.48.0/20",
+        "State": "available",
+        "MapPublicIpOnLaunch": true,
+        "AvailableIpAddressCount": 4091
+    },
+    {
+        "SubnetId": "subnet-08849c194fe01f10b",
+        "AvailabilityZone": "us-east-1d",
+        "CidrBlock": "172.31.16.0/20",
+        "State": "available",
+        "MapPublicIpOnLaunch": true,
+        "AvailableIpAddressCount": 4091
+    },
+    {
+        "SubnetId": "subnet-0b0980f2f5eb26dfd",
+        "AvailabilityZone": "us-east-1a",
+        "CidrBlock": "172.31.32.0/20",
+        "State": "available",
+        "MapPublicIpOnLaunch": true,
+        "AvailableIpAddressCount": 4091
+    },
+    {
+        "SubnetId": "subnet-0b6d1a0a1d6436286",
+        "AvailabilityZone": "us-east-1c",
+        "CidrBlock": "172.31.80.0/20",
+        "State": "available",
+        "MapPublicIpOnLaunch": true,
+        "AvailableIpAddressCount": 4091
+    }
+]

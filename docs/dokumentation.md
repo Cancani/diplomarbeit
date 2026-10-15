@@ -1,7 +1,7 @@
 # Diplomarbeit: Agentenbasierte Hybrid-Cloud-Bereitstellung von Lernumgebungen mit Kubernetes, KubeVirt und MCP
 
 !!! info "Lesehinweis"
-    Arbeitsstand vom 07.10.2026. Die Infrastrukturaufnahme, der manuelle KubeVirt-Referenzlauf und drei technisch erfolgreiche LernMAAS-Basisläufe mit HTTP, SSH und geprüftem MAAS-Ressourcenabschluss liegen vor. Die Basisserie ist in Kapitel 5.3 dokumentiert. Die Bedienzeit von b01 wurde für b02 und b03 übernommen; die Anzahl der Bedienhandlungen bleibt offen. Der Versuch vom 30.09.2026 ist separat ausgewiesen. Das plattformneutrale Modell und seine lokale Validierung sind implementiert; ihr Prüfstand steht in Kapitel 4.2. Agent, Adapter und die sechs formalen PoC-Läufe sind noch offen. Planung und Entwürfe sind als solche gekennzeichnet.
+    Arbeitsstand vom 13.10.2026. Die Infrastrukturaufnahme, der manuelle KubeVirt-Referenzlauf und drei technisch erfolgreiche LernMAAS-Basisläufe liegen vor. Die Basisserie und ihre Messgrenzen stehen in Kapitel 5.3. Der AWS-Smoke-Test vom 13.10.2026 belegt die Erstellung einer Referenz-VM, HTTP, SSH und den vollständigen Abbau der VM-Ressourcen. AWS-Zugang und Lab-Beschränkungen sind in Kapitel 3.6 konkretisiert; offene Kosten- und Guthabenangaben bleiben benannt. Das plattformneutrale Modell und seine lokale Validierung sind implementiert; ihr Prüfstand steht in Kapitel 4.2. Agent, Adapter und die sechs formalen PoC-Läufe sind noch offen. Planung und Entwürfe sind als solche gekennzeichnet.
 
 | | |
 | --- | --- |
@@ -11,7 +11,7 @@
 | Schulexperte | Thanam Pangri, HF-Lehrgangsleitung |
 | Bewilligter Zeitraum | 11.09.2026 bis 18.12.2026 |
 | Arbeitsplanung | 14.09.2026 bis 18.12.2026 |
-| Version | 0.2, Arbeitsstand |
+| Version | 0.3, Arbeitsstand |
 | Grundlage | Bewilligte Projektbeschreibung vom 10.09.2026; schulische Vorgaben gemäss gültigem Merkblatt |
 
 ---
@@ -776,28 +776,38 @@ Die Rohprotokolle dokumentieren die beobachteten Versuche. Ihre Aussagegrenzen s
 
 #### 3.6.1 Entscheid für AWS
 
-AWS ist die zweite Zielplattform. Ausschlaggebend sind die vorhandenen Kenntnisse aus dem Lehrgang und der vorgesehene Zugang. Der Adapter soll EC2 über Boto3 ansprechen. Der erste praktische Test muss zeigen, dass der konkrete Account die nötigen Operationen, Quotas und Ressourcen erlaubt.
+AWS ist die zweite Zielplattform. Ich verwende das verfügbare AWS Academy Learner Lab und kann auf die AWS-Kenntnisse aus dem Lehrgang aufbauen. EC2 stellt die benötigte VM über eine API bereit; der spätere Adapter soll diese über Boto3 ansprechen. Der [Smoke-Test vom 13.10.2026](#aws-smoke-20261013) bestätigt den Zugang sowie Erstellung, Zustandsabfrage und Abbau einer Referenz-VM. Eine Bewertung mit unbelegten Anbieter-Punktwerten wird nicht vorgenommen.
 
 **ADR-004: AWS als zweite Zielplattform**
 
-| Aspekt | Entscheidungsgrundlage | Noch zu prüfen |
-| --- | --- | --- |
-| Technische Umsetzung | EC2-Adapter mit Boto3, gleicher Modellinput und Lebenszyklus | Unterstützter Instanztyp, Abbild und benötigte API-Berechtigungen |
-| Einarbeitung | Eigene AWS-Vorkenntnisse | Tatsächlicher Aufwand des Durchstichs |
-| Kosten | Höchstens CHF 50 privat, keine Kosten für die TBZ | Kontoplan, Budgetwährung, Guthabenlaufzeit und erwartete Bruttokosten |
-| Vollständiger Abbau | Ressourceninventar und typspezifische API-Prüfungen | Endzustände und Abhängigkeiten im Smoke-Test |
+| Aspekt | Entscheid und Prüfstand vom 13.10.2026 |
+| --- | --- |
+| Technische Umsetzung | EC2 unterstützt die reduzierte Referenz-VM. Die benötigten CLI-Aufrufe für Erstellung, Abfragen und Abbau waren erfolgreich. Boto3-, Agenten- und MCP-Anbindung folgen in der Umsetzung. |
+| Zugang und Einarbeitung | AWS Academy Learner Lab ist verfügbar; Anmeldung mit temporären Zugangsdaten und Rolle `voclabs` geprüft. Eigene AWS-Vorkenntnisse erleichtern die Einarbeitung. |
+| Kostenrahmen | Das Lab zeigt ein Guthaben von USD 50. Das private Limit von CHF 50 aus dem Antrag bleibt ein separater Rahmen; Lab-Guthaben und private Ausgaben werden nicht gleichgesetzt. |
+| Vollständiger Abbau | VM, EBS-Datenträger, Netzwerkinterface und eigene Security Group wurden über ihre gespeicherten IDs geprüft. |
 
-Der Antrag sieht einen Student-Account vor. Als Zugang ist das AWS Academy Learner Lab vorgesehen. Dessen tatsächliche Berechtigungen und Kostenbedingungen sind noch nicht geprüft. Beim Smoke-Test werden das konkret verwendete Angebot und seine Bedingungen dokumentiert. Eine allfällige Abweichung vom Antrag wird mit den Experten geklärt.
+Der Antrag nennt einen Student-Account. Konkret wird das AWS Academy Learner Lab als Ausbildungszugang genutzt. Seine Dienst-, Sitzungs- und Budgetbeschränkungen unterscheiden sich von einem regulären AWS-Konto. Das ändert die ausgewählte Zielplattform nicht; der Zugang und seine Grenzen werden deshalb ausdrücklich ausgewiesen.
 
-#### 3.6.2 Kostenkontrolle und Smoke-Test
+#### 3.6.2 Kontobedingungen und Kostenkontrolle
 
-Vor dem ersten Aufbau werden Region, Kontoplan, Quotas, API-Rechte, Instanztyp, AMI-ID, Datenträger und Netzwerkressourcen protokolliert. Die geschätzten Kosten enthalten alle geplanten kostenpflichtigen Bestandteile, beispielsweise auch öffentliche IPv4-Adressen. Preise und Umrechnung werden zum Testdatum festgehalten; pauschale Gratisannahmen reichen nicht.
+Die folgenden Grenzen stammen aus der im Lab bereitgestellten Readme, Stand 24.06.2025, eingesehen am 13.10.2026. Der erfolgreiche Einzel-VM-Test bestätigt die benötigten Operationen, nicht die Ausschöpfung sämtlicher Quotas.
 
-Warnschwellen sollen bei einem Gegenwert von CHF 25 und CHF 40 liegen. Eine Warnung ist keine harte Kostensperre. Für das Learner Lab werden Guthaben, Währung, Laufzeit, Verbrauchsanzeige und verfügbare Warnmöglichkeiten im konkreten Angebot geprüft. Allgemeine Angaben zu regulären AWS-Kontoplänen gelten nicht als Nachweis für die Lab-Bedingungen. Verbrauch vor Anrechnung von Credits und effektiv belastete Kosten werden getrennt ausgewiesen; nicht verfügbare Angaben oder Warnfunktionen bleiben ausdrücklich als solche dokumentiert.
+| Bedingung | Stand im verwendeten Learner Lab |
+| --- | --- |
+| Region | Erlaubt sind `us-east-1` und `us-west-2`; der Test verwendet `us-east-1`. |
+| EC2 | On-Demand, Grössen nano bis large; höchstens neun gleichzeitig laufende Instanzen und 32 vCPU je unterstützter Region laut Lab-Anleitung. |
+| Datenträger | Bis 100 GiB; unter anderem `gp2` und `gp3` erlaubt. Der Test nutzt 12 GiB `gp3`. |
+| Abbild und Zugriff | Offizielles Ubuntu-24.04-Abbild von Canonical, vorhandenes Schlüsselpaar `vockey`; die tatsächlich verwendete Identität ist protokolliert. |
+| Sitzung | Beim Start zeigte der Timer 03:59; eine Sitzung ist auf ungefähr vier Stunden begrenzt und kann über Start Lab verlängert werden. |
+| Ressourcen zwischen Sitzungen | Ressourcen bleiben erhalten. EC2-Instanzen werden beim Sitzungsende gestoppt und können beim nächsten Start wieder anlaufen. End Lab ersetzt den vollständigen Abbau nicht. |
+| Guthaben und Verbrauch | Anzeige USD 50 Gesamtbudget, nach dem Test angezeigter Verbrauch USD 0. Laut Lab-Anleitung wird die Anzeige typischerweise alle acht bis zwölf Stunden aktualisiert. |
 
-Vor dem ersten Aufbau werden ausserdem die Sitzungsdauer, die Erneuerung temporärer Zugangsdaten, erlaubte Regionen und Ressourcen, benötigte API-Rechte sowie Quotas geprüft. Der vorbereitete Ablauf umfasst eine VM nach der Referenzspezifikation, HTTP und SSH, ein Ressourceninventar vor dem Löschen sowie typspezifische Abbaukontrollen.
+Die erste CLI-Abfrage verwendete die Infrastrukturrolle des Webterminals statt des Lab-Kontos. Ein eigenes Zugangsprofil und die Prüfung der Konto-ID vor Änderungen stellten anschliessend den richtigen Zugang sicher. Die temporären Zugangsdaten und privaten SSH-Schlüssel liegen ausserhalb der Nachweisablage.
 
-Der Smoke-Test erzeugt eine einzelne VM, prüft SSH und HTTP und entfernt anschliessend sämtliche erzeugten Ressourcen. Das Inventar enthält auch Nebenressourcen wie eigene Security Groups, Volumes oder Adressen, soweit sie tatsächlich angelegt wurden. Geteilte Basisressourcen bleiben dokumentiert bestehen. Der Smoke-Test ist noch offen und ersetzt weder den automatisierten Durchstich in Sprint 2 noch die drei formalen AWS-Läufe.
+Die Anzeige USD 0 belegt keine kostenlosen Ressourcen und keine tatsächlichen Gesamtkosten von null. Eine Preisabschätzung für EC2, EBS und öffentliche IPv4-Adresse, die Umrechnung zum privaten CHF-Limit sowie das Ablaufdatum des Lab-Guthabens sind noch offen. Die geplanten Warnschwellen bei CHF 25 und CHF 40 sind nicht eingerichtet; auch ihre Verfügbarkeit im Lab wurde nicht abschliessend geprüft. Eine Budgetwarnung ist keine harte Kostensperre. Die Lab-Anleitung nennt dagegen eine Deaktivierung des Kontos bei Überschreitung des Guthabens.
+
+Der technische Smoke-Test ist abgeschlossen. Er ersetzt weder den automatisierten AWS-Durchstich in Sprint 2 noch die drei formalen AWS-Läufe. US14 und US15 besitzen damit einen praktischen Nachweis; ihre noch offenen Kosten- und Guthabenbedingungen bleiben vor dem vollständigen Story-Abschluss zu klären.
 
 ### 3.7 Zielarchitektur
 
@@ -1332,7 +1342,7 @@ Verlinkte Rohdaten und unabhängiger Nachvollzug:
 
 ### 5.3 Messläufe {#messlaeufe}
 
-Die drei LernMAAS-Basisläufe wurden am 07.10.2026 technisch erfolgreich durchgeführt. Aufbau- und Abbauzeiten sind je Lauf protokolliert; die Bedienzeit von b01 wurde für b02 und b03 übernommen, die Handlungszahl bleibt offen. Die sechs formalen PoC-Läufe auf KubeVirt und AWS stehen noch aus. Der KubeVirt-Referenzlauf belegt die lokale Machbarkeit. Der LernMAAS-Lauf vom 30.09.2026 bleibt als eigener Versuch mit seinen Messgrenzen und Abweichungen ausgewiesen.
+Die drei LernMAAS-Basisläufe wurden am 07.10.2026 technisch erfolgreich durchgeführt. Aufbau- und Abbauzeiten sind je Lauf protokolliert; die Bedienzeit von b01 wurde für b02 und b03 übernommen, die Handlungszahl bleibt offen. Die sechs formalen PoC-Läufe auf KubeVirt und AWS stehen noch aus. Der KubeVirt-Referenzlauf und der AWS-Smoke-Test vom 13.10.2026 belegen die Machbarkeit der jeweiligen Einzel-VM-Bereitstellung. Der LernMAAS-Lauf vom 30.09.2026 bleibt als eigener Versuch mit seinen Messgrenzen und Abweichungen ausgewiesen.
 
 #### KubeVirt-Referenzlauf vom 22.09.2026 {#kv-ref-20260922-01}
 
@@ -1651,6 +1661,49 @@ Das übertragene Originalarchiv `lernmaas-basis-b01-b03-20261007-v2.tar.gz` hat 
 
 Die Basisserie liefert die Ausgangswerte für den späteren Plattformvergleich. Sie weist noch keinen automatisierten Agenten, keinen Reset und keinen MCP-Adapter nach. Die sechs formalen PoC-Läufe auf KubeVirt und AWS bleiben offen.
 
+#### AWS-Smoke-Test vom 13.10.2026 {#aws-smoke-20261013}
+
+**Zweck:** Früher Machbarkeitsnachweis für US14 und US15. Geprüft wurden eine einzelne Referenz-VM, SSH, der erwartete HTTP-Inhalt und der Abbau. Agent, MCP und Reset waren nicht Bestandteil dieses Tests.
+
+| Merkmal | Verwendete Konfiguration |
+| --- | --- |
+| Plattform | AWS Academy Learner Lab, `us-east-1`, Availability Zone `us-east-1a` |
+| VM | `t3.small`, zwei vCPU und 2048 MiB zugewiesener RAM; im Gast 1905 MiB sichtbar |
+| Betriebssystem | Ubuntu 24.04.5 LTS; AMI `ami-0fa5967347d08d2df`, Canonical-Abbild vom 04.10.2026 |
+| Speicher | 12 GiB EBS `gp3`, automatische Löschung bei Terminierung aktiviert |
+| Netzwerk | Vorhandene Default-VPC, Subnetz und Internet-Gateway; automatische öffentliche IPv4-Adresse, keine Elastic IP angelegt |
+| Zugang und Dienst | Benutzer `ubuntu`, Schlüsselpaar `vockey`; HTTP auf Port 8080, Inhalt `lernumgebung bereit` |
+
+Die [Cloud-init-Konfiguration](messungen/laeufe/aws-smoke-20261013/cloud-init-aws.yaml) übernimmt HTML-Datei, systemd-Unit und Dienststart unverändert aus der LernMAAS-Basisserie. Der SSH-Zugang verwendet den Ubuntu-Standardbenutzer und den AWS-Schlüssel. Der Dienst läuft auf beiden Plattformen als `nobody:nogroup`; Paketaktualisierungen sind deaktiviert. Die Abbildwege und Infrastruktur unterscheiden sich weiterhin.
+
+| Ereignis | Zeitpunkt in UTC beziehungsweise Ergebnis |
+| --- | --- |
+| Startmarker vor dem Erstellungsaufruf | 13:22:13 |
+| Erste erfolgreiche HTTP-Prüfung | 13:22:40,634; HTTP 200 und erwarteter Inhalt |
+| Aufbau bis beobachteter HTTP-Bereitschaft | 27,634 s |
+| SSH-Prüfung | 13:36:05; Ubuntu, CPU-Zahl, Datenträger und Dienst geprüft; Cloud-init ohne Fehler abgeschlossen |
+| Abbaustart | 13:38:59,167 |
+| Abbau bis abschliessender Nachkontrolle | 30,656 s |
+
+Beim ersten SSH-Versuch hatte das Lab-Terminal nach einem Hostwechsel eine andere öffentliche Quelladresse. Die Security Group erlaubte noch die bisherige Adresse; die Hostschlüssel-Abfrage blieb leer. Nach der Anpassung auf die aktuelle Quelladresse war SSH erfolgreich. Port 22 und 8080 waren jeweils auf eine einzelne Quelladresse beschränkt. Der spätere Ablauf muss einen Wechsel des Aufzeichnungsrechners berücksichtigen.
+
+**Ressourcenabschluss**
+
+| Ressource | Gespeicherte ID | Nachkontrolle |
+| --- | --- | --- |
+| EC2-Instanz | `i-0a0774aadaba3d3f8` | Zustand `terminated` |
+| EBS-Datenträger | `vol-081d7155d44444f52` | ID-Abfrage ohne Treffer |
+| Netzwerkinterface | `eni-0e285a28037829c01` | ID-Abfrage ohne Treffer |
+| Eigene Security Group | `sg-0bb906f137fcbca0c` | ID-Abfrage ohne Treffer |
+
+VPC, Subnetz, Internet-Gateway und Schlüsselpaar gehörten zur vorhandenen Lab-Basis und blieben bestehen. Für den anschliessenden Nachweistransfer wurde separat ein privater S3-Bucket verwendet. Die Dateien sind heruntergeladen und ihre Prüfsummen geprüft. Der Löschblock für den Transfer-Bucket wurde bereitgestellt; sein Löschergebnis ist im vorliegenden Laufarchiv nicht separat belegt. Die Beendigung des Labs wurde bestätigt.
+
+**Einordnung und Nachweise**
+
+Das [HTTP-Protokoll](messungen/laeufe/aws-smoke-20261013/http-create.jsonl), die [SSH-Prüfung](messungen/laeufe/aws-smoke-20261013/ssh-pruefung.txt), das [Instanzinventar](messungen/laeufe/aws-smoke-20261013/instanz-vor-abbau.json), die [Datenträgerprüfung](messungen/laeufe/aws-smoke-20261013/datentraeger-pruefung.json) und das [Abbauergebnis](messungen/laeufe/aws-smoke-20261013/abbau-ergebnis.json) belegen den Ablauf. [SHA256SUMS](messungen/laeufe/aws-smoke-20261013/SHA256SUMS) enthält die Prüfsummen aller 48 Rohdateien.
+
+Die Zeiten gehören zu einem einzelnen Smoke-Test. HTTP wurde im Abstand von fünf Sekunden geprüft; Anfragezeiten kommen hinzu, und der Startmarker hat Sekundenauflösung. Die Nachkommastellen bedeuten deshalb keine entsprechende Messgenauigkeit. Aktive Bedienzeit und Handlungszahl wurden nicht gemessen. Wegen des manuellen Eingriffs bei SSH, des fehlenden Resets und der direkten CLI-Bedienung zählt der Test nicht als formaler PoC-Lauf und erlaubt keinen Leistungsvergleich mit LernMAAS. Die [Budgetaufnahme](messungen/laeufe/aws-smoke-20261013/budget-nach-test.txt) dokumentiert die verzögerte Anzeige, keine tatsächlichen Einzelkosten.
+
 ## 6 Bewertung und Vergleich
 
 Die [LernMAAS-Basisserie vom 07.10.2026](#lernmaas-basisserie-20261007) liefert die ersten protokollierten Ausgangswerte. Für die drei technisch erfolgreichen Läufe ergeben sich folgende verstrichene Zeiten:
@@ -1664,7 +1717,7 @@ Die Aufbaudauer umfasst den manuellen Bereitstellungsablauf ab Startmarker bis z
 
 Für die Bedienzeit wird ein gemeinsamer Ansatz von 40 s Aufbau, 5 s SSH-Prüfung und 10 s Abbau, insgesamt 55 s, verwendet. Die Werte stammen aus der gemeldeten Stoppuhrmessung von b01 und wurden bei b02 und b03 übernommen. Daraus wird keine statistische Auswertung dreier unabhängiger Bedienzeitmessungen abgeleitet. Die Anzahl der Bedienhandlungen ist nicht erfasst.
 
-Der Plattformvergleich bleibt offen, bis die drei vollständigen PoC-Läufe je Plattform vorliegen. Ausgewertet werden dann gemeinsame Aufbau- und endgültige Abbauphasen, ergänzt um Reset, Fehlerverhalten und Ressourcenabschluss. Ein Vergleich der aktiven Arbeit weist die abweichende Erfassung der Basisserie ausdrücklich aus. Die MCP-Bewertung und Wirtschaftlichkeitsbetrachtung folgen den festgelegten Grenzen. Aus diesen drei Basisläufen allein werden keine Automatisierungsersparnis, allgemeine Zuverlässigkeit oder statistische Signifikanz abgeleitet.
+Der AWS-Smoke-Test belegt inzwischen die Cloud-Machbarkeit. Seine Einzelzeiten werden wegen des abweichenden Ablaufs und der fehlenden Bedienzeitmessung nicht in die Basisserie oder den späteren PoC-Vergleich eingerechnet. Der Plattformvergleich bleibt offen, bis die drei vollständigen PoC-Läufe je Plattform vorliegen. Ausgewertet werden dann gemeinsame Aufbau- und endgültige Abbauphasen, ergänzt um Reset, Fehlerverhalten und Ressourcenabschluss. Ein Vergleich der aktiven Arbeit weist die abweichende Erfassung der Basisserie ausdrücklich aus. Die MCP-Bewertung und Wirtschaftlichkeitsbetrachtung folgen den festgelegten Grenzen. Aus diesen drei Basisläufen allein werden keine Automatisierungsersparnis, allgemeine Zuverlässigkeit oder statistische Signifikanz abgeleitet.
 
 ## 7 Betrieb und Schulung
 
@@ -1842,7 +1895,8 @@ Der Stand vor der Modellimplementierung ist in Commit `19ae849` festgehalten. Mo
 | [Kubernetes: Persistent Volumes](https://kubernetes.io/docs/concepts/storage/persistent-volumes/) | Clusterweiter PV und Reclaim-Verhalten; geprüft am 18.09.2026 |
 | [Botocore Stubber](https://docs.aws.amazon.com/botocore/latest/reference/stubber.html) | Isolierte Tests direkter API-Clients; geprüft am 18.09.2026 |
 | [MCP: Transports, Version 2025-06-18](https://modelcontextprotocol.io/specification/2025-06-18/basic/transports) | stdio und Trennung von Protokoll und Diagnose; geprüft am 18.09.2026 |
-| [AWS Free Tier FAQ](https://aws.amazon.com/free/free-tier-faqs/) | Unterschiedliche Kontopläne; konkrete Kontobedingungen beim Smoke-Test prüfen |
+| [AWS Academy Learner Lab](https://awsacademy.instructure.com/courses/182558/modules/items/18005637), Readme Stand 24.06.2025 | Konkrete Lab-Bedingungen zu Regionen, Ressourcen, Sitzungen und Budget; eingesehen am 13.10.2026, siehe Kapitel 3.6 |
+| [AWS Free Tier FAQ](https://aws.amazon.com/free/free-tier-faqs/) | Allgemeine Kontopläne; kein Beleg für die konkreten Learner-Lab-Bedingungen |
 | [AWS: GetResources](https://docs.aws.amazon.com/resourcegroupstagging/latest/APIReference/API_GetResources.html) | Grenze der Tagging-Abfragen; geprüft am 18.09.2026 |
 | [Scrum Guide](https://scrumguides.org/scrum-guide.html) | Abgrenzung des angepassten Vorgehens; geprüft am 18.09.2026 |
 
@@ -1850,10 +1904,11 @@ Interne Betriebsunterlagen und die Reservationsliste sind in der IST-Analyse ben
 
 ### Nachweise und Aussagegrenzen {#nachweise}
 
-Die Dateien dokumentieren die Infrastrukturaufnahme, die Versuche vom 14., 16., 22. und 30.09.2026 sowie die drei LernMAAS-Basisläufe vom 07.10.2026. Die Tabelle ordnet ein, welche Aussagen die jeweiligen Belege stützen und welche Nachweise noch fehlen.
+Die Dateien dokumentieren die Infrastrukturaufnahme, die Versuche vom 14., 16., 22. und 30.09.2026, die drei LernMAAS-Basisläufe vom 07.10.2026 und den AWS-Smoke-Test vom 13.10.2026. Die Tabelle ordnet ein, welche Aussagen die jeweiligen Belege stützen und welche Nachweise noch fehlen.
 
 | Datei | Nutzbarer Inhalt | Grenze |
 | --- | --- | --- |
+| [AWS-Smoke-Test, 13.10.2026](#aws-smoke-20261013) | Referenz-VM mit HTTP und SSH; Instanz terminiert, Datenträger, Netzwerkinterface und eigene Security Group über IDs entfernt; alle 48 Rohdateien mit Prüfsummen gesichert | Einzelner Machbarkeitstest mit manueller SSH-Firewallkorrektur, ohne Agent, MCP, Reset und Bedienzeitmessung; Kosten- und Guthabenangaben teilweise offen; Transfer-Bucket-Löschung nicht separat belegt |
 | [LernMAAS-Basisserie b01 bis b03, 07.10.2026](#lernmaas-basisserie-20261007) | Drei identische Laufdefinitionen; Aufbau- und Abbauzeiten je Lauf; HTTP und SSH erfolgreich; Maschine und Pool entfernt; MAAS-Hostzuteilung wiederhergestellt | Bedienzeit bei b01 vom Diplomanden gemeldet, bei b02/b03 übernommen; Handlungszahl offen; keine direkte libvirt- oder Datenträgerprüfung |
 | [LernMAAS-Lauf lernmaas-20260930-01](#lernmaas-20260930-01) | HTTP nach 652,061 s beobachtet, SSH erfolgreich, Testmaschine und Pool entfernt, Hostbelegung auf Ausgangsstand | Bedienzeit unvollständig, Cloud-init abweichend, kein formaler Vergleichslauf; veröffentlichte Inventare um private Zoneninhalte bereinigt |
 | [Referenzlauf kv-ref-20260922-01](#kv-ref-20260922-01) | VM läuft, HTTP und SSH erfolgreich, Namespace, PV und Datenverzeichnis entfernt | Manueller Referenzlauf; keine aktive Bedienzeit, kein Reset, keine formale Vergleichsserie |

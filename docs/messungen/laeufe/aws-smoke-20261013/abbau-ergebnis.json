@@ -1,0 +1,9 @@
+{
+  "utc": "2026-10-13T13:39:29.822988+00:00",
+  "instanz": "i-0a0774aadaba3d3f8",
+  "instanz_beendet": true,
+  "volume_entfernt": true,
+  "netzwerkinterface_entfernt": true,
+  "firewallgruppe_entfernt": true,
+  "abbau_bis_nachkontrolle_sekunden": 30.655812
+}

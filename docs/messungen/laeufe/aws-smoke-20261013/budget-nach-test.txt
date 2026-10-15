@@ -1,0 +1,3 @@
+2026-10-13T13:49:42Z
+Angezeigtes Budget: $0 of $50, nach Refresh vom Benutzer bestätigt.
+Die verzögerte Anzeige belegt keine tatsächlichen Kosten von null.
