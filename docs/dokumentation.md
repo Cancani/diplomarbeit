@@ -11,7 +11,7 @@
 | Schulexperte | Thanam Pangri, HF-Lehrgangsleitung |
 | Bewilligter Zeitraum | 11.09.2026 bis 18.12.2026 |
 | Arbeitsplanung | 14.09.2026 bis 18.12.2026 |
-| Version | 0.5, Arbeitsstand |
+| Version | 0.7, Arbeitsstand |
 | Grundlage | Bewilligte Projektbeschreibung vom 10.09.2026; schulische Vorgaben gemäss gültigem Merkblatt |
 
 ---
@@ -282,7 +282,7 @@ Die folgende Risikobewertung ist eine Planungseinschätzung. Eintrittswahrschein
 | R08 | Dokumentationsrückstand: die Dokumentation wird erst am Projektende nachgezogen | 3 | 4 | 12 | Vermeiden | Ein Issue erreicht Done ohne zugehörigen Dokumentationsabschnitt | Ergebnisse bei der jeweiligen Story dokumentieren und den Dokumentationsstand vor jedem Review prüfen |
 | R09 | Reifegrad und Änderungen im MCP-Umfeld | 3 | 3 | 9 | Vermindern | Ein verwendetes Werkzeug meldet inkompatible Änderungen | Verwendete Versionen früh festschreiben, Adapterschnittstelle schmal halten, direkte API-Anbindung als Vergleich verwenden; ein Wegfall von MCP wäre eine Änderung des bewilligten Kerns |
 | R10 | Persönliche Kapazität: Krankheit oder beruflicher Engpass reduziert die verfügbare Zeit | 3 | 4 | 12 | Vermindern | Zwei aufeinanderfolgende Wochen unter 8 Stunden Projektzeit | Verfügbare Wochenkapazität prüfen; bei Unterschreitung optionale Ausarbeitung kürzen, Planung aktualisieren und den Firmenexperten informieren |
-| R11 | Verlust des Remote-Zugangs zu den Zielsystemen nach Neustart oder Netzwerkänderung | 3 | 4 | 12 | Vermeiden | Eine Maschine ist nach einem Neustart über WireGuard nicht mehr erreichbar | Netzwerk- und WireGuard-Konfiguration vor Änderungen sichern und die Erreichbarkeit nach Neustarts prüfen |
+| R11 | Verlust des Remote-Zugangs zu den Zielsystemen nach Neustart oder Netzwerkänderung | 3 | 4 | 12 | Vermeiden | Eine Maschine ist nach einem Neustart über WireGuard nicht mehr erreichbar | Statische Adressen und passende DHCP-Reservationen verwenden; vor Netzwerkänderungen Konfiguration und Cluster sichern, danach Erreichbarkeit prüfen |
 
 Der mögliche Ersatz auf kvcontrol senkt das Ausfallrisiko erst dann wirksam, wenn ein eigener Referenzlauf bestanden ist. Änderungen der Risikobewertung werden mit Datum und Anlass im Statusbericht geführt.
 
@@ -300,7 +300,7 @@ Vor der Umsetzung wurde erhoben, welche Infrastruktur tatsächlich zur Verfügun
 
 #### 3.1.1 Freigegebene Hardware
 
-Für die Diplomarbeit habe ich vollen Zugang zur Hardware und darf den DL380 sowie die Terra-Rechner vollumfänglich nutzen. Es besteht keine ausstehende Nutzungsfreigabe für diese Maschinen.
+Der DL380 und alle Terra-Rechner stehen mir für die Diplomarbeit exklusiv und vollständig zur Verfügung. Es gibt keine parallele Nutzung dieser Geräte durch den Unterricht oder andere Projekte. Diese Zuordnung habe ich am 15.10.2026 nochmals bestätigt. Für die Versuche auf diesen Geräten ist keine zusätzliche Nutzungsfreigabe nötig. Die gemeinsam genutzte Netzinfrastruktur wird davon getrennt betrachtet.
 
 Die Systemaufnahme vom 14.09.2026 ergab folgende Werte:
 
@@ -314,11 +314,26 @@ Beide Systeme liefen bei der Erhebung unter Ubuntu 24.04.4 LTS. Die Werte beschr
 
 #### 3.1.2 Zugang und Netzwerk
 
-Der Zugriff erfolgt über eine WireGuard-Verbindung in das HF-Labor-Netz und anschliessend über SSH mit dem lerncloud-Schlüssel. Beide Systeme sind WireGuard-Clients mit je einem Peer, dem Gateway. Die drei Interfaces bilden die drei Klassennetze des HF-Labors ab.
+Die folgende Beschreibung ergänzt die Systemaufnahme vom 14.09.2026 mit meiner Netzwerkaufnahme vom 15.10.2026. Die Geräte stehen im HF-Labor AU70-U069a und sind am Switch `nau-as-u70-01` im VLAN 21 angeschlossen. Das Netz lautet `10.0.21.0/24`, das Gateway `10.0.21.1`. Routing und DHCP liegen auf `nau-as-e014-01` im Serverraum; der Internetzugang führt über die dortige Firewall zum Init7-Anschluss.
 
-Die Haupt-Netzwerkkarte hängt im allgemeinen Netz 10.0.21.0/24, die Verwaltung erfolgt über 10.1.24.5. Die Schnittstellen `eno2` bis `eno4` sind vorhanden, aber nicht aktiv. Der freigegebene Switch im Netz 10.0.26.0/24 ist zum Zeitpunkt der Erhebung noch nicht angebunden.
+| Gerät | LAN-Adresse | Adressvergabe | Verwendung im PoC |
+| --- | --- | --- | --- |
+| `dl380-01` | `10.0.21.197` | Statisch in Netplan, zusätzlich DHCP-reserviert | Lokale Zielplattform |
+| `kvcontrol` | `10.0.21.219` | Statisch in Netplan, zusätzlich DHCP-reserviert | Eigenständiges Zweitsystem |
+| `terra-01` | `10.0.21.224` | DHCP mit Reservation | Zusätzlicher Testrechner, Reserve |
+| `terra-02` | `10.0.21.225` | DHCP mit Reservation | Zusätzlicher Testrechner, Reserve |
+| `terra-03` | `10.0.21.228` | DHCP mit Reservation | Zusätzlicher Testrechner, Reserve |
+| `terra-04` | `10.0.21.231` | DHCP mit Reservation | Zusätzlicher Testrechner, Reserve |
 
-Daraus ergibt sich ein Risiko: Der Fernzugriff auf beide Systeme hängt an der WireGuard-Verbindung, die auf denselben Maschinen terminiert. Ein Neustart oder eine Änderung der Netzwerkkonfiguration kann den eigenen Zugang unterbrechen. Dieser Sachverhalt ist als Risiko R11 erfasst.
+Der Netzwerkanhang bezeichnet die vier zusätzlichen Terra-Rechner als Worker. Ihre Adressierung ist damit erfasst; eine gemeinsame Kubernetes-Mitgliedschaft wird daraus nicht abgeleitet. Für den Einzel-VM-PoC bleibt `dl380-01` die Zielplattform. Der ältere Hardwarestand in Kapitel 3.1.1 beschreibt den Erhebungszeitpunkt im September.
+
+Die DHCP-Reservationen berücksichtigen die Client-ID der Geräte. Die beiden Steuerknoten verwenden zusätzlich statische Adressen, damit ihre lokale Konfiguration nicht von einer abweichenden DHCP-Zuordnung abhängt. DHCP kann ebenfalls stabile Adressen liefern, wenn Client-Kennung und Reservation übereinstimmen. Netplan unterscheidet beim networkd-Backend zwischen der MAC-Adresse und einer aus IAID und DUID gebildeten Kennung; siehe [Netplan-Referenz](https://netplan.readthedocs.io/en/stable/netplan-yaml/).
+
+Der Fernzugriff erfolgt über WireGuard und danach SSH mit Schlüssel. `dl380-01` ist unter `10.1.24.5`, `kvcontrol` unter `10.1.24.8` erreichbar. Die Geräte bauen die Tunnel selbst auf. Dafür benötigen sie weiterhin eine funktionierende lokale Verbindung und Route zum WireGuard-Gateway. Eine Änderung der LAN-Adresse oder ein Neustart kann deshalb auch den Fernzugriff betreffen (R11).
+
+Im VLAN 21 stehen ausserdem mobile HF-Labore mit MAAS beziehungsweise OpenShift. Bei aktiviertem Netzwerkboot besteht dadurch das Risiko einer unbeabsichtigten PXE-Installation. Als separates Netz ist VLAN 22 mit `10.0.22.0/24`, Gateway `10.0.22.1`, eigenem DHCP-Pool und den Switch-Ports 0/44 bis 0/48 vorgesehen. Laut Aufnahme vom 15.10.2026 ist es reserviert, wird aber noch nicht genutzt.
+
+Ein Umzug nach VLAN 22 wäre ein eigener Netzwerkänderungsschritt. Vorher wären Sicherung, neue Adressen und die betroffenen MicroK8s-Einstellungen zu prüfen. Die vorhandenen Referenzversuche erfolgten im VLAN 21; eine erfolgreiche Migration wird hier nicht behauptet.
 
 #### 3.1.3 Vorgefundener Zustand auf dl380-01
 
@@ -736,7 +751,7 @@ Die folgenden Grenzen stammen aus der im Lab bereitgestellten Readme, Stand 24.0
 
 Die erste CLI-Abfrage verwendete die Infrastrukturrolle des Webterminals statt des Lab-Kontos. Ein eigenes Zugangsprofil und die Prüfung der Konto-ID vor Änderungen stellten anschliessend den richtigen Zugang sicher. Die temporären Zugangsdaten und privaten SSH-Schlüssel liegen ausserhalb der Nachweisablage.
 
-Die Anzeige USD 0 unmittelbar nach dem Test belegt keine kostenlosen Ressourcen und keine tatsächlichen Gesamtkosten von null. Die spätere Kostenansicht vom 15.10.2026 zeigt USD 0,92 für den historischen Zeitraum 29.06. bis 15.10.2026. Dieser Betrag ist dem Smoke-Test nicht eindeutig zuzuordnen. Eine Preisabschätzung für EC2, EBS und öffentliche IPv4-Adresse, die Umrechnung zum privaten CHF-Limit sowie das Ablaufdatum des Lab-Guthabens sind noch offen. Eine Budgetwarnung ist keine harte Kostensperre. Die Lab-Anleitung nennt dagegen eine Deaktivierung des Kontos bei Überschreitung des Guthabens.
+Die Anzeige USD 0 unmittelbar nach dem Test belegt keine kostenlosen Ressourcen und keine tatsächlichen Gesamtkosten von null. Die spätere Kostenansicht vom 15.10.2026 zeigt USD 0,92 für den historischen Zeitraum 29.06. bis 15.10.2026. Dieser Betrag ist dem Smoke-Test nicht eindeutig zuzuordnen. Die Preisabschätzung und eine ausgewiesene CHF-Umrechnung stehen in Kapitel 3.6.4. Das Ablaufdatum des Lab-Zugangs beziehungsweise Guthabens ist noch offen. Eine Budgetwarnung ist keine harte Kostensperre. Die Lab-Anleitung nennt dagegen eine Deaktivierung des Kontos bei Überschreitung des Guthabens.
 
 Der technische Smoke-Test ist abgeschlossen. Er ersetzt weder den automatisierten AWS-Durchstich in Sprint 2 noch die drei formalen AWS-Läufe. US14 und US15 besitzen damit einen praktischen Nachweis; ihre noch offenen Kosten- und Guthabenbedingungen bleiben vor dem vollständigen Story-Abschluss zu klären.
 
@@ -756,9 +771,63 @@ Das Budget beginnt nach dem Smoke-Test und gilt über das geplante Projektende h
 
 Die USD 0,92 lassen sich dem einzelnen Smoke-Test nicht zuordnen. Auch die gespeicherten Kostenfilter sind im Export nicht erkennbar (`undefined: undefined`). Diese Punkte sowie der ausstehende E-Mail-Nachweis sind in der [Auswertungsnotiz](nachweise/aws-budget-20261015/auswertung.txt) festgehalten.
 
+#### 3.6.4 Preisabschätzung der Referenz-VM {#aws-kosten-20261015}
+
+Die folgende Rechnung verwendet die am 15.10.2026 eingesehenen veröffentlichten AWS-Preise. Grundlage ist die getestete Konfiguration in `us-east-1`: Linux auf `t3.small`, 12 GiB `gp3` und eine öffentliche IPv4-Adresse. Die dokumentierten 3000 IOPS und 125 MiB/s des Datenträgers entsprechen der enthaltenen Basisleistung.
+
+| Bestandteil | Rechenansatz | USD je Stunde |
+| --- | --- | ---: |
+| EC2 `t3.small` | Veröffentlichter Linux/Unix-On-Demand-Preis für Nord-Virginia | 0,0209 |
+| 12 GiB EBS `gp3` | 12 × USD 0,08 je GiB-Monat, verteilt auf einen angenommenen Monat mit 720 Stunden | 0,00133 |
+| Öffentliche IPv4-Adresse | Eine zugewiesene Adresse | 0,0050 |
+| Summe | Eine VM mit diesen Ressourcen | rund 0,02723 |
+
+Quellen: [AWS T3](https://aws.amazon.com/ec2/instance-types/t3/), [AWS gp3-Speicherpreis](https://docs.aws.amazon.com/prescriptive-guidance/latest/optimize-costs-microsoft-workloads/ebs-migrate-gp2-gp3.html), [EBS-Abrechnung](https://aws.amazon.com/ebs/pricing/) und [IPv4-Preis](https://aws.amazon.com/vpc/pricing/). Die EBS-Umrechnung mit 30 Tagen ist eine einheitliche Rechenannahme; abgerechnet werden die tatsächlichen Nutzungszeiträume der einzelnen Ressourcen.
+
+Für die CHF-Einordnung verwende ich das auf dem [SNB-Datenportal](https://data.snb.ch/en) veröffentlichte Monatsmittel vom August 2026: **1 USD = CHF 0,8078**. Dies ist eine benannte historische Umrechnungsbasis, kein Tageskurs vom 15.10.2026 und kein garantierter späterer Abrechnungskurs.
+
+| Planungsszenario | Angenommene VM-Zeit | Geschätzte USD | CHF mit dieser Umrechnungsbasis |
+| --- | ---: | ---: | ---: |
+| Eine Bereitstellung für 30 Minuten | 0,5 Stunden | 0,0136 | 0,0110 |
+| Drei PoC-Läufe mit je einer Erstellung und einer Neuerstellung nach Reset, jeweils 30 Minuten | 3 Stunden insgesamt | 0,0817 | 0,0660 |
+| Beispiel für Entwicklung und weitere Tests | 20 Stunden insgesamt | 0,5447 | 0,4400 |
+
+Die Rechnung setzt vollständigen Abbau nach jedem Versuch und keine zusätzlichen CPU-Surplus-Credits, IOPS oder Durchsatzoptionen voraus. S3-Transfer, weiterer Datenverkehr, Steuern und andere zusätzlich angelegte Dienste sind nicht enthalten. Die Szenarien sind eine Planungshilfe und keine gemessenen Laufkosten. Auch die angezeigten USD 0,92 bleiben ein historischer Kontokostenstand ohne Zuordnung zum einzelnen Smoke-Test.
+
+Das Lab-Budget von USD 50 entspräche mit der genannten Basis rechnerisch CHF 40,39. Es bleibt vom privaten Limit von CHF 50 getrennt. Die geringe Schätzung ersetzt die Kostenkontrolle und den vollständigen Ressourcenabbau nicht.
+
 ### 3.7 Zielarchitektur
 
 Der folgende Entwurf konkretisiert die geplante Umsetzung. Das Fachmodell und seine Schema-Validierung sind lokal implementiert. Agent und Adapter sind noch offen.
+
+#### 3.7.1 Systemkontext
+
+Die geplante Lösung stellt eine definierte Lernumgebung auf einer gewählten Zielplattform bereit. Die Bedienperson übergibt eine plattformneutrale YAML-Definition und steuert den Lebenszyklus über die Kommandozeile. Die Lösung übernimmt die Kommunikation mit der lokalen KubeVirt-Plattform oder AWS.
+
+```mermaid
+flowchart TD
+    Person["Bedienperson: Diplomand oder Dozent"]
+    Definition["Plattformneutrale YAML-Definition"]
+
+    subgraph Grenze["Systemgrenze der entwickelten Lösung"]
+        System["Bereitstellung von Lernumgebungen"]
+    end
+
+    Lokal["Lokale Plattform: Kubernetes mit KubeVirt"]
+    Cloud["Public Cloud: AWS im Learner Lab"]
+
+    Person -->|"create, status, reset, delete"| System
+    Definition -->|"Anforderungen an VM und Testdienst"| System
+    System -->|"Status, Ergebnisse und Fehler"| Person
+    System <-->|"VM-Lebenszyklus und Zustandsabfragen"| Lokal
+    System <-->|"VM-Lebenszyklus und Zustandsabfragen"| Cloud
+```
+
+<small><em>Abbildung 2: Systemkontext der geplanten Bereitstellungslösung</em></small>
+
+Innerhalb der Systemgrenze liegen die selbst entwickelten Bestandteile: Kommandozeilenschnittstelle, Agent, Zustandsspeicher und Adapter. Kubernetes mit KubeVirt sowie AWS liegen ausserhalb dieser Grenze. Pro Lernumgebung wird eine der beiden Zielplattformen verwendet. Die YAML-Definition beschreibt die fachlichen Anforderungen; die Zuordnung zu konkreten Plattformressourcen übernimmt die Lösung.
+
+#### 3.7.2 Komponentensicht
 
 ```mermaid
 flowchart TD
@@ -770,7 +839,7 @@ flowchart TD
     AWSAdapter --> AWS["AWS EC2"]
 ```
 
-<small><em>Abbildung 2: Geplanter Aufbau von CLI, Agent und Adaptern</em></small>
+<small><em>Abbildung 3: Geplanter Aufbau von CLI, Agent und Adaptern</em></small>
 
 Die CLI nimmt eine versionierte YAML-Definition und die Zielplattform entgegen. Der Agent validiert das Modell, erzeugt eine Laufkennung und speichert einen unveränderlichen Snapshot mit Hash. Er steuert create, status, reset und delete. Der Adapter übersetzt die gemeinsamen Operationen in die Aufrufe seiner Plattform.
 
@@ -1342,15 +1411,15 @@ Dieser Abgleich fasst die vorhandenen Laufprotokolle und den aktuellen Repositor
 
 | Bereich | Stand |
 | --- | --- |
-| Lokale Machbarkeit | KubeVirt-Referenzlauf vom 22.09.2026 erfolgreich; US38 abgeschlossen |
+| Lokale Machbarkeit | KubeVirt-Referenzlauf vom 22.09.2026 erfolgreich; US38 abgeschlossen. DL380 und Terra stehen exklusiv zur Verfügung; aktualisierter Netzwerkstand in Kapitel 3.1.2. |
 | Vergleichsbasis | Drei LernMAAS-Läufe vom 07.10.2026 technisch erfolgreich; US10 geschlossen. Übernommene Bedienzeit und fehlende Handlungszählung bleiben als Messgrenzen bestehen. |
-| AWS | Smoke-Test vom 13.10.2026 erfolgreich, Budget am 15.10.2026 eingerichtet. Preisabschätzung, Guthabenlaufzeit, E-Mail-Nachweis und Transfer-Bucket-Nachkontrolle bleiben offen. |
+| AWS | Smoke-Test, Budget und Preisabschätzung liegen vor. Lab-Gültigkeit, Budgetempfänger und gespeicherte Kostenfilter sowie die Transfer-Bucket-Nachkontrolle bleiben offen. |
 | Fachmodell | Schema, Beispiele und Validierung versioniert; 35 automatisierte Tests erfolgreich. US17 und US18 sind auf GitHub noch offen. |
 | Umsetzung | Agent, Zustandsspeicher und MCP-Adapter noch nicht implementiert |
 | Formale Versuche | Je drei vollständige PoC-Läufe auf KubeVirt und AWS noch offen |
 | Projektführung | US05 geschlossen: zusätzliche Wochenberichte nur bei ausdrücklichem Bedarf. Ein erstes durchgeführtes Review ist noch nicht dokumentiert. |
 
-Die nächsten Umsetzungsschritte sind Agent und Zustandsführung, der lokale Lebenszyklus und der AWS-Durchstich für create, status und delete. Die offenen AWS-Kostenangaben werden ergänzend geklärt. US11 benötigt noch die Bestätigung zur bestehenden Nutzung und Unterrichtskollision des Testhosts.
+Die nächsten Umsetzungsschritte sind Agent und Zustandsführung, der lokale Lebenszyklus und der AWS-Durchstich für create, status und delete. Die verbleibenden AWS-Kontobedingungen werden ergänzend geklärt. Für US11 ist die exklusive Nutzung von DL380 und Terra am 15.10.2026 bestätigt; die Netzwerkaufnahme ist ergänzt. Der bisher offene Nutzungspunkt ist damit geklärt.
 
 ### 8.3 Vorlage für einen zusätzlichen Statusbericht {#statusvorlage}
 
@@ -1395,6 +1464,10 @@ Bei Bedarf werden Datum, erledigte Arbeiten, nächste Schritte und aktuelle Hind
 | [MCP: Transports, Version 2025-06-18](https://modelcontextprotocol.io/specification/2025-06-18/basic/transports) | stdio und Trennung von Protokoll und Diagnose; geprüft am 18.09.2026 |
 | [AWS Academy Learner Lab](https://awsacademy.instructure.com/courses/182558/modules/items/18005637), Readme Stand 24.06.2025 | Konkrete Lab-Bedingungen zu Regionen, Ressourcen, Sitzungen und Budget; eingesehen am 13.10.2026, siehe Kapitel 3.6 |
 | [AWS Free Tier FAQ](https://aws.amazon.com/free/free-tier-faqs/) | Allgemeine Kontopläne; kein Beleg für die konkreten Learner-Lab-Bedingungen |
+| Eigene Netzwerkaufnahme, Efekan Demirci, Stand 15.10.2026 | Zuordnung der Geräte, Adressvergabe, aktuelles VLAN und reserviertes Ausweichnetz; Zusammenfassung in Kapitel 3.1.2 |
+| [Netplan: YAML-Konfiguration](https://netplan.readthedocs.io/en/stable/netplan-yaml/) | DHCP-Client-Kennung beim networkd-Backend; eingesehen am 15.10.2026 |
+| [AWS T3](https://aws.amazon.com/ec2/instance-types/t3/), [gp3](https://docs.aws.amazon.com/prescriptive-guidance/latest/optimize-costs-microsoft-workloads/ebs-migrate-gp2-gp3.html), [EBS-Abrechnung](https://aws.amazon.com/ebs/pricing/), [öffentliche IPv4](https://aws.amazon.com/vpc/pricing/) | Veröffentlichte Rechenansätze der Preisabschätzung; eingesehen am 15.10.2026 |
+| [SNB-Datenportal](https://data.snb.ch/en) | USD-Monatsmittel August 2026, CHF 0,8078 je USD; historische Umrechnungsbasis, eingesehen am 15.10.2026 |
 | [AWS: GetResources](https://docs.aws.amazon.com/resourcegroupstagging/latest/APIReference/API_GetResources.html) | Grenze der Tagging-Abfragen; geprüft am 18.09.2026 |
 | [Scrum Guide](https://scrumguides.org/scrum-guide.html) | Abgrenzung des angepassten Vorgehens; geprüft am 18.09.2026 |
 
@@ -1427,7 +1500,8 @@ Die Rohprotokolle liegen unter den jeweiligen Laufkennungen im Repository. Dort 
 | Nr. | Abbildung | Stand |
 | --- | --- | --- |
 | 1 | Projektorganisation und Berichtswege | Vorhanden |
-| 2 | Geplanter Aufbau von CLI, Agent und Adaptern | Entwurf, noch keine implementierte Architektur |
+| 2 | Systemkontext der geplanten Bereitstellungslösung | Entwurf |
+| 3 | Geplanter Aufbau von CLI, Agent und Adaptern | Entwurf, noch keine implementierte Architektur |
 
 ## Ehrenwort
 
