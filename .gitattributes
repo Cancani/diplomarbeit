@@ -7,3 +7,19 @@ docs/messungen/laeufe/lernmaas-basis-20260930/SHA256SUMS-b01-b03 -text
 
 # Originalnachweise behalten ihre vorhandenen Leerzeichen
 docs/messungen/laeufe/lernmaas-basis-20260930/maas-b0[123]-20260930/** -text -whitespace
+
+# AWS-Smoke-Test als Originalnachweis bytegleich erhalten
+docs/messungen/laeufe/aws-smoke-20261013/** -text -whitespace
+
+# Aeltere Nachweise anhand ihrer bestehenden Pruefsummen bytegleich erhalten
+docs/messungen/cloud-init-messlauf.yaml -text -whitespace
+docs/messungen/messprotokoll-mess01.txt -text -whitespace
+docs/messungen/messprotokoll-parallel01.txt -text -whitespace
+docs/nachweise/lernlauf-lernmaas-00-20260916.txt -text -whitespace
+docs/nachweise/nachweis-testvm-20260914.txt -text -whitespace
+docs/nachweise/recon-cluster-20260914.txt -text -whitespace
+docs/nachweise/recon-detail-20260914.txt -text -whitespace
+docs/nachweise/recon-dl380-01-20260914.txt -text -whitespace
+docs/nachweise/recon-k8s-20260914.txt -text -whitespace
+docs/nachweise/recon-kvcontrol-20260914.txt -text -whitespace
+docs/nachweise/testvm.yaml -text -whitespace
