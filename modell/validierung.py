@@ -1,4 +1,4 @@
-"""Datei und Schema lokal pruefen; keine Ressourcen erzeugen."""
+"""Datei und Schema lokal prüfen; keine Ressourcen erzeugen."""
 import base64
 import binascii
 import json
@@ -30,7 +30,7 @@ class ModelLoader(yaml.SafeLoader):
         for key_node, value_node in node.value:
             key = self.construct_object(key_node, deep=deep)
             if not isinstance(key, str):
-                raise ConstructorError(None, None, 'Feldnamen muessen Text sein', key_node.start_mark)
+                raise ConstructorError(None, None, 'Feldnamen müssen Text sein', key_node.start_mark)
             if key in result:
                 raise ConstructorError(None, None, 'Doppeltes YAML-Feld', key_node.start_mark)
             result[key] = self.construct_object(value_node, deep=deep)
@@ -43,7 +43,7 @@ FORMATS = FormatChecker()
 @FORMATS.checks('ssh-ed25519')
 def is_ed25519_public_key(value):
     if not isinstance(value, str):
-        return True  # Die Typpruefung uebernimmt das Schema.
+        return True  # Die Typprüfung übernimmt das Schema.
     if not re.fullmatch(r'ssh-ed25519 [A-Za-z0-9+/]{68}(?: [^\r\n]+)?', value):
         return False
     try:
@@ -68,22 +68,22 @@ def error_text(error):
     elif kind == 'type':
         message = f'Erwarteter Datentyp: {value}.'
     elif kind == 'const':
-        message = f'Fuer Modellversion 1.0 ist {json.dumps(value, ensure_ascii=False)} vorgeschrieben.'
+        message = f'Für Modellversion 1.0 ist {json.dumps(value, ensure_ascii=False)} vorgeschrieben.'
     elif kind == 'format':
-        message = 'Ein oeffentlicher Ed25519-Schluessel im OpenSSH-Format ist erforderlich.'
+        message = 'Ein öffentlicher Ed25519-Schlüssel im OpenSSH-Format ist erforderlich.'
     elif kind == 'minItems':
         message = f'Mindestens {value} Eintrag ist erforderlich.'
     elif kind == 'uniqueItems':
-        message = 'Doppelte Eintraege sind nicht erlaubt.'
+        message = 'Doppelte Einträge sind nicht erlaubt.'
     elif kind == 'pattern':
-        message = 'Das Textformat ist ungueltig.'
+        message = 'Das Textformat ist ungültig.'
     else:
         message = f'Schemaregel {kind} verletzt.'
     return f'{path}: {message}'
 
 
 def validate_model(document):
-    """Gibt bei Erfolg das Modell zurueck, sonst strukturierte Fehler."""
+    """Gibt bei Erfolg das Modell zurück, sonst strukturierte Fehler."""
     schema = json.loads(SCHEMA_PATH.read_text(encoding='utf-8'))
     Draft202012Validator.check_schema(schema)
     validator = Draft202012Validator(schema, format_checker=FORMATS)
@@ -105,7 +105,7 @@ def load_model(path):
         mark = getattr(error, 'problem_mark', None)
         position = f' in Zeile {mark.line + 1}, Spalte {mark.column + 1}' if mark else ''
         reason = error.problem if isinstance(error, ConstructorError) and error.problem in (
-            'YAML-Aliase sind nicht erlaubt', 'Feldnamen muessen Text sein', 'Doppeltes YAML-Feld') else 'Ungueltiges YAML'
+            'YAML-Aliase sind nicht erlaubt', 'Feldnamen müssen Text sein', 'Doppeltes YAML-Feld') else 'Ungültiges YAML'
         raise ModelValidationError([reason + position + '.']) from error
     try:
         json.dumps(document, allow_nan=False)

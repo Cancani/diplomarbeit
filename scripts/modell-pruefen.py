@@ -17,9 +17,9 @@ def main():
         document = load_model(args.definition)
     except ModelValidationError as error:
         for message in error.errors:
-            print(f'Ungueltig: {message}', file=sys.stderr)
+            print(f'Ungültig: {message}', file=sys.stderr)
         return 1
-    print(f'Gueltig: {document["name"]} (Modellversion {document["modelVersion"]})')
+    print(f'Gültig: {document["name"]} (Modellversion {document["modelVersion"]})')
     return 0
 
 

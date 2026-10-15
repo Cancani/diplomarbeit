@@ -96,9 +96,9 @@ class ModelTests(unittest.TestCase):
             ('vm:\n  role: server\n  role: desktop\n', 'Doppeltes YAML-Feld'),
             ('a: &a [*a]\n', 'YAML-Aliase'),
             ('true: value\n', 'Feldnamen'),
-            ('---\nname: a\n---\nname: b\n', 'Ungueltiges YAML'),
-            ('vm: [PRIVATE-CONTENT', 'Ungueltiges YAML'),
-            ('name: !!python/object:example {}', 'Ungueltiges YAML'),
+            ('---\nname: a\n---\nname: b\n', 'Ungültiges YAML'),
+            ('vm: [PRIVATE-CONTENT', 'Ungültiges YAML'),
+            ('name: !!python/object:example {}', 'Ungültiges YAML'),
             ('name: 2026-09-23\n', 'JSON-kompatible'),
             ('vm: .nan\n', 'JSON-kompatible'),
         ]
@@ -119,7 +119,7 @@ class ModelTests(unittest.TestCase):
 
     def test_cli_from_other_directory_and_exit_codes(self):
         with tempfile.TemporaryDirectory() as folder:
-            for file, code, message in [('referenz.yaml', 0, 'Gueltig: referenzumgebung'),
+            for file, code, message in [('referenz.yaml', 0, 'Gültig: referenzumgebung'),
                                         ('ungueltig-ram.yaml', 1, '$.vm.resources.minMemoryMiB'),
                                         ('missing.yaml', 1, 'Datei konnte nicht gelesen werden')]:
                 with self.subTest(file=file):

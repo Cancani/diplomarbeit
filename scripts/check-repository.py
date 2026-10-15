@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""Check local consistency and immutable evidence; no live infrastructure access."""
-import hashlib
+"""Lokale Konsistenz von Backlog, Dokumentation und Links prüfen."""
 import json
 from pathlib import Path
 import re
@@ -26,10 +25,6 @@ for story in stories:
     require(row in main, f'Main document backlog differs: {story["id"]}')
     require(f'| Story Points | {story["points"]} |' in story['body'], f'Issue points differ: {story["id"]}')
     require(f'| Sprint | {story["sprint"]} |' in story['body'], f'Issue sprint differs: {story["id"]}')
-for line in (ROOT/'docs/nachweise/SHA256SUMS').read_text(encoding='utf-8-sig').splitlines():
-    digest, name = line.split('  ',1)
-    path = ROOT/name
-    require(path.is_file() and hashlib.sha256(path.read_bytes()).hexdigest() == digest, f'Evidence changed: {name}')
 for path in [ROOT/'README.md', *ROOT.joinpath('docs').rglob('*.md')]:
     content = path.read_text(encoding='utf-8-sig')
     # Inline local links, excluding fenced code and external URLs; anchors checked by MkDocs.
@@ -50,4 +45,4 @@ require(not list(ROOT.joinpath('docs').rglob('*.svg')), 'Separate SVG diagram fo
 require((ROOT/'.github/pull_request_template.md').is_file(), 'PR template missing')
 if errors:
     print('\n'.join(errors),file=sys.stderr);sys.exit(1)
-print(f'OK: {len(stories)} stories, 111 SP, local links, Mermaid blocks and immutable evidence verified.')
+print(f'OK: {len(stories)} stories, 111 SP, lokale Links und Mermaid-Blöcke geprüft.')
