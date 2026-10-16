@@ -1,7 +1,7 @@
 # Diplomarbeit: Agentenbasierte Hybrid-Cloud-Bereitstellung von Lernumgebungen mit Kubernetes, KubeVirt und MCP
 
-!!! info "Arbeitsstand vom 15.10.2026"
-    KubeVirt-Referenzlauf, drei LernMAAS-Basisläufe und der AWS-Smoke-Test sind abgeschlossen. Das Fachmodell mit Schema-Validierung liegt im Repository. Agent, MCP-Adapter und die sechs formalen PoC-Läufe folgen in Sprint 2 und 3. Die bisherigen Tests und ihre Grenzen stehen in Kapitel 5.
+!!! info "Arbeitsstand: Sprint 1"
+    Die Grundlagen aus Sprint 1 sind erarbeitet: Infrastrukturaufnahme, Vergleichsbasis, Machbarkeitsversuche und Architektur liegen vor. Das Fachmodell mit Schema-Validierung ist bereits umgesetzt. Als Abschluss von US16 folgen noch die Zwischenpräsentation und ihre Rückmeldungen. Die Umsetzung des Agenten und der Adapter beginnt anschliessend in Sprint 2.
 
 | | |
 | --- | --- |
@@ -11,14 +11,18 @@
 | Schulexperte | Thanam Pangri, HF-Lehrgangsleitung |
 | Bewilligter Zeitraum | 11.09.2026 bis 18.12.2026 |
 | Arbeitsplanung | 14.09.2026 bis 18.12.2026 |
-| Version | 0.7, Arbeitsstand |
+| Version | 0.10, Arbeitsstand Sprint 1 |
 | Grundlage | Bewilligte Projektbeschreibung vom 10.09.2026; schulische Vorgaben gemäss gültigem Merkblatt |
 
 ---
 
-## Management Summary
+## Zusammenfassung des bisherigen Projektstands
 
-> Wird am Projektende verfasst und zusätzlich als separates Dokument mit unterschriebenem Ehrenwort abgegeben. Grundlage ist das Management Summary aus der bewilligten Projektbeschreibung vom 10.09.2026.
+Die Grundlagen für den Proof of Concept sind erarbeitet. Die bestehende LernMAAS-Bereitstellung wurde untersucht und mit drei Basisläufen als Vergleichsgrundlage dokumentiert. Die lokale KubeVirt-Plattform ist verifiziert. Auf KubeVirt und AWS wurde jeweils eine reduzierte Referenz-VM manuell erstellt, über HTTP und SSH geprüft und wieder abgebaut. Die Messwerte und die Grenzen ihrer Aussagekraft stehen bei den jeweiligen Versuchen.
+
+Systemkontext, Komponentensicht und vier Architekturentscheide liegen vor. Das plattformneutrale YAML-Modell mit JSON-Schema und automatisierter Validierung ist bereits umgesetzt. Diese Ergebnisse gehören zu den vorgezogenen Stories US17 und US18 aus Sprint 2. Der gemeinsame Agent mit Zustandsführung und die MCP-Adapter sind noch nicht implementiert. Die bisherigen Einzelversuche belegen deshalb die praktische Machbarkeit, aber noch keinen vollständig automatisierten Lebenszyklus und keine gemessene Verbesserung gegenüber LernMAAS.
+
+Aus der ursprünglichen Sprint-1-Planung sind 14 fachliche Stories mit 34 Story Points abgeschlossen. US05 ist entfallen; US16 mit drei Punkten bleibt offen. Der nächste Schritt ist die erste Zwischenpräsentation am Freitag, 23.10.2026, von 11:30 bis 12:00 Uhr vor Ort. Danach werden die tatsächlichen Rückmeldungen und die Retrospektive zum Sprintabschluss ergänzt. Anschliessend folgen Agent und Adapter sowie später je drei vollständige PoC-Läufe auf KubeVirt und AWS, der Vergleich und die abschliessende Bewertung.
 
 ---
 
@@ -26,21 +30,21 @@
 
 ### 1.1 Ausgangslage
 
-Die Technische Berufsschule Zürich stellt für den Unterricht digitale Übungsumgebungen bereit, in denen Lernende praktische technische Aufgaben durchführen. Diese Lernumgebungen werden heute auf einer lokalen Plattform mit MAAS, LernMAAS, Konfigurationsdateien und Shellskripten bereitgestellt. Das Verfahren ist im Betrieb etabliert und bleibt während der gesamten Diplomarbeit unverändert verfügbar.
+Die Technische Berufsschule Zürich stellt für den Unterricht virtuelle Übungsumgebungen bereit. Auf der bestehenden Anlage übernimmt MAAS die Maschinenverwaltung und Betriebssysteminstallation. LernMAAS ergänzt Modulprofile und Hilfsskripte. Eine Bedienperson wählt ein Profil, erstellt die benötigten Maschinen und löst deren Deployment aus.
 
-Die fachliche Beschreibung einer Lernumgebung und ihre technische Bereitstellung sind dabei eng mit dieser Plattform verbunden. Soll dieselbe Lernumgebung auf einer anderen Infrastruktur entstehen, müssen Abläufe, Schnittstellen und Skripte separat angepasst oder neu entwickelt werden. Daraus ergeben sich zusätzlicher manueller Aufwand, eine stärkere Abhängigkeit von spezifischem Wissen einzelner Personen und eine eingeschränkte Wiederverwendbarkeit der bestehenden Beschreibungen.
+Das Verfahren ist auf die bekannte lokale Infrastruktur abgestimmt. Für eine Bereitstellung auf einer anderen Plattform müssten sowohl die technischen Aufrufe als auch Teile der Konfiguration angepasst werden. Diese Bindung ist der Ausgangspunkt der Diplomarbeit.
 
 ### 1.2 Problemstellung
 
-Es fehlt ein einheitliches Modell, mit dem eine Lernumgebung unabhängig von der gewählten Plattform beschrieben und über einen gemeinsamen Ablauf verwaltet werden kann. Ohne ein solches Modell bleibt die fachliche Beschreibung an eine einzelne technische Umsetzung gebunden.
+Eine deklarative Beschreibung ist mit den LernMAAS-Profilen bereits vorhanden. Es fehlt jedoch ein gemeinsamer Ablauf, der diese fachlichen Anforderungen von der Infrastruktur trennt und Erstellung, Statusprüfung, Reset und Löschung über dieselbe Schnittstelle steuert.
 
-Vor einer möglichen späteren Weiterentwicklung der lokalen Lernplattform soll deshalb geklärt werden, ob ein plattformübergreifender Ansatz technisch machbar ist und gegenüber dem heutigen Vorgehen einen nachvollziehbaren Mehrwert bietet.
+Die Arbeit soll deshalb zwei Fragen beantworten: Lässt sich eine reduzierte Lernumgebung mit derselben Definition auf KubeVirt und AWS bereitstellen? Welchen Nutzen und welchen zusätzlichen Aufwand bringt dabei eine Adapterschicht über MCP gegenüber direkten API-Aufrufen?
 
 ### 1.3 Zielbild
 
-Eine Lernumgebung wird einmal fachlich beschrieben und über denselben Lebenszyklus entweder lokal oder in der Public Cloud verwaltet. Die Bedienlogik bleibt auf beiden Zielplattformen gleich, während die plattformspezifische Umsetzung davon getrennt ist. Der Ablauf soll reproduzierbar und messbar sein und ohne manuelle technische Entscheidungen auskommen.
+Die Bedienperson beschreibt die Lernumgebung einmal in YAML und wählt die Zielplattform. Der Agent prüft die Definition und steuert den Lebenszyklus nach festgelegten Regeln. Die Adapter übersetzen die Anforderungen in die Ressourcen der jeweiligen Plattform. Ein HTTP-Test zeigt, wann die Umgebung tatsächlich nutzbar ist; ein Ressourcenvergleich bestätigt den abgeschlossenen Abbau.
 
-Der Proof of Concept liefert damit eine Entscheidungsgrundlage für eine mögliche spätere Weiterentwicklung, ohne die bestehende produktive Umgebung zu verändern.
+Der PoC liefert eine technische Entscheidungsgrundlage für die Weiterentwicklung der Lernplattform. Die bestehende MAAS-Umgebung wird dafür weder migriert noch abgeschaltet.
 
 ### 1.4 Zielsetzungen und Erfolgskriterien
 
@@ -58,15 +62,15 @@ Die vorhandenen Machbarkeitsversuche erfüllen diese Ziele noch nicht vollständ
 
 ### 1.5 Erfolgskriterien des Proof of Concept
 
-Der Proof of Concept gilt als erfolgreich, wenn die folgenden Kriterien des verbindlichen Kernumfangs nachgewiesen sind. Sie konkretisieren die Ziele der bewilligten Projektbeschreibung und bilden die projektweite Definition of Done.
+Die Zieltabelle wird durch folgende Abnahmeregeln konkretisiert:
 
-- Das YAML-Modell und das zugehörige JSON-Schema sind versioniert. Das Modell deckt die ausgewählten Konfigurationsmerkmale der LernMAAS-Profile m239, m254 und m426 ab. Eine gültige Definition wird akzeptiert, eine bewusst ungültige wird abgewiesen, und die technisch reduzierte Test-Lernumgebung ist festgelegt.
-- Der Agent validiert die Definition, speichert den Zustand persistent und führt create, status, reset und delete über festgelegte Zustandsübergänge aus. reset löscht die Umgebung und erstellt sie aus derselben Definition neu.
-- Die gemeinsame Definition wird über die MCP-basierten Adapter lokal auf einem Kubernetes-Cluster mit KubeVirt und auf genau einer Public-Cloud-Plattform bereitgestellt. Auf beiden Zielplattformen erreicht die VM den festgelegten Zustand und der definierte Testdienst besteht den Readiness-Check.
-- Auf jeder Zielplattform werden drei aufeinanderfolgende vollständige Durchläufe durchgeführt, insgesamt sechs. Alle Durchläufe funktionieren ohne manuelle Korrektur.
-- Nach jedem delete sind keine dem Testlauf zugeordneten Ressourcen mehr vorhanden.
-- Bereitstellungszeit und manuelle Eingriffe sind für das heutige Vorgehen und den Proof of Concept protokolliert. Der Vorher-Nachher-Vergleich sowie die Bewertung der MCP-basierten Architektur gegenüber einer direkten API-Anbindung sind dokumentiert.
-- Die gewonnenen Erkenntnisse und die erarbeiteten technischen Komponenten sind hinsichtlich ihrer Übertragbarkeit auf eine mögliche zukünftige produktive Umgebung beurteilt und dokumentiert.
+- Das versionierte Modell beschreibt den festgelegten Testfall. Die Validierung akzeptiert eine gültige Definition und weist eine bewusst ungültige Definition verständlich zurück.
+- create, status, reset und delete verwenden einen persistent gespeicherten Zustand. Ein Reset besteht aus vollständigem Abbau und Neuerstellung aus derselben gespeicherten Definition.
+- Auf KubeVirt und AWS bestehen jeweils drei aufeinanderfolgende vollständige Läufe ohne korrigierenden manuellen Eingriff. Jeder Lauf enthält die erste Bereitstellung, Status- und Dienstprüfung, Reset mit erneuter Prüfung sowie den endgültigen Abbau.
+- Der Ressourcenabschluss wird mit einem vor dem Löschen gesicherten Inventar geprüft. Vorhandene gemeinsame Basisressourcen bleiben bestehen; laufbezogene Ressourcen müssen ihren festgelegten Endzustand erreicht haben.
+- Der Vergleich mit LernMAAS wertet Bereitstellungszeit und Bedienaufwand aus. Infrastrukturunterschiede und Abweichungen in der Erfassung werden berücksichtigt. Hinzu kommen die Bewertung von MCP gegenüber direkter API-Anbindung und die Beurteilung einer möglichen späteren produktiven Nutzung.
+
+Das [Messkonzept](#34-messkonzept) legt die Zeitgrenzen fest. Die tatsächlichen Ergebnisse werden in Kapitel 5 ausgewertet.
 
 ### 1.6 Abgrenzung
 
@@ -84,11 +88,11 @@ Der Umfang ist bewusst so festgelegt, dass der vollständige und messbare Nachwe
 | Hochverfügbarkeit, verteilter Storage, produktive Skalierung | Betriebsthemen, die erst bei einer produktiven Einführung relevant werden |
 | Hardwarebeschaffung und betriebliche Netzwerkumstellungen | Es wird ausschliesslich vorhandene, freigegebene Hardware verwendet |
 
-Diese Punkte werden im Ausblick behandelt.
+Der Ausblick greift die für eine spätere Einführung relevanten Erweiterungen auf.
 
 ### 1.7 Zielgruppe und Lesehinweise
 
-Die Dokumentation richtet sich an die beiden Experten, an den Informatikdienst der TBZ und an die HF-Lehrgangsleitung. Sie ist so geschrieben, dass ein fachlich versierter Leser ohne Vorwissen über die TBZ-Umgebung folgen kann. Fachbegriffe werden beim ersten Vorkommen kurz erläutert und zusätzlich im Glossar am Ende der Arbeit erklärt.
+Die Dokumentation richtet sich an die Experten, den Informatikdienst und die HF-Lehrgangsleitung. Kapitel 3 erklärt die Ausgangslage und die technischen Entscheide, Kapitel 4 die bisherige Umsetzung. Messverfahren und Ergebnisse stehen in Kapitel 5. Planung und Bearbeitungsstand von Sprint 1 stehen in Kapitel 2.10. Rohprotokolle sind bei den betreffenden Versuchen verlinkt; zentrale Begriffe stehen im Glossar.
 
 ### 1.8 Themenfeldabdeckung
 
@@ -98,11 +102,22 @@ Der Schwerpunkt liegt auf Cloud Engineering und Automatisierung. Das Fachmodell 
 
 ### 2.1 Vorgehensmodell
 
-Ich arbeite in drei Iterationen, die in der Planung als Sprints bezeichnet werden. Am Ende steht jeweils ein vorführbarer Zwischenstand. Neue Erkenntnisse aus den Tests fliessen in den nächsten Sprint ein. Ziele, Abgabetermin und Kostenrahmen bleiben durch den bewilligten Antrag vorgegeben.
+Ich gliedere die Arbeit in drei Iterationen mit jeweils einem vorführbaren Ergebnis: zuerst die Grundlagen und Machbarkeitsversuche, danach den automatisierten Lebenszyklus und zuletzt die Messung und Bewertung. Tests und Rückmeldungen bestimmen, welche Korrekturen im nächsten Abschnitt nötig sind.
 
-Das Vorgehen übernimmt Backlog, Review und Retrospektive aus Scrum. Es ist kein vollständiger Scrum-Prozess: Ich arbeite allein, die Abschnitte dauern vier beziehungsweise fünf Wochen, und die Abstimmung mit den Experten findet an vereinbarten Terminen statt. Der Scrum Guide sieht dagegen Sprints von höchstens einem Monat vor. [Scrum Guide](https://scrumguides.org/scrum-guide.html)
+Backlog, Reviews und Retrospektiven sind aus Scrum übernommen. Die vier beziehungsweise fünf Wochen langen Abschnitte und die Durchführung als Einzelprojekt bilden ein angepasstes Vorgehen; der [Scrum Guide](https://scrumguides.org/scrum-guide.html) sieht Sprints von höchstens einem Monat vor.
 
-Bei Zeitdruck kürze ich zusätzliche Ausarbeitung und Grafiken. Die sechs PoC-Läufe, beide Plattformen, MCP-Bewertung und die vier Inhalte des Runbooks bleiben verbindlich. Änderungen an diesen Zusagen werden mit beiden Experten abgestimmt.
+Der Ablauf eines Sprints verbindet die Aufgabensteuerung im Board mit einem überprüfbaren Ergebnis:
+
+| Phase | Vorgehen |
+| --- | --- |
+| Planung | Sprintziel und zugehörige Stories prüfen. Nutzen, Akzeptanzkriterien, Abhängigkeiten und Schätzung müssen verständlich sein, bevor die fachliche Bearbeitung beginnt. |
+| Durchführung | Bearbeitete Stories im Board nachführen. Umsetzung, Tests und Dokumentation zusammen bearbeiten; Hindernisse und Änderungen beim betroffenen Issue festhalten. |
+| Review | Den erreichten Stand den Experten anhand einer vorbereiteten Demo und vorhandener Nachweise zeigen. Rückmeldungen und daraus folgende Aufgaben anschliessend dokumentieren. |
+| Retrospektive | Die eigene Arbeitsweise beurteilen: Was hat funktioniert, was hat gebremst und welche konkrete Anpassung wird für den nächsten Sprint übernommen? Die Erkenntnisse beim Sprintabschluss in Kapitel 2.10 festhalten. |
+
+Als Einzelprojekt benötigt die Arbeit kein tägliches Teammeeting. Für die Steuerung sind der aktuelle Aufgabenstand, die nächsten ausführbaren Schritte und erkennbare Hindernisse massgeblich. Die Reviews beurteilen das Ergebnis; die Retrospektive betrachtet zusätzlich Planung und Arbeitsweise.
+
+Bei Zeitdruck haben der vollständige Lebenszyklus, beide Plattformen, die sechs PoC-Läufe, die MCP-Bewertung und das Runbook Vorrang. Zusätzliche Ausarbeitung wird zuerst gekürzt. Änderungen am bewilligten Kernumfang werden mit den Experten abgestimmt.
 
 ### 2.2 Organisation und Zusammenarbeit
 
@@ -116,17 +131,15 @@ flowchart TD
 
 <small><em>Abbildung 1: Projektorganisation und Berichtswege</em></small>
 
-Ich übernehme Planung, Umsetzung, Tests und Dokumentation. Kuno Vogt vertritt den Auftraggeber und wird bei Priorisierung und betrieblichen Fragen einbezogen. Thanam Pangri begleitet die Arbeit als Schulexperte. Beide Experten beurteilen die Ergebnisse und werden bei Änderungen an Zielen oder Fokus einbezogen.
-
-Kuno Vogt ist zugleich mein direkter Vorgesetzter im Informatikdienst. Thanam Pangri begleitet die Arbeit im schulischen Rahmen.
+Ich übernehme Planung, Umsetzung, Tests und Dokumentation. Kuno Vogt ist zugleich mein direkter Vorgesetzter und Firmenexperte. Er vertritt den Auftraggeber und wird bei Priorisierung und betrieblichen Fragen einbezogen. Thanam Pangri begleitet die Arbeit als Schulexperte. Beide Experten beurteilen die Ergebnisse und werden bei Änderungen an Zielen oder Fokus einbezogen.
 
 Dozierende sind die späteren Nutzenden der Lernumgebungen, Lernende deren indirekte Nutzende. Ihr Interesse betrifft vor allem einen verständlichen Ablauf und eine zuverlässig nutzbare Umgebung. Der PoC liefert noch keine produktive Einführung.
 
-Die laufende Abstimmung ist über den vereinbarten Teams-Kanal vorgesehen. Beschlüsse und Rückmeldungen werden mit Datum und Bezug zum betroffenen Issue dokumentiert. Ein geplanter Termin oder ein vorbereitetes Dokument gilt noch nicht als durchgeführtes Gespräch.
+Die laufende Abstimmung erfolgt über den vereinbarten Teams-Kanal. Rückmeldungen und Beschlüsse werden mit Datum und Bezug zum betroffenen Issue festgehalten. Die Termine der Zwischenpräsentationen werden mit beiden Experten vereinbart.
 
 ### 2.3 Termine und Meilensteine
 
-Der bewilligte Projektzeitraum beginnt am 11.09.2026. Die operative Wochenplanung beginnt am Montag, 14.09.2026, und umfasst 14 Wochen bis zur Abgabe am 18.12.2026. Die Reviewwochen sind Plantermine; konkrete Uhrzeiten und der Kolloquiumstermin werden mit den Experten bestätigt.
+Der bewilligte Projektzeitraum beginnt am 11.09.2026. Die operative Wochenplanung beginnt am Montag, 14.09.2026, und umfasst 14 Wochen bis zur Abgabe am 18.12.2026. Für die drei Reviews liegen konkrete Termine vor. Der Kolloquiumstermin ist noch mit der Schule zu bestätigen.
 
 | Abschnitt | Zeitraum | Ergebnis am Ende |
 | --- | --- | --- |
@@ -137,22 +150,39 @@ Der bewilligte Projektzeitraum beginnt am 11.09.2026. Die operative Wochenplanun
 | ID | Meilenstein | Plantermin | Erforderlicher Stand |
 | --- | --- | --- | --- |
 | M0 | Arbeitsbeginn | 14.09.2026 | Die Experten haben den Antrag geprüft; Projektstart ohne separates Kickoff-Meeting |
-| M1 | Erstes Review | Woche vom 19.10.2026 | Vergleichsbasis, lokale Machbarkeit, AWS-Smoke-Test und Architektur liegen vor |
-| M2 | Zweites Review | Woche vom 16.11.2026 | Vollständiger lokaler Durchlauf und automatisierter AWS-Durchstich demonstrierbar |
+| M1 | Erstes Review | 23.10.2026 | Vergleichsbasis, lokale Machbarkeit, AWS-Smoke-Test und Architektur liegen vor |
+| M2 | Zweites Review | 18.11.2026 | Vollständiger lokaler Durchlauf und automatisierter AWS-Durchstich demonstrierbar |
 | M3 | Scope-Freeze | 04.12.2026 | Kernfunktionen stehen; danach Fehlerkorrekturen, Messungen und Abschluss |
-| M4 | Drittes Review | Woche vom 14.12.2026 | Sechs erfolgreiche PoC-Läufe und Bewertung dokumentiert |
+| M4 | Drittes Review | 16.12.2026 | Sechs erfolgreiche PoC-Läufe und Bewertung dokumentiert |
 | M5 | Abgabe | 18.12.2026 | Dokumentation, Management Summary, Ehrenwort und vereinbarte Abgabeunterlagen fertig |
 | M6 | Kolloquium | Mit Schule bestätigen | Präsentation, kurze Demo und vorbereitete Ersatznachweise verfügbar |
 
-Diese sieben Meilensteine sind Planung. Erreichte Termine werden erst mit einem Nachweis als abgeschlossen geführt. Die Abschlussphase ab 04.12.2026 ist für Tests und Dokumentation vorgesehen und daher kein freier Zeitpuffer.
+Die Reviewtermine sind fest vereinbart. Alle Uhrzeiten gelten für Zürich.
 
-Für das Kolloquium war auf der bisherigen Einstiegsseite die Woche vom 04.01.2027 vorgemerkt. Diese Angabe ist eine Planannahme; ein verbindlicher Termin ist in den vorliegenden Nachweisen noch nicht belegt.
+| Review | Termin | Durchführung |
+| --- | --- | --- |
+| 1 | Freitag, 23.10.2026, 11:30 bis 12:00 Uhr | Vor Ort |
+| 2 | Mittwoch, 18.11.2026, 15:00 Uhr | Online |
+| 3 | Mittwoch, 16.12.2026, 15:00 Uhr | Online |
+
+Die Sprintzeiträume bleiben die ursprünglichen Planungsabschnitte. Das erste Review findet in der Folgewoche statt; US16 bleibt bis zur Durchführung und Dokumentation der Rückmeldungen offen. Weitere Sprint-2-Umsetzung ist bis zu diesem Abschluss zurückgestellt. Durchgeführte Reviews werden in Kapitel 2.10 dokumentiert. Ab dem Scope-Freeze am 04.12.2026 ist die verbleibende Zeit für Fehlerkorrekturen, Messungen und Abschluss vorgesehen.
 
 ### 2.4 Backlog und Prioritäten
 
+Das öffentliche [Project Board](https://github.com/users/Cancani/projects/7) dient der laufenden Aufgabensteuerung. Die [Milestones](https://github.com/Cancani/diplomarbeit/milestones) bündeln die Issues nach Sprint und führen die jeweiligen Endtermine. Die Karten enthalten Sprint, Story Points, Priorität, Epic sowie Start- und Enddatum. Die Statusspalten werden wie folgt verwendet:
+
+| Status | Bedeutung und Übergang |
+| --- | --- |
+| Backlog | Geplante Aufgabe, deren Bearbeitung noch nicht begonnen hat. |
+| Ready | Aufgabe ist für die Bearbeitung vorbereitet: Ziel, prüfbare Kriterien, Zuordnung und notwendige Voraussetzungen sind geklärt. |
+| In Progress | Aufgabe wird aktiv bearbeitet. Offene Fragen und Hindernisse werden im Issue sichtbar gehalten. |
+| Done | Akzeptanzkriterien und Abschlussnachweise sind erfüllt, Änderungen geprüft und Dokumentation nachgeführt. Issue-Abschluss und Boardstatus müssen zusammenpassen. |
+
+Die [User-Story-Vorlage](https://github.com/Cancani/diplomarbeit/blob/main/.github/ISSUE_TEMPLATE/01_user_story.yml) enthält die Definition of Ready und die Definition of Done. Eine entfallene Aufgabe wird mit Begründung geschlossen und in der Sprintbilanz separat ausgewiesen. Ein geschlossener Issue zählt dadurch nicht automatisch als fachlich erbrachtes Ergebnis.
+
 Der Backlog enthält 38 Stories mit 111 Story Points. Der AWS-Durchstich US39 umfasst drei Punkte in Sprint 2, die Vervollständigung US25 fünf Punkte in Sprint 3. Readiness und Abbauprüfung entstehen bereits mit dem ersten lokalen Durchlauf; US26 und US29 prüfen sie später auf beiden Plattformen formal.
 
-Die Planung liegt in `scripts/backlog.json`; der aktuelle Bearbeitungsstand wird in den GitHub-Issues geführt. Hilfsskripte unterstützen den Abgleich. Manuell angepasste Issue-Texte, etwa bei US10, werden vor einem erneuten Abgleich geprüft. US05 wird gemäss [Entscheid im Issue](https://github.com/Cancani/diplomarbeit/issues/5) nur bei ausdrücklichem Bedarf weitergeführt. Die folgenden Tabellen halten die ursprüngliche Sprintplanung mit 111 Punkten fest.
+Die folgenden Tabellen halten die ursprüngliche Planung mit 38 Stories und 111 Punkten fest. Verbindlich für den aktuellen Bearbeitungsstand sind die GitHub-Issues und die Übersicht in Kapitel 2.10. US05 ist gemäss [Entscheid im Issue](https://github.com/Cancani/diplomarbeit/issues/5) entfallen; zusätzliche Wochenberichte werden nur bei ausdrücklichem Bedarf erstellt. Der Eintrag bleibt hier zur Nachvollziehbarkeit der ursprünglichen Planung erhalten.
 
 Die Epics bündeln Initialisierung (E1), IST-Aufnahme (E2), lokale Plattform (E3), AWS-Vorbereitung (E4), Fachmodell (E5), Agent (E6), Adapter (E7), Validierung (E8), Bewertung (E9), Betrieb und Schulung (E10) sowie Architektur und Abschluss (E11).
 
@@ -220,7 +250,7 @@ Must bezeichnet die verbindlichen Ergebnisse und ihre notwendigen Arbeitsschritt
 
 ### 2.5 Aufwand und Kapazität
 
-Die Planung nimmt etwa 14 Stunden pro Woche neben Beruf und Unterricht an. Über 14 Wochen ergeben sich rund 196 Stunden. Das ist eine Kapazitätsannahme, kein gemessener Aufwand. Story Points beschreiben relativ Aufwand und Unsicherheit; sie werden nicht fest in Stunden umgerechnet.
+Die Planung nimmt etwa 14 Stunden pro Woche an. Über 14 Wochen ergeben sich rund 196 Stunden. Das ist eine Kapazitätsannahme, kein gemessener Aufwand. Die Arbeit erfolgt gemäss bewilligter Projektbeschreibung ausserhalb der bezahlten TBZ-Arbeitszeit sowie im vorgesehenen Rahmen an Schultagen. Eine Auswertung der tatsächlich geleisteten Projektstunden ist nicht vorgesehen. Story Points beschreiben relativ Aufwand und Unsicherheit; sie werden nicht fest in Stunden umgerechnet.
 
 Als erste Orientierung dienen acht Story Points pro Woche. Sprint 2 umfasst den lokalen Lebenszyklus und den AWS-Durchstich und liegt mit 35 Story Points über dem Richtwert von 32.
 
@@ -231,13 +261,13 @@ Als erste Orientierung dienen acht Story Points pro Woche. Sprint 2 umfasst den 
 | 3 | 5 | 40 SP | 38 SP | -2 SP |
 | Gesamt | 14 | 112 SP | 111 SP | -1 SP |
 
-Sprint 2 ist überplant. Vor seinem Beginn wird anhand der tatsächlichen Ergebnisse entschieden, welche Vorbereitung vorgezogen werden kann. Priorität haben Modellvalidierung, der lokale Lebenszyklus und der AWS-Durchstich. Die zusätzliche Einführung aus US35 ist die erste verzichtbare Ausarbeitung. Die Schätzung wird anhand der Umsetzungserfahrungen überprüft.
+Die ursprünglichen 35 Punkte in Sprint 2 lagen über dem Richtwert. US17 und US18 mit zusammen acht Punkten sind inzwischen vorgezogen und abgeschlossen. Es verbleiben 27 Punkte für Agent, Zustandsführung und Adapter. Die Sprintzuordnung bleibt für den Vergleich mit der ursprünglichen Planung bestehen. Zunächst wird Sprint 1 mit der Zwischenpräsentation abgeschlossen.
 
-Für die Schätzung verwende ich 1, 2, 3, 5 und 8 Punkte. US01 dient mit zwei Punkten als Bezug. Grössere Stories werden in überprüfbare Ergebnisse zerlegt. Nach jedem Sprint werden abgeschlossene Punkte und tatsächliche Stunden gegenübergestellt. Offene Stories zählen nicht anteilig als fertig. Bisher liegen keine abgeschlossenen Sprintwerte vor.
+Für die Schätzung verwende ich 1, 2, 3, 5 und 8 Punkte. US01 dient mit zwei Punkten als Bezug. Grössere Stories werden in überprüfbare Ergebnisse zerlegt. Beim Sprintabschluss werden geplante und fachlich abgeschlossene Story Points, entfallene Aufgaben und vorgezogene Arbeiten gegenübergestellt. Offene Stories zählen nicht anteilig als fertig. Die ursprüngliche Sprintzuordnung bleibt dabei sichtbar. Aus den Punkten wird keine tatsächliche Arbeitszeit abgeleitet. Bisher liegt noch keine abschliessende Sprintbilanz vor.
 
 ### 2.6 Arbeitsweise und Qualität
 
-#### Ablagestruktur {#ordner}
+#### Ablagestruktur
 
 Die fachliche Dokumentation steht in dieser Datei. Code, Testdaten und Originalprotokolle liegen separat im Repository:
 
@@ -255,7 +285,18 @@ README und Einstiegsseite verweisen auf diese Dokumentation.
 
 #### Vorgehen und Prüfungen
 
-Ich arbeite direkt auf main und fasse zusammengehörige Änderungen in kleinen Commits zusammen. Vor einem Commit prüfe ich den Diff sowie die zur Änderung passenden Tests. Die Pipeline führt die automatisierten Tests und den strikten MkDocs-Build aus und veröffentlicht die Dokumentation nach erfolgreicher Prüfung.
+Ich arbeite direkt auf `main` und fasse zusammengehörige Änderungen in kleinen Commits zusammen. Die Commitnachricht benennt Art und Inhalt der Änderung. Verwendet wird das Schema `typ(zusatz): Beschreibung`; der Zusatz kennzeichnet die Aktion oder den betroffenen Bereich. Beispiele sind `docs(add): Systemkontext ergänzen`, `docs(update): Reviewtermine nachführen`, `feat(agent): Statusabfrage ergänzen` und `chore(checks): Repository-Prüfung anpassen`. Die Nachricht beschreibt die tatsächlich enthaltene Änderung.
+
+Der Arbeitsablauf zu einer Story besteht aus folgenden Schritten:
+
+1. Ziel, Akzeptanzkriterien und Voraussetzungen im Issue prüfen und den Bearbeitungsstand im Board nachführen.
+2. Die fachliche Änderung umsetzen und die zugehörige Dokumentation sowie Nachweise ergänzen.
+3. Den Diff und die zur Änderung passenden lokalen Prüfungen kontrollieren.
+4. Zusammengehörige Änderungen committen und auf `main` pushen.
+5. Den zugehörigen GitHub-Actions-Lauf prüfen. Bei einem Fehler Ursache und Änderung korrigieren und erneut prüfen. Die Veröffentlichung der Dokumentation setzt einen erfolgreichen Build voraus.
+6. Nach Erfüllung der Abschlusskriterien das Issue schliessen und den Boardstatus abgleichen.
+
+Der [Dokumentationsworkflow](https://github.com/Cancani/diplomarbeit/blob/main/.github/workflows/docs.yaml) prüft Repository-Konsistenz, automatisierte Tests, Shell-Syntax und den strikten MkDocs-Build. Die Veröffentlichung über GitHub Pages folgt erst nach erfolgreicher Prüfung. Ein Commit auf `main` allein bestätigt deshalb noch keinen erfolgreichen Prüfstand.
 
 Eine Story ist abgeschlossen, wenn ihre Akzeptanzkriterien erfüllt und die Ergebnisse dokumentiert sind. Für Infrastrukturarbeiten gehören dazu Protokolle vom Zielsystem. Die lokalen Tests prüfen dagegen den Code ohne Bereitstellung einer VM.
 
@@ -263,46 +304,125 @@ Die späteren Agententests sollen auch Timeouts, unterbrochene Operationen und v
 
 ### 2.7 Projektstand und Berichte
 
-Die vorhandenen [Statusberichte](#statusberichte) bleiben als Verlauf erhalten. Eine feste wöchentliche Berichtspflicht wird nicht weitergeführt, solange sie nicht ausdrücklich verlangt wird; dies ist in [US05](https://github.com/Cancani/diplomarbeit/issues/5) festgehalten. Ergebnisse, Probleme und Entscheidungen ergänze ich weiterhin in den betroffenen Kapiteln.
+Eine feste wöchentliche Berichtspflicht wird nicht weitergeführt, solange sie nicht ausdrücklich verlangt wird; dies ist in [US05](https://github.com/Cancani/diplomarbeit/issues/5) festgehalten. Ein separates Journal wird nicht geführt. Der im Antrag vorgesehene laufende Projektverlauf wird innerhalb der vorhandenen Ablagen nachvollziehbar gemacht:
+
+| Ablage | Beitrag zum Projektverlauf |
+| --- | --- |
+| Issues und Board | Aufgaben, Bearbeitungsstand, Hindernisse, Akzeptanzkriterien und Abschlussnachweise |
+| Git-Commits und CI | Inhalt und Zeitpunkt der Änderungen sowie zugehöriger automatisierter Prüfstand |
+| Fachkapitel und Laufprotokolle | Technische Entscheidungen, Ergebnisse, Abweichungen und deren Nachweise |
+| Kapitel 2.10 | Sprintplanung, Bearbeitungsstand sowie später Reviewrückmeldungen und Retrospektive |
+
+Bei relevanten Änderungen werden Anlass, Auswirkung und die daraus folgende Aufgabe im betroffenen Issue oder Fachkapitel festgehalten.
 
 ### 2.8 Änderungen und Risiken
 
-Technische Details und die Reihenfolge innerhalb des bewilligten Umfangs werden im Statusbericht oder als Architekturentscheid festgehalten. Ein geänderter Projektfokus oder der Wegfall eines zugesagten Ergebnisses wird mit Anlass, Auswirkungen und Alternativen beiden Experten vorgelegt. Ein Entscheid gilt erst nach tatsächlicher Rückmeldung als abgestimmt.
+Technische Entscheide werden im betroffenen Kapitel festgehalten. Änderungen an Zielen oder zugesagten Ergebnissen werden den Experten mit ihren Auswirkungen vorgelegt. Die Risikobewertung unterstützt diese Steuerung: Eintrittswahrscheinlichkeit (EW) und Auswirkung (AW) werden jeweils von 1 bis 5 eingeschätzt. Das Produkt bestimmt die Priorität; Werte ab 12 erhalten besondere Aufmerksamkeit.
 
-Die folgende Risikobewertung ist eine Planungseinschätzung. Eintrittswahrscheinlichkeit (EW) und Auswirkung (AW) liegen auf einer Skala von 1 bis 5; ihr Produkt hilft bei der Priorisierung. Die Werte sind keine gemessenen Wahrscheinlichkeiten. Hohe Werte ab 12 werden wöchentlich besonders geprüft.
+| ID | Risiko | EW | AW | Wert | Behandlung und Auslöser |
+| --- | --- | ---: | ---: | ---: | --- |
+| R01 | Technische Komplexität von Agent, MCP und zwei Plattformen | 4 | 4 | 16 | Frühe Durchstiche und kleine Umsetzungsschritte. Nach zwei blockierten Arbeitseinheiten Alternativweg prüfen; überzogene Schätzungen machen die Blockade sichtbar. |
+| R02 | Cloud-Berechtigungen, Quotas und Kosten | 3 | 3 | 9 | Einzel-VM-Smoke-Test bestanden, Budgetwarnungen bei USD 25 und USD 40 eingerichtet. Ressourcen nach jedem Test abbauen; Quota-Fehler und Kostenstand beobachten. |
+| R03 | Umfang überschreitet die verfügbare Zeit | 4 | 5 | 20 | Kernumfang priorisieren, optionale Einführung zuerst kürzen. Scope-Freeze am 04.12.2026; verschobene Zwischenziele früh mit den Experten besprechen. |
+| R05 | Restressourcen oder Abweichung zwischen gespeichertem und tatsächlichem Zustand | 3 | 3 | 9 | Ressourcen-IDs nach jedem Erstellungsschritt speichern und Endzustände abfragen. Ein verbliebener Datenträger oder ein unvollständiger Abbau führt zum Fehler. |
+| R06 | Ausfall des lokalen Hosts | 2 | 3 | 6 | Konfiguration sichern. `kvcontrol` ist als Ersatz vorgesehen und wird vor einem tatsächlichen Einsatz mit einem eigenen Referenzlauf geprüft. |
+| R07 | Reviewtermine kommen nicht rechtzeitig zustande oder fallen aus | 2 | 3 | 6 | Die drei Termine liegen vor. Bei einem Ausfall zeitnah einen Ersatz abstimmen und Auswirkungen auf Rückmeldungen und nächste Schritte prüfen. |
+| R08 | Dokumentation läuft der Umsetzung hinterher | 3 | 4 | 12 | Änderungen zusammen mit der betroffenen Story dokumentieren. Vor jedem Review aktuellen Stand, alte Aussagen und Nachweislinks abgleichen. |
+| R09 | Änderungen im MCP-Umfeld | 3 | 3 | 9 | Verwendete Versionen festschreiben und Adaptervertrag klein halten. Inkompatible Änderungen zuerst im isolierten Test prüfen. |
+| R10 | Weniger Zeit durch Krankheit oder berufliche Engpässe | 3 | 4 | 12 | Wochenkapazität prüfen. Wenn zwei Wochen lang wesentliche Sprintaufgaben nicht vorankommen, Planung und optionale Ausarbeitung prüfen und den Firmenexperten informieren. |
+| R11 | Remote-Zugang fällt nach Neustart oder Netzwerkänderung aus | 3 | 4 | 12 | Adressierung und DHCP-Zuordnung abstimmen. Vor Änderungen Konfiguration sichern; anschliessend WireGuard, SSH und Clusterzugang prüfen. |
 
-| ID | Risiko | EW | AW | Wert | Strategie | Frühwarnindikator | Massnahme |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| R01 | Technische Komplexität der Kombination aus Kubernetes, KubeVirt, Zustandsführung, MCP und Public Cloud | 4 | 4 | 16 | Vermindern | Eine Story aus E6 oder E7 überschreitet ihre Schätzung um mehr als das Doppelte | Frühe Smoke-Tests auf beiden Zielplattformen, Verzicht auf optionale Erweiterungen zugunsten des vollständigen Lebenszyklus, Zeitbox von zwei Arbeitseinheiten pro Blockade mit anschliessendem Entscheid über einen Alternativweg |
-| R02 | Cloud-Ressourcen und Kosten: ungenügende Quotas, eingeschränkte Dienstverfügbarkeit oder unerwartete Kosten | 3 | 3 | 9 | Vermindern | Quota-Fehlermeldung beim Smoke-Test, Budgetwarnung über 50 Prozent | Quotas und Dienste im Cloud-Smoke-Test in Sprint 1 prüfen, Warnschwellen seit 15.10.2026 bei USD 25 und USD 40 gemäss Kapitel 3.6; privates CHF-50-Limit separat beachten, Ressourcen minimal halten, nach jedem Test sofort löschen |
-| R03 | Zeitmanagement: der Umfang überschreitet die verfügbare Projektzeit | 4 | 5 | 20 | Vermindern | Kritischer Durchstich bleibt offen oder die nächste Meilensteinprognose verschiebt sich | Verbindlich begrenzter Kernumfang, eine technisch reduzierte Test-Lernumgebung, Scope-Freeze am 04.12.2026, festgelegte Reihenfolge der Umfangsreduktion, Abschlusszeit ab Scope-Freeze, deren tatsächliche Verfügbarkeit wöchentlich geprüft wird |
-| R05 | Unvollständiger Teardown und Zustandsabweichungen: nach delete bleiben Ressourcen zurück oder der gespeicherte Zustand weicht vom tatsächlichen ab | 3 | 3 | 9 | Vermindern | Ein Lauf findet nach delete noch zugeordnete Ressourcen | Wiederholbare Operationen, Statusprüfung vor und nach jeder Aktion, Ressourceninventar mit IDs und ergänzender Laufkennzeichnung, automatisierter Cleanup-Test mit Warten auf den Endzustand |
-| R06 | Hardwareausfall im HF-Labor | 2 | 3 | 6 | Vermindern | Ein Knoten erscheint nach einem Neustart nicht mehr | Clusteraufbau und Konfiguration reproduzierbar dokumentiert, kvcontrol als möglicher Ersatz; Referenztest vor Nutzung erforderlich |
-| R07 | Verfügbarkeit der Experten: Termine für Zwischenpräsentationen lassen sich nicht rechtzeitig vereinbaren | 2 | 3 | 6 | Vermindern | Keine Terminbestätigung 10 Arbeitstage vor dem geplanten Termin | Alle drei Termine direkt mit den Experten abstimmen und in die Kalender legen, Ersatztermin in derselben Woche vorschlagen |
-| R08 | Dokumentationsrückstand: die Dokumentation wird erst am Projektende nachgezogen | 3 | 4 | 12 | Vermeiden | Ein Issue erreicht Done ohne zugehörigen Dokumentationsabschnitt | Ergebnisse bei der jeweiligen Story dokumentieren und den Dokumentationsstand vor jedem Review prüfen |
-| R09 | Reifegrad und Änderungen im MCP-Umfeld | 3 | 3 | 9 | Vermindern | Ein verwendetes Werkzeug meldet inkompatible Änderungen | Verwendete Versionen früh festschreiben, Adapterschnittstelle schmal halten, direkte API-Anbindung als Vergleich verwenden; ein Wegfall von MCP wäre eine Änderung des bewilligten Kerns |
-| R10 | Persönliche Kapazität: Krankheit oder beruflicher Engpass reduziert die verfügbare Zeit | 3 | 4 | 12 | Vermindern | Zwei aufeinanderfolgende Wochen unter 8 Stunden Projektzeit | Verfügbare Wochenkapazität prüfen; bei Unterschreitung optionale Ausarbeitung kürzen, Planung aktualisieren und den Firmenexperten informieren |
-| R11 | Verlust des Remote-Zugangs zu den Zielsystemen nach Neustart oder Netzwerkänderung | 3 | 4 | 12 | Vermeiden | Eine Maschine ist nach einem Neustart über WireGuard nicht mehr erreichbar | Statische Adressen und passende DHCP-Reservationen verwenden; vor Netzwerkänderungen Konfiguration und Cluster sichern, danach Erreichbarkeit prüfen |
+Die Werte sind Planungseinschätzungen. Der Ersatzhost reduziert das Ausfallrisiko erst nach einem erfolgreichen eigenen Test. Neue Erkenntnisse und ihre Auswirkungen werden nachgeführt. Für die weitere Planung sind folgende Entwicklungen relevant:
 
-Der mögliche Ersatz auf kvcontrol senkt das Ausfallrisiko erst dann wirksam, wenn ein eigener Referenzlauf bestanden ist. Änderungen der Risikobewertung werden mit Datum und Anlass im Statusbericht geführt.
+| Entwicklung | Auswirkung auf die Steuerung |
+| --- | --- |
+| AWS-Smoke-Test erfolgreich | Der praktische Zugriff für die Referenz-VM ist belegt. Quotas, Zugang und Kosten sind bei späteren Läufen weiterhin zu beachten; die Lab-Gültigkeit bleibt unbekannt. |
+| Budget und Benachrichtigung eingerichtet | Kostenwarnungen sind vorbereitet. Sie ersetzen den vollständigen Abbau und die laufende Kostenkontrolle nicht. |
+| Reviewtermine fest vereinbart | Für die Reviews bestehen konkrete Termine. Ein späterer Ausfall oder eine Verschiebung bleibt möglich. |
+| US17 und US18 vorgezogen | Acht Punkte aus Sprint 2 sind bereits abgeschlossen. Der verbleibende Umfang und die ursprüngliche Zuordnung werden getrennt ausgewiesen. |
+| US05 entfallen | Die ursprüngliche Planung bleibt sichtbar. Laufende Ergebnisse und Entscheidungen werden über die Ablagen aus Kapitel 2.7 nachgeführt. |
 
-### 2.9 Wirtschaftlichkeit und frühere Erfahrungen
+### 2.9 Wirtschaftliche Betrachtung
 
-Die spätere Kosten-Nutzen-Betrachtung verwendet aktive Bedienzeit, Zahl manueller Handlungen, Cloud-Verbrauch und tatsächlich erfassten Projektaufwand. Wartezeit wird separat ausgewiesen. Eine Semesterhochrechnung nennt die angenommene Zahl von Umgebungen und bleibt ein Szenario, solange kein belegter Nutzungswert vorliegt. Aus dem Einzel-VM-PoC werden keine Energieeinsparung oder Produktivskalierung abgeleitet.
+Die Wirtschaftlichkeitsbetrachtung verbindet den einmaligen Entwicklungsaufwand mit dem wiederkehrenden Bedienaufwand und dem Ressourcenverbrauch. Ein Ansatz für den Entwicklungsaufwand wird als begründete Schätzung ausgewiesen. Gemessene Bedienzeiten der Bereitstellung werden davon getrennt ausgewiesen. Eine Hochrechnung auf den Unterrichtsbetrieb benötigt zusätzlich eine begründete Zahl von Bereitstellungen; sie bleibt ein Szenario.
 
-Aus den Semesterarbeiten übernehme ich vor allem drei Verbesserungen: Demos früh vorbereiten, Tests verständlich erklären und tatsächliche Rückmeldungen sichtbar verarbeiten. Dazu kommen ein früh zugängliches Board und eine laufende Dokumentation. Ob diese Massnahmen geholfen haben, wird am Projektende anhand des tatsächlichen Verlaufs beurteilt.
+Die Preisabschätzung für die AWS-Referenz steht in Kapitel 3.6.4. Für die spätere Wirtschaftlichkeitsbetrachtung werden die PoC-Messwerte benötigt. Der Entwicklungsaufwand wird bei Bedarf als begründete Schätzung mit offengelegten Annahmen berücksichtigt; er wird nicht als tatsächlich erfasster Stundenaufwand dargestellt. Ein gemessener Amortisationszeitpunkt lässt sich daraus nicht ableiten. Eine Einsparung wird zum jetzigen Zeitpunkt nicht beziffert.
+
+Die Bewertung aus US32 und US33 umfasst zusätzlich Ressourcen, Skalierbarkeit und Nachhaltigkeit:
+
+| Aspekt | Vorgesehene Betrachtung |
+| --- | --- |
+| Ressourcen | Zugewiesene CPU, RAM und Datenträger sowie Nutzungsdauer und Restressourcen nach dem Abbau vergleichen. Unterschiede zwischen bestehender Laborhardware und Cloud-VM offenlegen. |
+| Skalierbarkeit | Auswirkungen mehrerer gleichzeitiger Lernumgebungen auf Hostkapazität, Storage, Adressierung, Quotas und Bedienablauf qualitativ beurteilen. Der Einzel-VM-PoC ist kein Lasttest. |
+| Nachhaltigkeit | Wiederverwendung vorhandener Hardware, bedarfsgerechte Bereitstellung und zeitnahen Abbau ungenutzter Umgebungen betrachten. Das Freigeben einer VM bedeutet bei weiterlaufendem Host keine nachgewiesene Stromersparnis. |
+
+Stromverbrauch und CO2-Wirkung werden im PoC nicht gemessen. Ohne entsprechende Daten wird keine quantitative Umweltentlastung behauptet. Die Betrachtung beschreibt mögliche Wirkungen und verbleibende Unsicherheiten.
+
+Für eine spätere produktive Nutzung wären insbesondere Zugriffsrechte, Netzwerk, Storage, Zuständigkeiten und Überwachung zu beurteilen. Die exklusive Laborhardware und die einzelne Referenz-VM erleichtern den Versuch, bilden aber noch keinen Unterrichtsbetrieb mit vielen gleichzeitig genutzten Umgebungen ab.
+
+### 2.10 Sprint 1
+
+#### Sprint 1 Planung
+
+**Zeitraum:** 14.09. bis 18.10.2026. Das zugehörige Review findet in der anschliessenden Reviewwoche statt.
+
+**Sprintziel:** Die Ausgangslage und den bisherigen Bereitstellungsablauf verstehen, eine belastbare Vergleichsgrundlage vorbereiten, die reduzierte Referenzumgebung auf beiden Zielplattformen praktisch prüfen und die Zielarchitektur festlegen.
+
+Die ursprüngliche Planung umfasst 16 Stories mit 38 Story Points. Die vollständige Aufgabenliste steht in Kapitel 2.4. Der Sprint enthält folgende Arbeitspakete:
+
+| Arbeitspaket | Stories | Erwartetes Ergebnis |
+| --- | --- | --- |
+| Projektgrundlagen | US01 bis US05 | Repository, Board, Vorlagen, Dokumentationsveröffentlichung und ursprünglich vorgesehene Statusberichte |
+| IST-Analyse und Messgrundlage | US07 bis US10 | Bestehendes Verfahren, abgeleitete Referenzdefinition, Messkonzept und Ausgangsmessungen |
+| Lokale Plattform | US11 bis US13 und US38 | Verifizierte Hardware und Plattform sowie erfolgreicher KubeVirt-Referenzlauf |
+| Public Cloud | US14 und US15 | Begründete AWS-Auswahl, geprüfter Zugang, Kostenkontrolle und erfolgreicher Smoke-Test |
+| Architektur und Zwischenpräsentation | US16 | Systemkontext, Komponentensicht, Architekturentscheide und erstes Review mit Rückmeldungen |
+
+US06 ist als entfallenes Kickoff nicht Teil des aktiven Backlogs. US05 wurde im Verlauf gestrichen; eine feste wöchentliche Berichtspflicht wird nicht weitergeführt. Die ursprüngliche Planung bleibt für den Vergleich sichtbar. Die bereits umgesetzten Stories US17 und US18 gehören weiterhin zur ursprünglichen Sprint-2-Planung.
+
+#### Bisheriger Bearbeitungsstand
+
+| Bereich | Erreichtes Ergebnis |
+| --- | --- |
+| Projektorganisation | Repository, öffentliches Board, Vorlagen und Dokumentationsveröffentlichung eingerichtet |
+| Infrastruktur | System- und Netzwerkaufnahme vorhanden; DL380 und Terra stehen exklusiv zur Verfügung |
+| KubeVirt-Referenzlauf | VM erstellt, HTTP und SSH erfolgreich geprüft und Testressourcen entfernt; US38 abgeschlossen |
+| Vergleichsbasis | Drei LernMAAS-Basisläufe technisch erfolgreich; Grenzen der Bedienzeiterfassung bei den Ergebnissen beschrieben |
+| AWS | Smoke-Test erfolgreich; Budget, Preisabschätzung und Ressourcenabbau dokumentiert |
+| Architektur | Systemkontext, Komponentensicht und vier ADRs vorhanden |
+| Vorgezogene Arbeiten | Fachmodell und Schema-Validierung aus US17 und US18 umgesetzt; 35 automatisierte Tests erfolgreich |
+
+Von den ursprünglichen Sprint-1-Stories sind 14 fachlich abgeschlossen, US05 ist entfallen und US16 bleibt in Bearbeitung. Die Milestone-Detailansicht zeigt entsprechend einen offenen und 15 geschlossene Issues. Das Board führt US16 auf In Progress. Die geschlossene US05 zählt nicht als fachlich erbrachte Leistung.
+
+| Zuordnung | Ursprünglich geplant | Fachlich abgeschlossen | Entfallen | Noch offen |
+| --- | --- | --- | --- | --- |
+| Sprint 1 | 16 Stories, 38 SP | 14 Stories, 34 SP | US05, 1 SP | US16, 3 SP |
+| Sprint 2 | 9 Stories, 35 SP | US17 und US18, zusammen 8 SP, vorgezogen | Keine | 7 Stories, 27 SP |
+| Sprint 3 | 13 Stories, 38 SP | Keine | Keine | 13 Stories, 38 SP |
+
+Die Tabelle ist eine Zwischenbilanz. Weitere Sprint-2-Umsetzung ist bis zum Abschluss von Sprint 1 zurückgestellt. Die Architekturarbeit ist vorhanden; für US16 fehlen noch die durchgeführte Zwischenpräsentation und die dokumentierten Rückmeldungen.
+
+#### Sprint 1 Review
+
+**Vereinbarter Termin:** Freitag, 23.10.2026, 11:30 bis 12:00 Uhr, vor Ort.
+
+Das Review ist noch nicht durchgeführt. Vorgesehen sind Ausgangslage und Referenzdefinition, die Ergebnisse der LernMAAS-, KubeVirt- und AWS-Versuche sowie die Zielarchitektur mit den wichtigsten Entscheiden. Tatsächliche Rückmeldungen und daraus folgende Aufgaben werden nach dem Meeting ergänzt.
+
+#### Sprint 1 Retrospektive
+
+Die Retrospektive wird beim Sprintabschluss ergänzt. Sie betrachtet die eigene Arbeitsweise: Was hat bei Planung, Umsetzung und Dokumentation funktioniert? Wo entstanden Schwierigkeiten? Welche konkrete Anpassung wird für Sprint 2 übernommen? Ein rückblickendes Ergebnis liegt noch nicht vor.
 
 ## 3 Analyse und Konzept
 
 ### 3.1 Ausgangslage der Infrastruktur
 
-Vor der Umsetzung wurde erhoben, welche Infrastruktur tatsächlich zur Verfügung steht. Die Erhebung erfolgte am 14.09.2026, dem ersten Projekttag, mit einem rein lesenden Auditlauf über beide freigegebenen Systeme. Die verfügbaren Ausgaben liegen unter [Nachweise](#nachweise). Der vollständige Auditexport der fünf MAAS-Racks fehlt noch. Die für die späteren Läufe verwendete Konfiguration und das installierte `createvms` sind seit dem 30.09.2026 gesichert.
+Ich habe die beiden vorgesehenen KubeVirt-Systeme lesend untersucht. Entscheidend waren Virtualisierungsunterstützung, erreichbarer Cluster und verfügbarer Speicher. Die [Systemausgaben](#nachweise-und-aussagegrenzen) halten diesen Ausgangszustand fest. Die getrennte LernMAAS-Anlage bildet die Vergleichsbasis; für die dortigen Messläufe wurden Konfiguration und installiertes Erstellungsskript gesichert.
 
 #### 3.1.1 Freigegebene Hardware
 
-Der DL380 und alle Terra-Rechner stehen mir für die Diplomarbeit exklusiv und vollständig zur Verfügung. Es gibt keine parallele Nutzung dieser Geräte durch den Unterricht oder andere Projekte. Diese Zuordnung habe ich am 15.10.2026 nochmals bestätigt. Für die Versuche auf diesen Geräten ist keine zusätzliche Nutzungsfreigabe nötig. Die gemeinsam genutzte Netzinfrastruktur wird davon getrennt betrachtet.
+Der DL380 und alle Terra-Rechner stehen mir für die Diplomarbeit exklusiv und vollständig zur Verfügung. Es gibt keine parallele Nutzung dieser Geräte durch den Unterricht oder andere Projekte. Für die Versuche auf diesen Geräten ist keine zusätzliche Nutzungsfreigabe nötig. Die gemeinsam genutzte Netzinfrastruktur wird davon getrennt betrachtet.
 
-Die Systemaufnahme vom 14.09.2026 ergab folgende Werte:
+Die Systemaufnahme ergab folgende Werte:
 
 | System | Hostname | CPU | Arbeitsspeicher | Datenträger | Rolle im Projekt |
 | --- | --- | --- | --- | --- | --- |
@@ -310,11 +430,11 @@ Die Systemaufnahme vom 14.09.2026 ergab folgende Werte:
 | Terra | `kvcontrol` | Intel Core i7-9700T, 8 Kerne | 15 GB, davon 12 GB frei | 238 GB NVMe, davon 184 GB frei | Zweitsystem und Ausweichumgebung |
 | Terra, vier weitere | noch nicht in Betrieb genommen | | | | Reserve, im Proof of Concept nicht benötigt |
 
-Beide Systeme liefen bei der Erhebung unter Ubuntu 24.04.4 LTS. Die Werte beschreiben diesen Zeitpunkt. Für die reduzierte einzelne VM sind die Ressourcen beider Systeme grundsätzlich plausibel; der praktische Nachweis erfolgt auf dl380-01.
+Beide Systeme liefen bei der Erhebung unter Ubuntu 24.04.4 LTS. Der praktische Einzel-VM-Nachweis erfolgte auf `dl380-01`. Die vier zusätzlichen Terra-Rechner bleiben Reserve; ihre spätere Adressierung ist in Kapitel 3.1.2 ergänzt.
 
 #### 3.1.2 Zugang und Netzwerk
 
-Die folgende Beschreibung ergänzt die Systemaufnahme vom 14.09.2026 mit meiner Netzwerkaufnahme vom 15.10.2026. Die Geräte stehen im HF-Labor AU70-U069a und sind am Switch `nau-as-u70-01` im VLAN 21 angeschlossen. Das Netz lautet `10.0.21.0/24`, das Gateway `10.0.21.1`. Routing und DHCP liegen auf `nau-as-e014-01` im Serverraum; der Internetzugang führt über die dortige Firewall zum Init7-Anschluss.
+Die folgende Beschreibung verbindet System- und Netzwerkaufnahme. Die Geräte stehen im HF-Labor AU70-U069a und sind am Switch `nau-as-u70-01` im VLAN 21 angeschlossen. Das Netz lautet `10.0.21.0/24`, das Gateway `10.0.21.1`. Routing und DHCP liegen auf `nau-as-e014-01` im Serverraum; der Internetzugang führt über die dortige Firewall zum Init7-Anschluss.
 
 | Gerät | LAN-Adresse | Adressvergabe | Verwendung im PoC |
 | --- | --- | --- | --- |
@@ -325,15 +445,15 @@ Die folgende Beschreibung ergänzt die Systemaufnahme vom 14.09.2026 mit meiner 
 | `terra-03` | `10.0.21.228` | DHCP mit Reservation | Zusätzlicher Testrechner, Reserve |
 | `terra-04` | `10.0.21.231` | DHCP mit Reservation | Zusätzlicher Testrechner, Reserve |
 
-Der Netzwerkanhang bezeichnet die vier zusätzlichen Terra-Rechner als Worker. Ihre Adressierung ist damit erfasst; eine gemeinsame Kubernetes-Mitgliedschaft wird daraus nicht abgeleitet. Für den Einzel-VM-PoC bleibt `dl380-01` die Zielplattform. Der ältere Hardwarestand in Kapitel 3.1.1 beschreibt den Erhebungszeitpunkt im September.
+Die vier zusätzlichen Terra-Rechner sind im Netzwerkanhang als Worker bezeichnet. Für diese Arbeit ist bisher ihre Adressierung erfasst; eine Einbindung in den KubeVirt-Zielcluster wurde nicht verifiziert.
 
 Die DHCP-Reservationen berücksichtigen die Client-ID der Geräte. Die beiden Steuerknoten verwenden zusätzlich statische Adressen, damit ihre lokale Konfiguration nicht von einer abweichenden DHCP-Zuordnung abhängt. DHCP kann ebenfalls stabile Adressen liefern, wenn Client-Kennung und Reservation übereinstimmen. Netplan unterscheidet beim networkd-Backend zwischen der MAC-Adresse und einer aus IAID und DUID gebildeten Kennung; siehe [Netplan-Referenz](https://netplan.readthedocs.io/en/stable/netplan-yaml/).
 
 Der Fernzugriff erfolgt über WireGuard und danach SSH mit Schlüssel. `dl380-01` ist unter `10.1.24.5`, `kvcontrol` unter `10.1.24.8` erreichbar. Die Geräte bauen die Tunnel selbst auf. Dafür benötigen sie weiterhin eine funktionierende lokale Verbindung und Route zum WireGuard-Gateway. Eine Änderung der LAN-Adresse oder ein Neustart kann deshalb auch den Fernzugriff betreffen (R11).
 
-Im VLAN 21 stehen ausserdem mobile HF-Labore mit MAAS beziehungsweise OpenShift. Bei aktiviertem Netzwerkboot besteht dadurch das Risiko einer unbeabsichtigten PXE-Installation. Als separates Netz ist VLAN 22 mit `10.0.22.0/24`, Gateway `10.0.22.1`, eigenem DHCP-Pool und den Switch-Ports 0/44 bis 0/48 vorgesehen. Laut Aufnahme vom 15.10.2026 ist es reserviert, wird aber noch nicht genutzt.
+Im VLAN 21 stehen ausserdem mobile HF-Labore mit MAAS beziehungsweise OpenShift. Bei aktiviertem Netzwerkboot besteht dadurch das Risiko einer unbeabsichtigten PXE-Installation. Als separates Netz ist VLAN 22 mit `10.0.22.0/24`, Gateway `10.0.22.1`, eigenem DHCP-Pool und den Switch-Ports 0/44 bis 0/48 vorgesehen. Es ist reserviert, wird aber noch nicht genutzt.
 
-Ein Umzug nach VLAN 22 wäre ein eigener Netzwerkänderungsschritt. Vorher wären Sicherung, neue Adressen und die betroffenen MicroK8s-Einstellungen zu prüfen. Die vorhandenen Referenzversuche erfolgten im VLAN 21; eine erfolgreiche Migration wird hier nicht behauptet.
+Die Versuche bleiben im bestehenden VLAN 21. Ein späterer Umzug nach VLAN 22 würde eine gesicherte Konfiguration, angepasste Adressen und eine erneute Prüfung von MicroK8s und Fernzugriff erfordern.
 
 #### 3.1.3 Vorgefundener Zustand auf dl380-01
 
@@ -341,7 +461,7 @@ Auf dem Zielsystem lief bei Projektbeginn bereits eine vollständige Plattform.
 
 | Komponente | Zustand |
 | --- | --- |
-| MicroK8s | v1.35.6, Einzelknoten, nicht hochverfügbar, eingerichtet am 25.08.2026 |
+| MicroK8s | v1.35.6, Einzelknoten, nicht hochverfügbar |
 | Netzwerk im Cluster | Calico |
 | Aktivierte Erweiterungen | dns, ha-cluster, helm, helm3, hostpath-storage, metrics-server, rbac, cert-manager |
 | KubeVirt | v1.9.0, Zustand `Deployed`, inklusive Export-Proxy und Vorlagenverwaltung |
@@ -355,13 +475,13 @@ Nicht vorhanden sind ein Ingress-Controller und ein Load-Balancer. Die Erreichba
 
 #### 3.1.4 Zweitsystem kvcontrol
 
-Auf `kvcontrol` läuft ein eigenständiges, vom Zielsystem getrenntes MicroK8s derselben Version, eingerichtet am 28.07.2026, ebenfalls mit KubeVirt und CDI, jedoch ohne cert-manager, Export-Proxy und Vorlagenverwaltung. Es wurden keine Test-VMs erfasst. Vorhandene Infrastrukturressourcen sind dadurch nicht ausgeschlossen.
+Auf `kvcontrol` läuft ein eigenständiges MicroK8s derselben Version. KubeVirt und CDI sind vorhanden; cert-manager, Export-Proxy und Vorlagenverwaltung fehlen gegenüber `dl380-01`. Bei der Erhebung liefen dort keine Test-VMs.
 
 `kvcontrol` dient als möglicher Ersatz. Vor seiner Nutzung ist ein eigener Referenzlauf einschliesslich Abbau erforderlich.
 
 #### 3.1.5 Einordnung der übernommenen Vorarbeit
 
-Der Kubernetes-Cluster und die KubeVirt-Installation auf beiden Systemen waren bei Projektbeginn bereits vorhanden und sind nicht Eigenleistung dieser Arbeit. Die Einrichtungsdaten, 28.07.2026 und 25.08.2026, liegen vor dem Projektstart am 14.09.2026 und sind im Cluster nachvollziehbar.
+Der Kubernetes-Cluster und die KubeVirt-Installation auf beiden Systemen waren bei Projektbeginn bereits vorhanden und sind nicht Eigenleistung dieser Arbeit. Die Einrichtung erfolgte bereits vor dem bewilligten Projektbeginn und ist im Cluster nachvollziehbar.
 
 Die Eigenleistung dieser Arbeit beginnt oberhalb dieser Plattform und umfasst:
 
@@ -381,7 +501,7 @@ Aus dem vorgefundenen Zustand ergeben sich drei Entscheide, die vor der Umsetzun
 
 | | |
 | --- | --- |
-| Status | Entschieden am 14.09.2026 |
+| Status | Entschieden |
 | Kontext | Zwei gleichwertig eingerichtete KubeVirt-Umgebungen stehen zur Verfügung |
 | Entscheid | Die Umsetzung erfolgt auf `dl380-01`, `kvcontrol` dient als Ausweichumgebung |
 
@@ -393,7 +513,7 @@ Verworfene Alternative: Zusammenschluss beider Systeme zu einem Cluster mit zwei
 
 | | |
 | --- | --- |
-| Status | Entschieden am 14.09.2026 |
+| Status | Entschieden |
 | Kontext | Der Readiness-Check muss den Testdienst in der virtuellen Maschine automatisiert erreichen. Auf dem Cluster sind weder ein Ingress-Controller noch ein Load-Balancer vorhanden |
 | Entscheid | Der Testdienst wird über einen Service vom Typ NodePort erreichbar gemacht |
 
@@ -409,7 +529,7 @@ Geprüfte Alternativen:
 
 | | |
 | --- | --- |
-| Status | Entschieden am 14.09.2026 |
+| Status | Entschieden |
 | Kontext | Zwei Speicherklassen stehen zur Verfügung |
 | Entscheid | Virtuelle Maschinen verwenden `microk8s-hostpath` |
 
@@ -419,76 +539,15 @@ Einschränkung, die bewusst in Kauf genommen wird: `microk8s-hostpath` bindet Da
 
 #### 3.1.7 Umgebung der Ausgangsmessung
 
-Die heutige Bereitstellung über LernMAAS läuft nicht auf `dl380-01`, sondern auf einer eigenen, davon vollständig getrennten Anlage. Diese wurde am 14.09.2026 lesend erhoben.
+LernMAAS läuft auf einer von `dl380-01` getrennten Anlage. Die Betriebsbeschreibung umfasst fünf Racks mit jeweils einem MAAS-Controller und sechs Virtualisierungshosts. Für die Versuche wurde Rack 5 mit Controller `cloud-au-30` und Netz `10.0.45.0/24` verwendet. Die drei Basisläufe liefen auf `cloud-au-32`, MAAS-Pod 7, in der Zone `10-1-45-0`.
 
-**Aufbau der Anlage**
+Die vier VPN-Umgebungen eines Racks werden in MAAS als Availability Zones geführt. Sie sind keine eigenen MAAS-Subnetze; die VPN-Trennung erfolgt am Gateway. Für die Versuche waren deshalb neben dem freien Maschinenbestand auch die richtige Zone und der erreichbare Endpunkt zu prüfen.
 
-Fünf Racks, je ein eigenes Netz und ein eigener MAAS-Controller:
+Als Beispiel für die bestehende Hostgeneration wurde `cloud-au-31` aufgenommen: HP ProDesk 600 G1 SFF, Intel Core i7-4790 mit acht logischen Kernen, 32 GiB RAM und einem 1-TB-Datenträger unter Ubuntu 22.04 LTS. Das ist eine andere Hardwareklasse als der DL380. Die Stromsteuerung der physischen Maschinen ist in MAAS als `Manual` erfasst; die virtuellen Maschinen werden über Virsh gesteuert.
 
-| Rack | Netz | MAAS-Controller | KVM-Hosts |
-| --- | --- | --- | --- |
-| rack-au-01 | 10.0.41.0/24 | `cloud-au-2` | `cloud-au-03` bis `cloud-au-08` |
-| rack-au-02 | 10.0.42.0/24 | `cloud-au-09` | `cloud-au-10` bis `cloud-au-15` |
-| rack-au-03 | 10.0.43.0/24 | `cloud-au-16` | `cloud-au-17` bis `cloud-au-22` |
-| rack-au-04 | 10.0.44.0/24 | `cloud-au-23` | `cloud-au-24` bis `cloud-au-29` |
-| rack-au-05 | 10.0.45.0/24 | `cloud-au-30` | `cloud-au-31` bis `cloud-au-36` |
+Bei der ersten Bestandsaufnahme wich die Reservationsliste vom erfassten Bestand in einer anderen Zone ab. Der vollständige rackübergreifende Auditexport liegt nicht im Nachweisarchiv. Dieser Befund wird deshalb nur als qualitative Beobachtung verwendet. Für die Basisläufe ist der konkrete Bestand vor und nach jedem Versuch dagegen durch gespeicherte MAAS-Abfragen belegt. Bereits vorhandene Maschinen blieben dabei unangetastet.
 
-Je Rack sieben Maschinen, ein Controller und sechs Virtualisierungshosts. Die Controller-Namen wurden auf allen fünf Racks direkt abgefragt, die Zuordnung der Hosts ist für Rack 5 geprüft und für die übrigen aus dem durchgehenden Siebenerabstand abgeleitet.
-
-Insgesamt bestehen damit fünf eigenständige MAAS-Installationen, 30 Virtualisierungshosts und 20 VPN-Umgebungen. In der Aufnahme wurde keine übergeordnete Steuerung über die Racks dokumentiert.
-
-**Hardware**
-
-Stellvertretend `cloud-au-31`:
-
-| Merkmal | Wert |
-| --- | --- |
-| Modell | HP ProDesk 600 G1 SFF |
-| CPU | Intel Core i7-4790, 8 logische Kerne |
-| Arbeitsspeicher | 32 GiB |
-| Datenträger | 1 TB, ein Datenträger |
-| Betriebssystem | Ubuntu 22.04 LTS |
-| Firmware | L01 v02.77 vom 17.04.2019, Boot-Modus PXE |
-| Stromsteuerung in MAAS | Manual |
-
-Der letzte Punkt ist für die Bewertung des heutigen Verfahrens wesentlich: MAAS kann diese Maschinen nicht selbst ein- und ausschalten. Für die virtuellen Maschinen gilt das nicht, sie werden über `Virsh` gesteuert. Automatisiert steuerbar sind damit die virtuellen Maschinen, nicht aber die physischen Systeme, auf denen sie laufen.
-
-**Netz- und Zonenmodell**
-
-Je Rack existiert in MAAS genau ein Subnetz, für Rack 5 also `10.0.45.0/24` mit MAAS-eigenem DHCP und 62 Prozent freien Adressen. Die vier VPN-Umgebungen eines Racks sind keine eigenen Subnetze, sondern Availability Zones nach dem Namensschema `10-<VPN>-<Rack>-0`. Alle Maschinen liegen im selben Subnetz; die Trennung nach VPN erfolgt ausserhalb von MAAS auf dem Gateway.
-
-Belegung in Rack 5 zum Erhebungszeitpunkt:
-
-| Zone | Maschinen |
-| --- | --- |
-| `10-1-45-0` | 0 |
-| `10-2-45-0` | 0 |
-| `10-3-45-0` | 0 |
-| `10-4-45-0` | 24 |
-| `default` | 6 Hosts, 1 Controller |
-
-Für die Ausgangsmessung ist die Zone `10-1-45-0` vorgesehen. Bei der Aufnahme war sie ohne Testmaschinen. Vor jedem neuen Lauf wird der Bestand erneut geprüft und die Zuordnung der eigenen Ressourcen gesichert.
-
-**Abweichung zwischen Reservationsliste und Systemzustand**
-
-Die zentrale Reservationsliste weist für Rack 5 alle vier Umgebungen als frei aus. In MAAS stehen jedoch 24 bereitgestellte Maschinen des Moduls m437 mit dem Merkmal `m437-ICT23d` in der Zone `10-4-45-0`, die meisten davon eingeschaltet, mit Ubuntu 24.04 LTS und Adressen von 10.0.45.75 aufwärts.
-
-Ob diese Umgebung derzeit im Unterricht verwendet wird, ist für diesen Befund nicht massgeblich. Massgeblich ist, dass die Liste sie in keinem der beiden Fälle führt: weder als belegt noch als abgeräumt. Die Belegung der Umgebungen wird damit ausserhalb des Systems geführt, und der geführte Stand weicht vom tatsächlichen ab. Die vollständige Aufnahme ist vor der abschliessenden Bewertung als Rohbeleg zu ergänzen.
-
-**Umgang mit Zugangsdaten**
-
-Die WireGuard-Konfigurationen der Umgebungen liegen als base64-kodiertes Archiv im Beschreibungsfeld der jeweiligen Availability Zone und enthalten private Schlüssel. Diese Dokumentation beschreibt den Mechanismus, gibt aber keine Inhalte wieder. Gleiches gilt für Anmeldedaten der Oberfläche und für die Klartextangaben in den cloud-init-Vorlagen des öffentlichen lerncloud-Projekts.
-
-**Gegenüberstellung**
-
-| Merkmal | LernMAAS-Umgebung | Zielplattform dieser Arbeit |
-| --- | --- | --- |
-| Hardware | HP ProDesk 600 G1, i7-4790, 8 logische Kerne, 32 GiB | HP DL380, Xeon E5-2620 v3, 24 Kerne, 125 GB |
-| Bereitstellung | MAAS mit `createvms`, Konfigurationsdatei, Shellskripte, Oberfläche | Kubernetes mit KubeVirt |
-| Steuerung | fünf getrennte Controller | ein Cluster |
-| Netzzuordnung | Availability Zones je VPN | Namensraum und Label |
-
-Der Unterschied in der Hardware ist erheblich und begründet die Trennung der Messgrössen im Messkonzept.
+Private VPN-Konfigurationen können in Zonenbeschreibungen enthalten sein. Die veröffentlichten Inventarauszüge beschränken diese Felder auf ID und Namen. Damit bleiben Ressourcen zuordenbar, ohne private Schlüssel offenzulegen.
 
 ### 3.2 IST-Analyse der heutigen Bereitstellung
 
@@ -506,9 +565,7 @@ Der Unterschied in der Hardware ist erheblich und begründet die Trennung der Me
 
 #### 3.2.2 Die zentrale Konfigurationsdatei
 
-Die am 30.09.2026 gesicherte [Originalkonfiguration](messungen/laeufe/lernmaas-basis-20260930/config-original.yaml) enthält 28 Modulprofile. Sie beschreibt VM-Grössen, Anzahl, Dienste und Modul-Repositories. Die drei ausgewählten Profile enthalten folgende Werte:
-
-Die drei für diese Arbeit massgeblichen Profile:
+Die gesicherte [Originalkonfiguration](messungen/laeufe/lernmaas-basis-20260930/config-original.yaml) enthält 28 Modulprofile. Sie beschreibt VM-Grössen, Anzahl, Dienste und Modul-Repositories. Die drei ausgewählten Profile enthalten folgende Werte:
 
 | Feld | m239 | m254 | m426 |
 | --- | --- | --- | --- |
@@ -527,7 +584,7 @@ Die drei für diese Arbeit massgeblichen Profile:
 
 Daraus lässt sich die fachliche Struktur der heutigen Beschreibung ablesen: Grösse der Maschine, Anzahl, ein Satz von Diensten als Schalter und ein Verweis auf ein Modul-Repository.
 
-Für die Einordnung ist wesentlich, dass eine deklarative Beschreibung der Lernumgebungen heute bereits existiert. Die vorliegende Arbeit erfindet sie nicht, sondern setzt an ihren Grenzen an. Diese sind:
+Die Profile enthalten bereits die zentralen fachlichen Angaben. Der PoC übernimmt daraus ausgewählte Anforderungen und ergänzt eine formale Prüfung sowie einen gemeinsamen Lebenszyklus:
 
 | Merkmal | Bestehende Beschreibung | Fachmodell und geplanter Lebenszyklus |
 | --- | --- | --- |
@@ -540,7 +597,7 @@ Für die Einordnung ist wesentlich, dass eine deklarative Beschreibung der Lernu
 
 #### 3.2.3 Verteilung der Konfiguration
 
-Die Aufnahme vom 14.09.2026 nennt getrennte Git-Arbeitsverzeichnisse auf fünf Controllern. Der vollständige Vergleichsoutput fehlt. Für die Messungen auf `cloud-au-30` ist der Stand vom 30.09.2026 über den [Repository-Commit](messungen/laeufe/lernmaas-basis-20260930/lernmaas-commit.txt) und die gesicherten Dateien nachvollziehbar. Daraus lässt sich keine Aussage über den damaligen Inhalt aller fünf Controller ableiten.
+Die Systemaufnahme nennt getrennte Git-Arbeitsverzeichnisse auf fünf Controllern. Der vollständige Vergleichsoutput fehlt. Für die Messungen auf `cloud-au-30` ist der verwendete Stand über den [Repository-Commit](messungen/laeufe/lernmaas-basis-20260930/lernmaas-commit.txt) und die gesicherten Dateien nachvollziehbar. Daraus lässt sich keine Aussage über den damaligen Inhalt aller fünf Controller ableiten.
 
 #### 3.2.4 Das Skript `createvms`
 
@@ -554,7 +611,7 @@ Der Parallelversuch zeigte ausserdem einen Teilaufbau nach einem I/O-Fehler. Der
 
 #### 3.2.5 Ablauf und Zählung der manuellen Schritte
 
-Die folgende Aufstellung ist nicht aus der Anleitung abgeleitet, sondern an einem vollständigen Durchlauf beobachtet. Dieser Lernlauf wurde am 16.09.2026 auf `cloud-au-30` in der Zone `10-1-45-0` durchgeführt, mit dem Profil m254 und einer Maschine. Er diente ausdrücklich der Ermittlung des Ablaufs und ist nicht Teil der Ausgangsmessung. Das Protokoll liegt als `docs/nachweise/lernlauf-lernmaas-00-20260916.txt` im Repository.
+Die Aufstellung stammt aus dem Lernlauf auf `cloud-au-30` in der Zone `10-1-45-0`. Verwendet wurden Profil m254 und eine Maschine. Beobachtet wurden Bedienung und Systemverhalten; die spätere Zeitvergleichsserie wird davon getrennt ausgewertet. Das [Lernlaufprotokoll](nachweise/lernlauf-lernmaas-00-20260916.txt) hält den Ablauf fest.
 
 | Nr | Schritt | Art |
 | --- | --- | --- |
@@ -586,11 +643,11 @@ Die Adresse der Maschine wechselt. Während des Commissionings lautete sie `10.0
 
 Die Erstkonfiguration wird bei jedem Lauf von Hand eingefügt. Der Bereitstellungsdialog enthält ein Textfeld für cloud-init. Der im beobachteten Dialog eingefügte Inhalt wird dadurch nicht automatisch zusammen mit dem Modulprofil versioniert oder geprüft. Ein Tippfehler wird deshalb erst erkennbar, wenn die Maschine später nicht das erwartete Verhalten zeigt.
 
-Der Lauf belegt zugleich, dass sich über dieses Textfeld derselbe prüfbare Dienst einrichten lässt wie auf der Zielplattform dieser Arbeit. Damit ist das einheitliche Endkriterium des Messkonzepts auf beiden Seiten herstellbar. Die Prüfung ergab die erwartete Antwort des Testdienstes über Port 8080. Für die Vergleichsläufe ist `lernumgebung bereit` als gemeinsamer Antwortinhalt festgelegt. Der erste KubeVirt-Versuch vom 14.09.2026 verwendete `testvm bereit`; der Referenzlauf vom 22.09.2026 lieferte bereits `lernumgebung bereit`.
+Über cloud-init lässt sich auf LernMAAS derselbe HTTP-Dienst einrichten wie auf KubeVirt und AWS. Für die Vergleichsläufe wurde deshalb `lernumgebung bereit` auf Gastport 8080 als gemeinsames Endkriterium festgelegt. Der erste KubeVirt-Versuch mit `testvm bereit` bleibt ein eigener Vorversuch.
 
 #### 3.2.6 Abbau
 
-Ein dem Aufbau entsprechender Abbaubefehl existiert nicht. Der Abbau wurde im selben Lauf beobachtet und besteht aus drei getrennten Vorgängen.
+Im beobachteten Ablauf wird der Abbau über drei getrennte Vorgänge ausgeführt:
 
 | Vorgang | Wirkung | Dauer |
 | --- | --- | --- |
@@ -599,8 +656,6 @@ Ein dem Aufbau entsprechender Abbaubefehl existiert nicht. Der Abbau wurde im se
 | Resource Pool löschen | Der beim Aufbau angelegte Pool wird entfernt | eigener Vorgang |
 
 Der wesentliche Befund lautet, dass das Freigeben keinen Abbau darstellt. Nach dem Freigeben war die Maschine weiterhin vorhanden, die Gesamtzahl unverändert bei 31, und der beim Aufbau angelegte Resource Pool `m254-da01` bestand weiter. Erst das Löschen der Maschine gab die Ressourcen des Virtualisierungshosts zurück, nachweisbar an den Werten von 10 auf 8 Kernen, von 10240 auf 8192 MB und von 60 auf 48 GB. Der Resource Pool blieb auch danach bestehen und musste getrennt entfernt werden.
-
-Im protokollierten Ablauf wurde der Abbau über getrennte Aktionen vorgenommen. Ein abschliessender automatisierter Ressourcenabgleich ist darin nicht nachgewiesen.
 
 Eine weitere Beobachtung betrifft die Nachweisführung selbst: Die Ereignisabfrage von MAAS löst über den Hostnamen auf. Nach dem Löschen der Maschine lieferte sie keine Daten mehr. Nachweise müssen deshalb erhoben werden, solange die Objekte bestehen. Diese Regel wurde in die Messprotokollvorlage übernommen.
 
@@ -615,28 +670,19 @@ Eine weitere Beobachtung betrifft die Nachweisführung selbst: Die Ereignisabfra
 | Eine Umgebung kann teilweise entstehen | parallel01 | Ressourcen sofort erfassen und Teilfehler bereinigbar halten |
 | Die manuelle Reservationsliste und der erfasste Bestand wichen voneinander ab | Eigene Aufnahme, vollständiger Auditexport offen | Grenzen der bestehenden Organisation benennen |
 
-Die Aussagen zur Skriptlogik beziehen sich auf den gesicherten Stand vom 30.09.2026; der I/O-Fehler ist davon getrennt zu betrachten.
+Die Aussagen zur Skriptlogik beziehen sich auf den gesicherten Stand; der I/O-Fehler ist davon getrennt zu betrachten.
 
 #### 3.2.8 Quellen und Umgang mit internen Unterlagen
 
-| Quelle | Art | Verwendung |
-| --- | --- | --- |
-| `mc-b/lernmaas`, insbesondere `helper/README.md` und `config.yaml` | öffentlich, GitHub | Ablauf, Aufrufsyntax, Einschränkungen der Hilfsskripte |
-| `mc-b/lerncloud` | öffentlich, GitHub | Dienste und Erstkonfiguration der Lernumgebungen |
-| Kurzanleitung TBZ-Cloud, Marcel Bernet, V1.0 | intern | Aufbau der Netze und des WireGuard-Zugangs |
-| Erhebung auf den fünf MAAS-Controllern am 14.09.2026 | eigene Aufnahme | Zustand, Profile, Prüfsummen, Zonenbelegung |
-| Reservationsliste LernMAAS TBZ | intern | Belegung der VPN-Umgebungen |
-| Betriebsunterlagen in Teams, SharePoint und dem internen GitLab | intern | Hintergrund zu Betrieb und Upgrade-Planung |
+Die Analyse stützt sich auf das öffentliche Repository [LernMAAS](https://github.com/mc-b/lernmaas), das Projekt [Lerncloud](https://github.com/mc-b/lerncloud), die internen Unterlagen zum TBZ-Cloud-Zugang sowie eigene Beobachtungen und Protokolle. Für die untersuchte Skriptlogik sind die gesicherte Konfiguration und die installierte Version von `createvms` massgeblich.
 
-Die LernMAAS-Umgebung wurde für die Versuche freigegeben. Interne Unterlagen und Zugangsdaten werden im öffentlichen Repository nicht wiedergegeben.
+Interne Betriebsunterlagen und Reservationslisten werden in eigenen Worten eingeordnet. Zugangsdaten und private VPN-Konfigurationen werden nicht veröffentlicht. Die Aufbereitung der öffentlichen Inventarauszüge ist im betreffenden Laufordner dokumentiert.
 
-Zur Einordnung dieser Befunde: Das heutige Verfahren ist seit Jahren im Einsatz und erfüllt den Zweck, für den es gebaut wurde, nämlich die wiederkehrende Bereitstellung von Übungsumgebungen auf einer bekannten Anlage durch Personen, die diese Anlage kennen. Die Befunde beschreiben Grenzen dieses Verfahrens gemessen an einer anderen Anforderung, der plattformübergreifenden und nachvollziehbaren Bereitstellung, und nicht Mängel in dessen Umsetzung.
-
-Für interne Unterlagen gilt in dieser Arbeit eine feste Regel: Sie werden benannt und mit Ablageort referenziert, aber nicht wiedergegeben. Weder Bildschirmfotos ihrer Inhalte noch kopierte Adress- oder Schlüsseltabellen sind Teil dieser Dokumentation. Grund ist, dass das Repository dieser Arbeit öffentlich ist. Aussagen aus internen Quellen werden in eigenen Worten formuliert und, wo möglich, durch eine eigene Erhebung belegt.
+Das bestehende Verfahren erfüllt die lokale Unterrichtsbereitstellung. Die hier beschriebenen Grenzen beziehen sich auf die zusätzliche Anforderung dieser Arbeit: dieselbe fachliche Definition auf unterschiedlichen Plattformen zu verwenden und den gesamten Lebenszyklus gemeinsam zu steuern.
 
 ### 3.3 Ableitung der Test-Lernumgebung
 
-Die Testumgebung übernimmt ausgewählte Merkmale aus m239, m254 und m426. Sie bildet keine vollständigen Unterrichtsmodule nach. Eine einzelne VM genügt, um den gemeinsamen Lebenszyklus auf beiden Plattformen zu prüfen.
+Die drei Profile unterscheiden sich bei Arbeitsspeicher, Datenträgergrösse und Diensten. Für einen Plattformvergleich habe ich daraus einen gemeinsamen technischen Testfall abgeleitet: eine Ubuntu-VM, SSH-Zugang und ein HTTP-Dienst mit festem Antwortinhalt. Damit lassen sich Erstellung, Nutzbarkeit, Reset und Abbau prüfen, ohne komplette Unterrichtsmodule nachzubauen.
 
 | Merkmal | Festlegung für neue Läufe | Herleitung und Grenze |
 | --- | --- | --- |
@@ -649,7 +695,7 @@ Die Testumgebung übernimmt ausgewählte Merkmale aus m239, m254 und m426. Sie b
 | Dienst | HTTP, Gastport 8080 | Status 200 und Antwort `lernumgebung bereit`, abschliessender Zeilenumbruch zulässig |
 | Nutzbarkeit | VM läuft und Dienstprüfung erfolgreich | Externe Adresse und Port sind plattformspezifisch |
 
-Der erste KubeVirt-Versuch vom 14.09.2026 verwendete 2 GiB RAM und 10 GiB Datenträger. Der erfolgreiche Referenzlauf vom 22.09.2026 verwendete bereits 12 GiB und den gemeinsamen HTTP-Antwortinhalt `lernumgebung bereit`. Die Vergleichsläufe verwenden ebenfalls den festgelegten Systemdatenträger von 12 GiB. Bei EC2 sind CPU und RAM an Instanztypen gebunden. Der Adapter ordnet die Mindestanforderung einem unterstützten Typ zu und protokolliert dessen tatsächliche Kapazitäten. Für MAAS werden die Einheiten des verwendeten API-Aufrufs vor der Messung geprüft. Ungültige oder nicht unterstützte Anforderungen werden vor der Bereitstellung abgewiesen.
+Der erste KubeVirt-Versuch verwendete 2 GiB RAM und 10 GiB Datenträger. Der erfolgreiche Referenzlauf verwendete bereits 12 GiB und den gemeinsamen HTTP-Antwortinhalt `lernumgebung bereit`. Die Vergleichsläufe verwenden ebenfalls den festgelegten Systemdatenträger von 12 GiB. Bei EC2 sind CPU und RAM an Instanztypen gebunden. Der Adapter ordnet die Mindestanforderung einem unterstützten Typ zu und protokolliert dessen tatsächliche Kapazitäten. Für MAAS werden die Einheiten des verwendeten API-Aufrufs vor der Messung geprüft. Ungültige oder nicht unterstützte Anforderungen werden vor der Bereitstellung abgewiesen.
 
 NFS, Samba, Docker, Kubernetes innerhalb der Gast-VM und die Modul-Repositories werden nicht übernommen. Ihre bestehende Einbindung würde zusätzlichen Konfigurationsaufwand erzeugen, der für den Lebenszyklusnachweis nicht nötig ist. Diese Dienste wären grundsätzlich auch in der Cloud möglich.
 
@@ -657,123 +703,110 @@ Die festgelegte Spezifikation bildet die Grundlage der Basis- und PoC-Läufe. F�
 
 ### 3.4 Messkonzept
 
-Das Messkonzept legt die gemeinsamen Bedingungen für den Plattformvergleich fest. Der [Messplan](#messplan) beschreibt Vorbereitung, Ablauf und erforderliche Nachweise.
+Die technische Gesamtdauer und der notwendige Bedienaufwand beantworten unterschiedliche Fragen. Eine schnelle Maschine kann lange manuelle Arbeit nicht ausgleichen; umgekehrt kann ein automatisierter Ablauf trotz längerer Wartezeit weniger Bedienung benötigen. Deshalb werden beide Grössen getrennt betrachtet. Der [Messplan](#51-messplan) setzt diese Regeln in einen Ablauf um.
 
 #### 3.4.1 Vergleich und Messgrenzen
 
-LernMAAS, KubeVirt und AWS verwenden unterschiedliche Hardware und teilweise unterschiedliche Abbildwege. Verglichen werden deshalb vor allem die notwendigen Bedienhandlungen und die aktive Bedienzeit. Gesamtdauer, technische Wartezeit, Fehler und Ressourcenreste werden zusätzlich ausgewiesen. Laufzeiten erlauben keine isolierte Aussage über den Nutzen der Automatisierung.
+Vor jedem Lauf sind Zugang, Werkzeuge und Basisinfrastruktur vorbereitet. Einmalige Einrichtung und Reservation liegen ausserhalb der Zeitmessung. Für die konkrete Lernumgebung bestehen noch keine Ressourcen. Abbildversion, Hardware und bekannte Cache- oder Lastbedingungen werden festgehalten.
 
-Vor einem Lauf sind Zugang, Werkzeuge, Berechtigungen und die dokumentierte Basisinfrastruktur vorbereitet. Die nötige Reservation ist erledigt. Einmaliger Einrichtungsaufwand und Reservation werden separat erfasst und auf keiner Seite in die Laufzeit eingerechnet. Es bestehen noch keine Ressourcen der konkreten Lernumgebung. Abbildcache und Hintergrundlast werden notiert und während einer Serie möglichst gleich gehalten.
+Die Aufbaudauer beginnt unmittelbar vor der ersten wiederkehrenden Bedienhandlung und endet bei der ersten beobachteten erfolgreichen HTTP-Antwort. Erwartet werden Status 200 und `lernumgebung bereit`; ein abschliessender Zeilenumbruch ist zulässig. Die VM muss zusätzlich laufen. Gastport 8080 und der tatsächlich erreichbare Prüfendpunkt werden getrennt erfasst, beispielsweise bei einem NodePort-Service.
 
-Die Zeitnahme beginnt unmittelbar vor der ersten wiederkehrenden Bedienhandlung zur Bereitstellung, also gegebenenfalls bereits vor dem Eingeben des Befehls. Sie endet bei der ersten automatisch protokollierten erfolgreichen Dienstprüfung. Der Beobachter prüft alle zwei Sekunden; Verbindungs- und HTTP-Timeouts sind begrenzt. Erfasst wird der Zeitpunkt der Antwort. Tatsächliche Dienstbereitschaft kann bis zum nächsten Prüfversuch früher eingetreten sein.
-
-Gastport 8080 und erreichbarer Endpunkt werden getrennt geführt. KubeVirt kann beispielsweise NodePort 30080 verwenden. Gleich ist das fachliche Endkriterium: Die VM läuft, HTTP liefert Status 200 und den vereinbarten Inhalt.
+Der HTTP-Beobachter prüft standardmässig alle zwei Sekunden mit begrenzter Anfragezeit. Die Bereitschaft kann zwischen zwei Prüfungen eintreten. Die angegebenen Zeitstempel bezeichnen daher den Beobachtungszeitpunkt. Abweichende Intervalle historischer Versuche stehen beim jeweiligen Ergebnis.
 
 #### 3.4.2 Bedienhandlungen und Zeit
 
-Eine Bedienhandlung ist eine bewusste Aktion der Person: einen vollständigen Befehl eingeben und ausführen, einen Dialog öffnen, ein Feld beziehungsweise zusammengehörige Werte setzen, eine Auswahl bestätigen oder eine manuelle Prüfung starten. Automatische API-Aufrufe, Polling und interne Skriptschritte zählen nicht als menschliche Handlungen. Ein Befehlsblock wird nicht künstlich in einzelne Tastendrücke zerlegt. Zusammengefasste GUI-Aktionen werden nach derselben Regel gezählt.
+Als Bedienhandlung zählt eine bewusste Aktion, etwa ein ausgeführter Befehl, das Öffnen eines Dialogs oder das Setzen zusammengehöriger Eingaben. Automatische API-Aufrufe und Polling zählen nicht dazu. Befehlsblöcke werden nicht in einzelne Tastendrücke zerlegt.
 
-Jede Handlung erhält Beginn, Ende, Zweck und Lifecycle-Phase. Aktive Bedienzeit wird mit einem eigenen Zeitmesser oder anhand einer zeitgestempelten Aufzeichnung erfasst. Warten nach einem Befehl zählt nicht als aktive Arbeit. Überlappende technische Phasen werden nicht addiert. Aufbau, Reset und Abbau werden getrennt ausgewertet. Zusätzliche Eingriffe zur Fehlerkorrektur erhalten eine eigene Kennzeichnung.
+Für Aufbau, Reset und endgültigen Abbau werden aktive Bedienzeit und Handlungszahl getrennt erfasst. Technisches Warten pausiert die aktive Zeitnahme. Zusätzliche Fehlerkorrekturen werden eigens notiert. Die verstrichene Laufzeit eines Befehls ist deshalb keine Messung der aktiven Arbeit.
 
-Die Handlungsliste ist weitgehend unabhängig von der Rechenleistung. Erfolg, Readiness und Abbau können durch Hardware, Netzwerk und Berechtigungen beeinflusst werden. Diese Einflüsse werden als Kontext erfasst.
-
-**Abweichende Erfassung in der Basisserie vom 07.10.2026:** Für b01 wurden Stoppuhrwerte vom Diplomanden gemeldet. Bei b02 und b03 wurde derselbe Bedienzeitansatz von insgesamt 55 s übernommen und in den CSV-Dateien als solcher gekennzeichnet. Die Anzahl der Bedienhandlungen und eine zeitgestempelte Handlungsliste fehlen. Die übernommenen Werte werden bei der Auswertung nicht als unabhängige Messungen behandelt; die verstrichenen Aufbau- und Abbauzeiten stammen für jeden Lauf aus eigenen UTC-Zeitstempeln.
+Die tatsächliche Erfassung der LernMAAS-Basisserie weicht davon ab. Die Herkunft der übernommenen Bedienzeiten und die Konsequenzen für den Vergleich sind einmalig bei den [Ergebnissen der Basisserie](#lernmaas-basisserie) beschrieben.
 
 #### 3.4.3 Umfang der Serien
 
-Drei LernMAAS-Basisläufe mit Aufbau, Dienstprüfung und geprüftem MAAS-Ressourcenabschluss wurden am 07.10.2026 durchgeführt, siehe [Basisserie](#lernmaas-basisserie-20261007). Die Bedienzeit von b01 wurde bei b02 und b03 übernommen; die Handlungszahl ist offen. Hinzu kommen die sechs im Antrag geforderten PoC-Läufe: drei auf KubeVirt und drei auf AWS. Ein PoC-Lauf umfasst create, status, Readiness, reset, status, erneute Readiness, delete und Ressourcenprüfung. Reset enthält einen vollständigen Abbau und eine Neuerstellung aus demselben gespeicherten Modell.
+Die Vergleichsbasis besteht aus drei LernMAAS-Läufen. Nach der Umsetzung folgen drei vollständige PoC-Läufe auf KubeVirt und drei auf AWS. Ein PoC-Lauf umfasst create, status und Readiness, danach reset mit erneutem status und Readiness sowie delete und Ressourcenprüfung. Reset verwendet den unveränderten gespeicherten Modell-Snapshot und erstellt erst nach bestätigtem Abbau neu.
 
-Die drei aufeinanderfolgenden PoC-Läufe pro Plattform müssen ohne korrigierenden manuellen Eingriff bestehen. Ein fehlgeschlagener Versuch bleibt dokumentiert. Nach einer Fehlerkorrektur beginnt die Serie für die betroffene Plattform erneut; Fehlversuche werden nicht gelöscht. Smoke-Tests, Referenzversuche und Lernläufe zählen nicht zu diesen neun Vergleichsläufen.
+Die drei PoC-Läufe je Plattform müssen aufeinanderfolgend ohne manuelle Korrektur bestehen. Nach einem Fehler und seiner Behebung beginnt die Serie dieser Plattform neu; Fehlversuche bleiben dokumentiert. Lern- und Smoke-Tests zählen nicht zu den formalen Serien.
 
-Für den Vorher-Nachher-Vergleich werden die gemeinsamen Phasen Aufbau bis Readiness und endgültiger Abbau verwendet. Der PoC-Reset wird zusätzlich als Funktionsnachweis ausgewertet und nicht mit einer fehlenden MAAS-Reset-Messung verrechnet. Bei drei Läufen sind Minimum, Median und Maximum sinnvoll. Allgemeine Zuverlässigkeit oder statistische Signifikanz lassen sich daraus nicht ableiten.
+Für den Vorher-Nachher-Vergleich werden Aufbau bis Readiness und endgültiger Abbau gegenübergestellt. Reset wird als zusätzliche Funktion separat ausgewertet. Minimum, Median und Maximum beschreiben die drei Beobachtungen; eine allgemeine Zuverlässigkeit lässt sich daraus nicht ableiten.
 
 #### 3.4.4 Vollständiger Abbau
 
-Vor dem Löschen wird ein Inventar der erzeugten Ressourcen gesichert. Es enthält Typ, Name oder ID, Plattform, Laufkennung, Besitz und gegebenenfalls abhängige Ressourcen. Gemeinsame Basisressourcen werden ausdrücklich getrennt ausgewiesen.
+Vor dem Löschen wird ein Inventar mit Laufkennung, Ressourcentyp, Name oder ID und Abhängigkeiten gesichert. Gemeinsame Basisressourcen sind darin von den erzeugten Testressourcen getrennt.
 
-Auf KubeVirt werden VM, VMI, DataVolume, PVC, Service und laufbezogene Folgeobjekte geprüft. Der Name des gebundenen PV wird vor dem PVC-Abbau aus `spec.volumeName` gesichert. PVs sind clusterweit und brauchen eine getrennte Abfrage. `kubectl get all` und eine Labelabfrage erfassen nicht automatisch alles. [Kubernetes Persistent Volumes](https://kubernetes.io/docs/concepts/storage/persistent-volumes/)
+| Plattform | Prüfung des Endzustands |
+| --- | --- |
+| KubeVirt | VM, VMI, DataVolume, PVC, Service und zugeordnete Folgeobjekte sind entfernt. Der gebundene PV wird vor dem PVC-Abbau ermittelt und anschliessend clusterweit geprüft. |
+| AWS | Die Instanz ist `terminated`; erzeugte Volumes, Interfaces und weitere laufbezogene Ressourcen sind entfernt oder freigegeben. Die Prüfung verwendet gespeicherte IDs und ergänzende Suchabfragen. |
+| LernMAAS | Testmaschine und Testpool sind entfernt. Die gemeldete Hostzuteilung und der vorherige Maschinenbestand werden verglichen. |
 
-Auf AWS werden alle im Lauf erzeugten Ressourcentypen über die gespeicherten IDs und ergänzende Suchabfragen geprüft. Eine terminierte EC2-Instanz kann noch in API-Antworten erscheinen; der dokumentierte Endzustand ist dort `terminated`. Zugeordnete laufbezogene Volumes, Adressen und weitere erzeugte Objekte müssen entfernt beziehungsweise freigegeben sein. Tags helfen bei der Zuordnung, ersetzen das Inventar aber nicht. Die Tagging API erfasst keine ungetaggten Ressourcen. [AWS GetResources](https://docs.aws.amazon.com/resourcegroupstagging/latest/APIReference/API_GetResources.html)
+Ein PV ist clusterweit und wird durch eine Namespace-Abfrage nicht vollständig erfasst. Tags unterstützen in AWS die Suche, erfassen aber nicht alle Ressourcen. Deshalb reichen weder `kubectl get all` noch eine Tag-Abfrage allein aus. Die Grundlagen sind in der [PV-Dokumentation](https://kubernetes.io/docs/concepts/storage/persistent-volumes/) und der [AWS-Referenz zu GetResources](https://docs.aws.amazon.com/resourcegroupstagging/latest/APIReference/API_GetResources.html) beschrieben.
 
-Auf MAAS werden Maschine und laufbezogener Resource Pool geprüft. Bei allen Plattformen gilt: Eine fehlgeschlagene Abfrage, fehlende Berechtigung oder ein Timeout ist kein Nachweis für Abwesenheit. Die konkrete Zeitgrenze wird vor der Messserie festgelegt. Nach Überschreitung werden Restressourcen protokolliert und der Lauf als fehlgeschlagen gewertet.
+Fehlende Berechtigung, eine fehlgeschlagene Abfrage und ein Timeout werden als Fehler gewertet. Sie gelten nicht als leerer Bestand. Nach Ablauf der vorab festgelegten Zeitgrenze werden bekannte Restressourcen im Ergebnis aufgeführt.
 
 ### 3.5 Ausgangsaufnahme des heutigen Verfahrens
 
-Die vorhandenen Protokolle dienen der Ablaufanalyse. Für einen Zeitvergleich fehlen durchgängige HTTP-Prüfungen, separat erfasste Bedienzeiten und vollständige Abbaunachweise.
+Die ersten Versuche dienten dazu, Ablauf und Fehlerfälle zu verstehen. Daraus wurden die spätere Referenzdefinition und die gemeinsamen Messgrenzen entwickelt.
 
-| Versuch | Was belegt ist | Was fehlt |
+| Versuch | Beobachtung | Verwendung in der Arbeit |
 | --- | --- | --- |
-| LernMAAS `lernmaas-00`, 16.09.2026 | Ablauf und 569 Sekunden bis `Deployed` | Zeitstempel der ersten HTTP-Bereitschaft, gemessene aktive Arbeit, vollständiger Ressourcenabschluss |
-| LernMAAS `mess01`, 16.09.2026 | 673 Sekunden bis `Deployed`; erfolgreiche HTTP-Prüfung nach 797 Sekunden dokumentiert | Laufendes Polling; damit kein genauer Zeitpunkt der ersten Bereitschaft, aktive Bedienzeit und vollständiger Abbaunachweis |
-| LernMAAS `parallel01`, 16.09.2026 | Teilaufbau: eine von zwei Maschinen, I/O-Fehler auf cloud-au-36 | Abschliessendes Ressourceninventar und Bereinigungsnachweis |
-| KubeVirt `testlauf-01`, 14.09.2026 | Laufende VM und erreichbarer HTTP-Dienst | Eindeutige Zeitgrenzen, unveränderte Laufdefinition, SSH-Nachweis und vollständiger Abbaunachweis |
+| LernMAAS `lernmaas-00` | 569 s bis `Deployed`; der HTTP-Prüfung fehlt ein Zeitstempel | Grundlage für die beobachteten Bedienhandlungen und den getrennten Abbau |
+| LernMAAS `mess01` | 673 s bis `Deployed`, HTTP-Erfolg nach 797 s geprüft | Zeigt, weshalb `Deployed` und Dienstbereitschaft unterschiedliche Endpunkte sind |
+| LernMAAS `parallel01` | Eine von zwei Maschinen angelegt, I/O-Fehler auf `cloud-au-36` | Grundlage für die Erfassung und Bereinigung von Teilressourcen |
+| KubeVirt `testlauf-01` | Laufende VM und HTTP-Antwort | Erster Machbarkeitsversuch vor dem vollständigen Referenzlauf |
 
-Bei `mess01` liegt der Start bei 14:52:11, `Deployed` bei 15:03:24 und die protokollierte HTTP-Prüfung bei 15:05:28. Die 797 Sekunden bezeichnen den Abstand bis zu dieser Prüfung. Der Dienst kann früher bereit gewesen sein. Beim Lernlauf fehlt der entsprechende HTTP-Zeitstempel ganz.
-
-Die Dauer von `createvms` ist keine aktive Bedienzeit. Commissioning begann in beiden Versuchen vor dem Ende des Befehls, weshalb eine Summe der technischen Phasen die Gesamtdauer überschreitet. Die Phasen lassen sich deshalb nicht als unabhängige Anteile der Gesamtdauer auswerten. Aus den einzelnen Versuchen lässt sich auch keine stabile Laufzeit ableiten.
-
-Der Parallelversuch zeigt einen teilweise erfolgreichen Aufbau. Im Protokoll steht beim zweiten Host ein I/O-Fehler während der Anlage eines Datenträgers. Daraus folgt die Anforderung, Teilressourcen zu erfassen, einen Fehler zurückzugeben und einen erneuten Abbau zu ermöglichen. Der Versuch belegt weder einen Fehler der Eingabevalidierung noch eine erfolgreiche Bereinigung.
-
-Eine unveränderte Zahl manueller Schritte bei 24 Maschinen ist bisher nur eine Vermutung aus dem Sammelablauf. Einzelprüfungen und Teilfehler können zusätzlichen Aufwand verursachen. Ein Klassengrössenversuch wird für den vereinbarten Einzel-VM-PoC nicht zusätzlich eingeplant.
-
-Die Rohprotokolle dokumentieren die beobachteten Versuche. Ihre Aussagegrenzen sind im [Nachweisverzeichnis](#nachweise) und im [Messplan](#messplan) festgehalten.
+Diese Protokolle enthalten keine vergleichbare Serie mit vollständigen Zeit- und Bedienmessungen. Insbesondere ist die spätere einzelne HTTP-Prüfung bei `mess01` kein genauer Zeitpunkt der ersten Dienstbereitschaft. Der Parallelversuch enthält zudem keinen abschliessenden Bereinigungsnachweis. Die Originalprotokolle bleiben im [Nachweisverzeichnis](#nachweise-und-aussagegrenzen) erreichbar; für die Vergleichsbasis werden die drei LernMAAS-Basisläufe verwendet.
 
 ### 3.6 Auswahl der Public-Cloud-Plattform
 
 #### 3.6.1 Entscheid für AWS
 
-Ich verwende AWS als zweite Zielplattform, weil das Learner Lab verfügbar ist und ich AWS aus dem Lehrgang kenne. EC2 bietet die benötigten Operationen über eine API; der spätere Adapter soll Boto3 verwenden. Der [Smoke-Test vom 13.10.2026](#aws-smoke-20261013) bestätigt Zugang, Erstellung, Zustandsabfrage und Abbau einer Referenz-VM.
-
 **ADR-004: AWS als zweite Zielplattform**
 
-| Aspekt | Entscheid und Prüfstand vom 13.10.2026 |
-| --- | --- |
-| Technische Umsetzung | EC2 unterstützt die reduzierte Referenz-VM. Die benötigten CLI-Aufrufe für Erstellung, Abfragen und Abbau waren erfolgreich. Boto3-, Agenten- und MCP-Anbindung folgen in der Umsetzung. |
-| Zugang und Einarbeitung | AWS Academy Learner Lab ist verfügbar; Anmeldung mit temporären Zugangsdaten und Rolle `voclabs` geprüft. Eigene AWS-Vorkenntnisse erleichtern die Einarbeitung. |
-| Kostenrahmen | Das Lab zeigt ein Guthaben von USD 50. Das private Limit von CHF 50 aus dem Antrag bleibt ein separater Rahmen; Lab-Guthaben und private Ausgaben werden nicht gleichgesetzt. |
-| Vollständiger Abbau | VM, EBS-Datenträger, Netzwerkinterface und eigene Security Group wurden über ihre gespeicherten IDs geprüft. |
+Ich verwende AWS, weil der Zugang über das Academy Learner Lab vorhanden ist und ich die Plattform aus dem Lehrgang kenne. EC2 bietet die benötigten Aufrufe zum Erstellen, Abfragen und Beenden einer VM. Für den späteren Python-Adapter ist Boto3 vorgesehen.
 
-Der Antrag nennt einen Student-Account. Konkret wird das AWS Academy Learner Lab als Ausbildungszugang genutzt. Seine Dienst-, Sitzungs- und Budgetbeschränkungen unterscheiden sich von einem regulären AWS-Konto. Das ändert die ausgewählte Zielplattform nicht; der Zugang und seine Grenzen werden deshalb ausdrücklich ausgewiesen.
+Der Smoke-Test hat diese Auswahl praktisch bestätigt: Die Referenz-VM konnte erstellt, über SSH und HTTP erreicht und mit ihren abhängigen Ressourcen entfernt werden. Damit steht für den PoC eine zweite ausführbare Zielplattform zur Verfügung. Ein zusätzlicher Anbieter würde den Umfang erhöhen, ohne den vorgesehenen Nachweis zu erweitern.
+
+Der bewilligte Antrag nennt einen Student-Account. Tatsächlich wird das AWS Academy Learner Lab als Ausbildungszugang mit temporären Zugangsdaten und eingeschränkten Diensten verwendet. Diese Konkretisierung des Zugangs und seine Bedingungen sind nachfolgend dokumentiert. Das private Kostenlimit von CHF 50 bleibt vom angezeigten Lab-Guthaben von USD 50 getrennt.
 
 #### 3.6.2 Kontobedingungen und Kostenkontrolle
 
-Die folgenden Grenzen stammen aus der im Lab bereitgestellten Readme, Stand 24.06.2025, eingesehen am 13.10.2026. Der erfolgreiche Einzel-VM-Test bestätigt die benötigten Operationen, nicht die Ausschöpfung sämtlicher Quotas.
+Die Lab-Bedingungen wurden anhand der bereitgestellten Readme, Stand 24.06.2025, geprüft. Der praktische Test bestätigt die für eine einzelne Referenz-VM benötigten Rechte.
 
-| Bedingung | Stand im verwendeten Learner Lab |
+| Bedingung | Verwendeter Stand |
 | --- | --- |
-| Region | Erlaubt sind `us-east-1` und `us-west-2`; der Test verwendet `us-east-1`. |
-| EC2 | On-Demand, Grössen nano bis large; höchstens neun gleichzeitig laufende Instanzen und 32 vCPU je unterstützter Region laut Lab-Anleitung. |
-| Datenträger | Bis 100 GiB; unter anderem `gp2` und `gp3` erlaubt. Der Test nutzt 12 GiB `gp3`. |
-| Abbild und Zugriff | Offizielles Ubuntu-24.04-Abbild von Canonical, vorhandenes Schlüsselpaar `vockey`; die tatsächlich verwendete Identität ist protokolliert. |
-| Sitzung | Beim Start zeigte der Timer 03:59; eine Sitzung ist auf ungefähr vier Stunden begrenzt und kann über Start Lab verlängert werden. |
-| Ressourcen zwischen Sitzungen | Ressourcen bleiben erhalten. EC2-Instanzen werden beim Sitzungsende gestoppt und können beim nächsten Start wieder anlaufen. End Lab ersetzt den vollständigen Abbau nicht. |
-| Guthaben und Verbrauch | Anzeige USD 50 Gesamtbudget, nach dem Test angezeigter Verbrauch USD 0. Laut Lab-Anleitung wird die Anzeige typischerweise alle acht bis zwölf Stunden aktualisiert. |
+| Konto und Rolle | AWS Academy Learner Lab mit temporären Zugangsdaten und Rolle `voclabs` |
+| Region | `us-east-1`; laut Lab-Anleitung ist auch `us-west-2` erlaubt |
+| EC2 | On-Demand, unterstützte Grössen nano bis large; laut Anleitung höchstens neun gleichzeitig laufende Instanzen und 32 vCPU je unterstützter Region |
+| Speicher | Bis 100 GiB je Volume laut Anleitung, unter anderem `gp2` und `gp3`; im Test 12 GiB `gp3` |
+| Abbild und Zugang | Ubuntu 24.04 von Canonical, vorhandenes Schlüsselpaar `vockey` |
+| Sitzung | Starttimer 03:59; ungefähr vier Stunden, über Start Lab verlängerbar |
+| Sitzungsende | Ressourcen bleiben grundsätzlich erhalten. EC2-Instanzen werden gestoppt und können beim nächsten Start wieder anlaufen. Der vollständige Abbau erfolgt deshalb vor End Lab. |
 
-Die erste CLI-Abfrage verwendete die Infrastrukturrolle des Webterminals statt des Lab-Kontos. Ein eigenes Zugangsprofil und die Prüfung der Konto-ID vor Änderungen stellten anschliessend den richtigen Zugang sicher. Die temporären Zugangsdaten und privaten SSH-Schlüssel liegen ausserhalb der Nachweisablage.
+Beim ersten CLI-Aufruf wurde die Infrastrukturrolle des Webterminals verwendet. Ein eigenes Zugangsprofil und die Prüfung der Konto-ID stellten anschliessend den richtigen Zugang sicher. Temporäre Zugangsdaten und private SSH-Schlüssel sind ausserhalb der veröffentlichten Nachweise abgelegt.
 
-Die Anzeige USD 0 unmittelbar nach dem Test belegt keine kostenlosen Ressourcen und keine tatsächlichen Gesamtkosten von null. Die spätere Kostenansicht vom 15.10.2026 zeigt USD 0,92 für den historischen Zeitraum 29.06. bis 15.10.2026. Dieser Betrag ist dem Smoke-Test nicht eindeutig zuzuordnen. Die Preisabschätzung und eine ausgewiesene CHF-Umrechnung stehen in Kapitel 3.6.4. Das Ablaufdatum des Lab-Zugangs beziehungsweise Guthabens ist noch offen. Eine Budgetwarnung ist keine harte Kostensperre. Die Lab-Anleitung nennt dagegen eine Deaktivierung des Kontos bei Überschreitung des Guthabens.
+Das konkrete Ablaufdatum des Lab-Zugangs beziehungsweise Guthabens ist nicht bekannt. Sitzungstimer und Kostenbudget geben darüber keine Auskunft. Dieser Prüfstand ist in US14 und US15 festgehalten; beide Stories sind abgeschlossen.
 
-Der technische Smoke-Test ist abgeschlossen. Er ersetzt weder den automatisierten AWS-Durchstich in Sprint 2 noch die drei formalen AWS-Läufe. US14 und US15 besitzen damit einen praktischen Nachweis; ihre noch offenen Kosten- und Guthabenbedingungen bleiben vor dem vollständigen Story-Abschluss zu klären.
+#### 3.6.3 Budgetwarnungen und Kostenstand
 
-#### 3.6.3 Budgetwarnungen und Kostenstand vom 15.10.2026 {#aws-budget-20261015}
-
-Am 15.10.2026 habe ich das Kostenbudget `diplomarbeit-gesamt` eingerichtet. Der [CSV-Export](nachweise/aws-budget-20261015/budgets.csv) bestätigt Betrag, Zeitraum und Status `HEALTHY`. Die Warnschwellen wurden in der Konsole kontrolliert.
+Ich habe das Budget `diplomarbeit-gesamt` eingerichtet. Der [CSV-Export](nachweise/aws-budget-20261015/budgets.csv) bestätigt Betrag, Zeitraum und Status `HEALTHY`.
 
 | Einstellung | Stand |
 | --- | --- |
-| Budget | USD 50 für den Zeitraum 15.10.2026 bis 01.02.2027 gemäss Export |
-| Warnungen | 50 und 80 Prozent der tatsächlichen Kosten, entsprechend USD 25 und USD 40 |
-| Benachrichtigung | Eigene E-Mail-Adresse hinterlegt; Bestätigung und Zustellung noch nicht geprüft |
-| Aktionen | Keine automatische Abschaltung eingerichtet |
-| Kostenanzeige | Historisch USD 0,92 für 29.06. bis 15.10.2026; aktuelle Budgetkosten im CSV noch ohne Betrag |
+| Budget | USD 50, Zeitraum 15.10.2026 bis 01.02.2027 gemäss Export |
+| Warnschwellen | 50 und 80 Prozent der tatsächlichen Kosten, entsprechend USD 25 und USD 40 |
+| Empfänger | Eigene E-Mail-Adresse; aktive Benachrichtigung bestätigt |
+| Automatische Aktionen | Keine automatische Abschaltung eingerichtet |
+| Historische Kontokosten | USD 0,92 für 29.06. bis 15.10.2026; keine eindeutige Zuordnung zum einzelnen Smoke-Test |
 
-Das Budget beginnt nach dem Smoke-Test und gilt über das geplante Projektende hinaus. Seine Laufzeit sagt nichts über das Ablaufdatum des Lab-Zugangs aus. Die USD-Warnungen und das private Limit von CHF 50 werden getrennt betrachtet.
+Die Einrichtung und der aktive Empfänger sind bestätigt. Eine tatsächlich ausgelöste Warnzustellung wurde nicht getestet. Budgetwarnungen sind keine harte Kostensperre. Laut Lab-Anleitung führt dagegen eine Überschreitung des Lab-Guthabens zur Deaktivierung des Kontos.
 
-Die USD 0,92 lassen sich dem einzelnen Smoke-Test nicht zuordnen. Auch die gespeicherten Kostenfilter sind im Export nicht erkennbar (`undefined: undefined`). Diese Punkte sowie der ausstehende E-Mail-Nachweis sind in der [Auswertungsnotiz](nachweise/aws-budget-20261015/auswertung.txt) festgehalten.
+Direkt nach dem Smoke-Test zeigte das Lab noch USD 0 an. Laut Anleitung wird die Verbrauchsanzeige typischerweise erst nach acht bis zwölf Stunden aktualisiert. Für die Bewertung verwende ich deshalb die folgende Preisabschätzung und den separat bezeichneten historischen Kontokostenstand.
 
-#### 3.6.4 Preisabschätzung der Referenz-VM {#aws-kosten-20261015}
+Die gespeicherten Kostenfilter sind im CSV-Export nicht auswertbar. Die [Auswertungsnotiz](nachweise/aws-budget-20261015/auswertung.txt) hält den damaligen Erfassungsstand fest; die spätere Bestätigung des Empfängers ist in dieser Dokumentation und im Issue nachgeführt.
 
-Die folgende Rechnung verwendet die am 15.10.2026 eingesehenen veröffentlichten AWS-Preise. Grundlage ist die getestete Konfiguration in `us-east-1`: Linux auf `t3.small`, 12 GiB `gp3` und eine öffentliche IPv4-Adresse. Die dokumentierten 3000 IOPS und 125 MiB/s des Datenträgers entsprechen der enthaltenen Basisleistung.
+#### 3.6.4 Preisabschätzung der Referenz-VM
+
+Die folgende Planungsrechnung verwendet die veröffentlichten Preisangaben der angegebenen Quellen. Grundlage ist die getestete Konfiguration in `us-east-1`: Linux auf `t3.small`, 12 GiB `gp3` und eine öffentliche IPv4-Adresse. Die dokumentierten 3000 IOPS und 125 MiB/s des Datenträgers entsprechen der enthaltenen Basisleistung.
 
 | Bestandteil | Rechenansatz | USD je Stunde |
 | --- | --- | ---: |
@@ -784,7 +817,7 @@ Die folgende Rechnung verwendet die am 15.10.2026 eingesehenen veröffentlichten
 
 Quellen: [AWS T3](https://aws.amazon.com/ec2/instance-types/t3/), [AWS gp3-Speicherpreis](https://docs.aws.amazon.com/prescriptive-guidance/latest/optimize-costs-microsoft-workloads/ebs-migrate-gp2-gp3.html), [EBS-Abrechnung](https://aws.amazon.com/ebs/pricing/) und [IPv4-Preis](https://aws.amazon.com/vpc/pricing/). Die EBS-Umrechnung mit 30 Tagen ist eine einheitliche Rechenannahme; abgerechnet werden die tatsächlichen Nutzungszeiträume der einzelnen Ressourcen.
 
-Für die CHF-Einordnung verwende ich das auf dem [SNB-Datenportal](https://data.snb.ch/en) veröffentlichte Monatsmittel vom August 2026: **1 USD = CHF 0,8078**. Dies ist eine benannte historische Umrechnungsbasis, kein Tageskurs vom 15.10.2026 und kein garantierter späterer Abrechnungskurs.
+Für die CHF-Einordnung dient das auf dem [SNB-Datenportal](https://data.snb.ch/en) veröffentlichte Monatsmittel August 2026: **1 USD = CHF 0,8078**. Die Umrechnung ist damit historisch nachvollziehbar; die tatsächliche Abrechnung kann einen anderen Kurs verwenden.
 
 | Planungsszenario | Angenommene VM-Zeit | Geschätzte USD | CHF mit dieser Umrechnungsbasis |
 | --- | ---: | ---: | ---: |
@@ -792,13 +825,13 @@ Für die CHF-Einordnung verwende ich das auf dem [SNB-Datenportal](https://data.
 | Drei PoC-Läufe mit je einer Erstellung und einer Neuerstellung nach Reset, jeweils 30 Minuten | 3 Stunden insgesamt | 0,0817 | 0,0660 |
 | Beispiel für Entwicklung und weitere Tests | 20 Stunden insgesamt | 0,5447 | 0,4400 |
 
-Die Rechnung setzt vollständigen Abbau nach jedem Versuch und keine zusätzlichen CPU-Surplus-Credits, IOPS oder Durchsatzoptionen voraus. S3-Transfer, weiterer Datenverkehr, Steuern und andere zusätzlich angelegte Dienste sind nicht enthalten. Die Szenarien sind eine Planungshilfe und keine gemessenen Laufkosten. Auch die angezeigten USD 0,92 bleiben ein historischer Kontokostenstand ohne Zuordnung zum einzelnen Smoke-Test.
+Die Schätzung umfasst EC2, Basisleistung des Datenträgers und eine öffentliche IPv4-Adresse während der angenommenen Laufzeit. Zusätzliche CPU-Surplus-Credits, IOPS, Durchsatzoptionen, S3, weiterer Datenverkehr, Steuern und andere Dienste sind nicht eingerechnet. Sie setzt einen zeitnahen vollständigen Abbau voraus und wird nicht als gemessener Preis des Smoke-Tests verwendet.
 
-Das Lab-Budget von USD 50 entspräche mit der genannten Basis rechnerisch CHF 40,39. Es bleibt vom privaten Limit von CHF 50 getrennt. Die geringe Schätzung ersetzt die Kostenkontrolle und den vollständigen Ressourcenabbau nicht.
+Das Lab-Budget von USD 50 entspricht mit dieser Rechenbasis CHF 40,39. Das private Limit bleibt CHF 50. Für die weitere Umsetzung sind der laufende Kostenstand und die tatsächlich erzeugten Ressourcen massgeblich.
 
 ### 3.7 Zielarchitektur
 
-Der folgende Entwurf konkretisiert die geplante Umsetzung. Das Fachmodell und seine Schema-Validierung sind lokal implementiert. Agent und Adapter sind noch offen.
+Die Zielarchitektur trennt die fachliche Definition, die Steuerung des Lebenszyklus und die konkreten Plattformaufrufe. Das Modell ist bereits umgesetzt. Die folgenden Ansichten beschreiben den geplanten Ausbau mit Agent, Zustandsspeicher und Adaptern.
 
 #### 3.7.1 Systemkontext
 
@@ -841,39 +874,61 @@ flowchart TD
 
 <small><em>Abbildung 3: Geplanter Aufbau von CLI, Agent und Adaptern</em></small>
 
-Die CLI nimmt eine versionierte YAML-Definition und die Zielplattform entgegen. Der Agent validiert das Modell, erzeugt eine Laufkennung und speichert einen unveränderlichen Snapshot mit Hash. Er steuert create, status, reset und delete. Der Adapter übersetzt die gemeinsamen Operationen in die Aufrufe seiner Plattform.
+Die Kommandozeilenschnittstelle nimmt Definition und Zielplattform entgegen. Der Agent validiert die Eingabe und steuert den Auftrag. Mit Agent ist hier ein Programm mit festen Regeln gemeint: Es entscheidet anhand der Operation und des gespeicherten Zustands über den nächsten Schritt. Eine Sprachmodellentscheidung ist dafür nicht vorgesehen.
 
-Für den PoC sind Python und eine lokale SQLite-Datei als überschaubarer Entwurf vorgesehen. Pro Umgebung ist nur eine schreibende Operation gleichzeitig erlaubt. Eine Operationskennung unterscheidet die Wiederaufnahme nach einem Abbruch von einem neuen Auftrag. Nach jedem erfolgreichen API-Schritt werden IDs gespeichert. Für das Fenster zwischen API-Erfolg und lokalem Speichern muss der Adapter Ressourcen über eine vorher festgelegte Kennung wiederfinden können.
+Der Zustandsspeicher soll als lokale SQLite-Datei Modell-Snapshot, Laufkennung, Operationskennung, Phase und Ressourcen-IDs halten. Der Snapshot bleibt für einen Lauf unverändert. Ein Hash dient der Zuordnung dieser Definition. Nach jedem erfolgreichen Plattformaufruf werden die erzeugten IDs gespeichert. Für einen Abbruch zwischen API-Erfolg und Speicherung muss der Adapter den Auftrag über eine zuvor festgelegte Kennung wiederfinden können.
 
-| Zustand | Bedeutung | Nächster Schritt |
+| Zustand | Bedeutung | Zulässige nächste Aktion |
 | --- | --- | --- |
 | Nicht vorhanden | Keine laufbezogenen Ressourcen vorhanden | create |
-| Wird erstellt | Aufbau begonnen, Readiness noch nicht erreicht | status, fortsetzen oder delete |
-| Bereit | Plattformzustand und Dienstprüfung erfolgreich | status, reset oder delete |
-| Wird gelöscht | Abbau begonnen, Ressourcenprüfung noch offen | status oder Abbau fortsetzen |
-| Fehler | Aufbau, Readiness oder Abbau fehlgeschlagen | Ursache und Restressourcen anzeigen, gezielt fortsetzen oder löschen |
+| Wird erstellt | Aufbau begonnen, Dienst noch nicht bereit | status, fortsetzen oder delete |
+| Bereit | VM läuft und Dienstprüfung ist erfolgreich | status, reset oder delete |
+| Wird gelöscht | Abbau begonnen, Endkontrolle läuft | status oder Abbau fortsetzen |
+| Fehler | Aufbau, Dienstprüfung oder Abbau fehlgeschlagen | Fehler und Ressourcen anzeigen, gezielt fortsetzen oder löschen |
 
-create darf bei Wiederholung keine zweite Umgebung erzeugen. delete auf einer bereits entfernten Umgebung bleibt erfolgreich ohne weitere Wirkung. reset verwendet denselben gespeicherten Modell-Snapshot und besteht aus vollständigem Löschen und erneutem Erstellen. Scheitert der Abbau, wird die Neuerstellung nicht begonnen.
+Nur eine schreibende Operation darf gleichzeitig auf derselben Umgebung laufen. Eine wiederholte Erstellung darf keine Dublette erzeugen. Die Operationskennung unterscheidet einen neuen Auftrag von der Wiederaufnahme nach einem Abbruch. Ein erneutes delete einer bereits entfernten Umgebung bleibt ohne zusätzliche Wirkung. Bei reset wird erst nach bestätigtem Abbau aus dem Snapshot neu erstellt.
 
-Für lokal gestartete MCP-Adapter ist stdio vorgesehen. Protokollnachrichten gehen über stdout, Diagnoseausgaben über stderr. Der genaue SDK- und Protokollstand wird mit dem ersten Durchstich festgeschrieben. [MCP-Transporte](https://modelcontextprotocol.io/specification/2025-06-18/basic/transports)
+Die Adapter kapseln die Übersetzung in Kubernetes- beziehungsweise AWS-Aufrufe. Beispielsweise kann die Mindestanforderung an CPU und RAM auf AWS nur über einen passenden Instanztyp erfüllt werden; auf KubeVirt entstehen daraus VM-Ressourcen im Manifest. Die fachliche Definition enthält diese Unterschiede nicht.
 
-Die spätere MCP-Bewertung vergleicht denselben Provider-Code einmal über eine direkte Schnittstelle und einmal über MCP. Untersucht werden Kopplung, Aufwand, Testbarkeit, Fehlerbehandlung und Erweiterbarkeit. Die Adaptertrennung allein wird nicht als Protokollvorteil gezählt. Für diesen kleinen PoC kann der zusätzliche MCP-Aufwand den Nutzen überwiegen; die Bewertung bleibt ergebnisoffen.
+Für die Kommunikation zwischen Agent und lokal gestarteten MCP-Adaptern ist stdio vorgesehen. MCP-Nachrichten laufen über die Standardein- und -ausgabe, Diagnosemeldungen über stderr. Die gemeinsame Werkzeugbeschreibung soll Aufrufe und Fehlerantworten vereinheitlichen. Der konkrete SDK- und Protokollstand wird beim Durchstich festgeschrieben; Grundlage ist die [MCP-Transportspezifikation](https://modelcontextprotocol.io/specification/2025-06-18/basic/transports).
+
+Diese zusätzliche Prozess- und Protokollgrenze verursacht Aufwand. Deshalb vergleicht die spätere Bewertung denselben Provider-Code einmal direkt und einmal über MCP. So wird der Nutzen der Adaptertrennung von einem möglichen zusätzlichen Nutzen des Protokolls unterschieden. Die Kriterien stehen in Kapitel 3.8.
+
+### 3.8 Bewertungskonzept
+
+#### Vorher-Nachher-Vergleich
+
+Nach der Umsetzung werden die gemeinsamen Phasen Aufbau bis Readiness und endgültiger Abbau verglichen. Reset, Wiederaufnahme und Fehlerbehandlung werden zusätzlich als Funktionen bewertet. Der Vergleich der aktiven Arbeit muss die bei der Basisserie beschriebenen übernommenen Bedienzeiten und die fehlende Handlungszählung berücksichtigen.
+
+Die Auswertung verbindet die Zahlen mit dem Ablauf: Welche Eingaben bleiben für die Bedienperson nötig? Welche Schritte übernimmt der Agent? Sind Wiederholung und Abbau ohne Korrektur möglich? Erst diese Ergebnisse erlauben eine Aussage zum Nutzen der Automatisierung.
+
+#### Vergleich der MCP-Anbindung
+
+Der spätere Vergleich verwendet denselben Provider-Code direkt und über MCP. Bewertet werden fünf Kriterien:
+
+| Kriterium | Leitfrage |
+| --- | --- |
+| Kopplung | Welche Abhängigkeiten entstehen zwischen Agent, Vertrag und Provider? |
+| Aufwand | Welche zusätzlichen Komponenten, Konfigurationen und Aufrufe benötigt MCP? |
+| Testbarkeit | Wie lassen sich Adapter und Fehlerfälle jeweils isoliert prüfen? |
+| Fehlerbehandlung | Wie werden Plattformfehler, Timeouts und Prozessabbrüche an den Agenten übermittelt? |
+| Erweiterbarkeit | Welche Änderungen wären für einen weiteren Adapter erforderlich? |
+
+Skala und Gewichtung werden vor der eigentlichen Bewertung festgelegt. Ein Vorteil der sauberen Adaptertrennung wird nicht automatisch MCP zugeschrieben. Für den kleinen PoC kann der zusätzliche Protokollaufwand auch gegen MCP sprechen.
 
 ## 4 Umsetzung
 
 ### 4.1 Referenz-Lernumgebung auf KubeVirt
 
-Am 22.09.2026 habe ich auf `dl380-01` den Referenzlauf `kv-ref-20260922-01` durchgeführt. Die VM erreichte den Zustand `Running/Ready`, der HTTP-Testdienst lieferte den erwarteten Inhalt und die SSH-Anmeldung mit einem eigenen Schlüssel war erfolgreich. Nach dem Abbau waren die laufbezogenen Kubernetes-Ressourcen, der zugehörige PersistentVolume und sein Datenverzeichnis entfernt. Das [Laufprotokoll](#kv-ref-20260922-01) enthält die Zeitstempel und Nachweise.
+Als erste Umsetzung habe ich die Referenz-VM auf der vorhandenen KubeVirt-Plattform manuell bereitgestellt. Das [Referenzmanifest](messungen/laeufe/kv-ref-20260922-01/manifest.yaml) enthält einen eigenen Namespace, die VM mit DataVolume und einen NodePort-Service für SSH und HTTP. cloud-init hinterlegt den öffentlichen Schlüssel und startet den Testdienst.
 
-Das [ausgeführte Manifest](messungen/laeufe/kv-ref-20260922-01/manifest.yaml) beschreibt einen eigenen Namespace, eine VirtualMachine mit DataVolume-Vorlage und einen NodePort-Service für SSH und HTTP. Es verwendet zwei vCPU, 2 GiB RAM, einen Systemdatenträger von 12 GiB und das Ubuntu-24.04-Abbild vom 11.09.2026. cloud-init hinterlegt den öffentlichen SSH-Schlüssel, deaktiviert die Passwortanmeldung und startet den HTTP-Testdienst. Der private Schlüssel liegt ausserhalb der Nachweisdateien.
+Damit waren die praktischen Voraussetzungen für den späteren Adapter geklärt: Abbildimport, nutzbarer Speicher, erreichbarer Gast und überprüfbarer Abbau. Besonders wichtig war die Speicherprüfung. Nach der Namespace-Löschung war der PV zunächst noch `Released`; seine Entfernung und das fehlende Datenverzeichnis wurden erst später bestätigt. Der spätere Adapter muss deshalb auf den tatsächlichen Endzustand warten.
 
-Der Speicher wird über `microk8s-hostpath` mit `WaitForFirstConsumer` und der Reclaim-Policy `Delete` bereitgestellt. Die Zuordnung vom PVC zum clusterweiten PV wird vor dem Abbau gesichert. Im Lauf wechselte der PV nach der Namespace-Löschung zunächst auf `Released`; erst die Nachkontrolle bestätigte seine Entfernung sowie das fehlende Datenverzeichnis. Der spätere Adapter muss deshalb die Ressourcenprüfung bis zum tatsächlichen Endzustand fortsetzen.
-
-Für das Fachmodell werden Name, VM-Rolle, Mindestkapazitäten, Betriebssystem, Testdienst und öffentliche Zugangsschlüssel von den Plattformdetails getrennt. Abbild-URL, StorageClass, NodePorts, Namespace und Ressourcen-IDs gehören zur Umsetzung im Adapter. Der Referenzlauf wurde manuell über das Manifest gesteuert. Agent, MCP und Reset sind noch nicht Bestandteil dieses Nachweises.
+Aus dem Manifest wurden die fachlichen Felder für das gemeinsame Modell abgeleitet. Abbild-URL, Namespace, StorageClass, NodePorts und Ressourcen-IDs bleiben Plattformdetails. Konfiguration, Zeiten und Belege des erfolgreichen Versuchs stehen im [Referenzlauf](#kubevirt-referenzlauf).
 
 ### 4.2 Plattformneutrales Fachmodell
 
-Für US17 und US18 liegen die Modellversion `1.0`, das zugehörige JSON-Schema und eine lokale Validierung vor. Eine erfolgreiche Modellprüfung erzeugt keine VM und belegt noch keine Bereitstellung.
+Das Fachmodell trennt den gewünschten Testfall von seiner technischen Umsetzung. Modellversion `1.0`, JSON-Schema, Beispiele und lokale Validierung sind umgesetzt. US17 und US18 sind nach dem Abgleich von Code und Tests abgeschlossen.
 
 #### Dateien und Beispiel
 
@@ -886,7 +941,7 @@ Für US17 und US18 liegen die Modellversion `1.0`, das zugehörige JSON-Schema u
 | `scripts/modell-pruefen.py` | Eigenständiger Aufruf der Modellprüfung |
 | `tests/test_modell.py` | Automatisierte positive und negative Validierungsfälle |
 
-Die folgende Definition ist vollständig hier abgedruckt und entspricht der ausführbaren Datei `modell/beispiele/referenz.yaml`:
+Die Beispieldefinition zeigt die vollständige Eingabe aus `modell/beispiele/referenz.yaml`:
 
 ```yaml
 modelVersion: "1.0"
@@ -913,7 +968,7 @@ vm:
     expectedBody: lernumgebung bereit
 ```
 
-Der öffentliche Ed25519-Schlüssel im Beispiel stammt aus dem versionierten Referenzmanifest vom 22.09.2026. Er enthält keinen privaten Schlüssel. Vor einem neuen Infrastrukturversuch muss ein öffentlicher Schlüssel verwendet werden, dessen zugehöriger privater Schlüssel auf dem vorgesehenen Zugangsrechner verfügbar ist. Die lokale Modellprüfung weist weder den Schlüsselbesitz noch eine erfolgreiche SSH-Anmeldung nach.
+Der öffentliche Schlüssel stammt aus dem Referenzmanifest. Für einen neuen Infrastrukturversuch muss der zugehörige private Schlüssel auf dem Zugangsrechner verfügbar sein. Die Validierung prüft hier nur das öffentliche Schlüsselformat; die Anmeldung wird separat getestet.
 
 #### Fachliche Festlegungen
 
@@ -927,11 +982,11 @@ Der öffentliche Ed25519-Schlüssel im Beispiel stammt aus dem versionierten Ref
 | `vm.ssh` | Benutzer `ubuntu` und mindestens ein öffentlicher Ed25519-Schlüssel im OpenSSH-Format |
 | `vm.testService` | HTTP auf Gastport 8080, Pfad `/`, Status 200 und Antwort `lernumgebung bereit` |
 
-Ein abschliessender Zeilenumbruch in der tatsächlichen HTTP-Antwort bleibt gemäss Messkonzept zulässig. Der spätere Readiness-Check muss zusätzlich den laufenden VM-Zustand prüfen. Externe Adresse und Port werden vom Adapter ermittelt und stehen nicht in der fachlichen Definition.
+Der Prüfendpunkt wird später vom Adapter ermittelt. In der Definition stehen der Gastport und der erwartete Inhalt. So bleibt dieselbe Eingabe sowohl für einen NodePort-Service als auch für einen AWS-Endpunkt verwendbar.
 
-Die Mindestwerte übernehmen die Festlegung aus Kapitel 3.3. Höhere Werte sind im Modell zulässig; der spätere Adapter muss vor einer Bereitstellung prüfen, ob er sie erfüllen kann, und die tatsächlich zugeteilte Kapazität protokollieren. Die Freigabe einer Definition durch das Schema ist noch kein Nachweis für Kontorechte, Quotas oder verfügbare Instanztypen.
+Höhere Kapazitäten als die Mindestwerte sind zulässig. Ob eine Plattform sie tatsächlich bereitstellen kann, muss der Adapter vor der Erstellung prüfen. Kontorechte, Quotas und verfügbare Instanztypen lassen sich durch das Schema allein nicht prüfen.
 
-AMI-ID, Abbild-URL und Abbild-Prüfsumme, Namespace, StorageClass, NodePorts sowie Ressourcen-IDs gehören zur Plattformkonfiguration beziehungsweise zum späteren Ressourceninventar. Das Schema erlaubt an keiner Ebene unbekannte Felder. Damit werden auch plattformspezifische Ergänzungen und Schreibfehler zurückgewiesen. Änderungen des Testfalls, weitere Betriebssysteme oder mehrere VMs erfordern eine bewusste Weiterentwicklung des Modells und seiner Tests.
+Das Schema weist unbekannte Felder auf jeder Ebene zurück. Dadurch werden sowohl Schreibfehler als auch Plattformfelder wie `amiId`, `storageClass` und `nodePort` erkannt. Weitere Betriebssysteme oder mehrere VMs erfordern eine neue Festlegung des Modells und passende Tests.
 
 #### Lokale Validierung
 
@@ -947,13 +1002,13 @@ python scripts/modell-pruefen.py modell/beispiele/ungueltig-ram.yaml
 
 Die gültige Definition liefert Exitcode 0 und `Gültig: referenzumgebung (Modellversion 1.0)`. Die ungültige Definition muss Exitcode 1 und `Ungültig: $.vm.resources.minMemoryMiB: Muss mindestens 2048 sein.` liefern. Die Angabe bezeichnet den betroffenen Feldpfad und die verletzte Mindestanforderung.
 
-Der YAML-Lader weist doppelte oder nicht textuelle Feldnamen, Alias-Verweise, mehrere YAML-Dokumente und nicht JSON-kompatible Werte zurück. Die Schlüsselprüfung kontrolliert zusätzlich zum Textformat den Aufbau des öffentlichen Ed25519-Schlüssels. Fehlermeldungen geben keine eingegebenen Feldwerte oder YAML-Zeilen wieder. Das Prüfskript unterstützt weder create, status, reset noch delete und ist deshalb noch kein Agent im Sinn von US19.
+Neben den Schemaregeln prüft der YAML-Lader mehrdeutige Eingaben: doppelte Feldnamen, Alias-Verweise, mehrere Dokumente und nicht JSON-kompatible Werte werden abgewiesen. Die Ed25519-Prüfung kontrolliert auch den binären Aufbau des öffentlichen Schlüssels. Fehlermeldungen nennen den betroffenen Feldpfad, ohne eingegebene Werte oder YAML-Zeilen auszugeben. Das Werkzeug validiert Dateien und verändert keine Infrastruktur.
 
-Die Pipeline berücksichtigt auch Modellpfade und `requirements.txt`. Die Modellvalidierung ist seit Commit [`8b96ab1`](https://github.com/Cancani/diplomarbeit/commit/8b96ab108b46b0a8c1b67799cebf7e4ec93a8bf3) vom 23.09.2026 versioniert. Der [CI-Lauf für den Budgetstand vom 15.10.2026](https://github.com/Cancani/diplomarbeit/actions/runs/38718165704) war erfolgreich und enthält diese Tests.
+Modell und Validierung sind seit Commit [`8b96ab1`](https://github.com/Cancani/diplomarbeit/commit/8b96ab108b46b0a8c1b67799cebf7e4ec93a8bf3) versioniert. Die Pipeline berücksichtigt Modellpfade und Abhängigkeiten. Der [erfolgreiche CI-Lauf](https://github.com/Cancani/diplomarbeit/actions/runs/38720709849) enthält die automatisierten Prüfungen dieses Stands.
 
-**Prüfstand vom 15.10.2026:** Alle 35 automatisierten Tests bestanden unter Python 3.12, darunter zehn Testmethoden für das Fachmodell. Geprüft werden die gültige Referenz, der ungültige RAM-Wert, Pflichtfelder, Modellversion, Plattformfelder, Ressourcentypen, SSH-Schlüssel und fehlerhafte YAML-Eingaben. Die CLI-Beispiele werden zusätzlich als eigene Prozesse aus einem anderen Arbeitsverzeichnis ausgeführt. Repository-Prüfung und strikter Dokumentationsbuild waren ebenfalls erfolgreich. Diese Prüfungen greifen nicht auf die Zielplattformen zu.
+Alle 35 Tests bestanden unter Python 3.12, darunter zehn Testmethoden zum Modell. Sie prüfen Pflichtfelder, Mindestkapazitäten, Datentypen, Versionen, Plattformfelder, öffentliche Schlüssel und fehlerhafte YAML-Eingaben. Die Befehlsaufrufe werden zusätzlich aus einem anderen Arbeitsverzeichnis ausgeführt; dabei werden Erfolg, Fehlerausgabe und Exitcodes geprüft.
 
-Die lokalen Aufrufe lauten:
+Für die lokale Prüfung aus dem Repository-Verzeichnis:
 
 ```bash
 python -m unittest discover -s tests -v
@@ -961,192 +1016,121 @@ python scripts/check-repository.py
 python -m mkdocs build --strict
 ```
 
-Für den Build werden die Abhängigkeiten aus `requirements-docs.txt` benötigt. US17 und US18 sind technisch umgesetzt; ihre GitHub-Issues waren beim Abgleich vom 15.10.2026 noch offen.
-
-### 4.3 Agent mit Zustandsführung
-
-Noch offen, US19 bis US22. Umzusetzen sind CLI, persistenter Modell-Snapshot, Zustandsübergänge, erste Readiness-Prüfung, Reset, Abbau und Wiederaufnahme. Der Architekturentwurf beschreibt das geplante Verhalten; ein Funktionsnachweis liegt noch nicht vor.
-
-### 4.4 MCP-Schnittstelle
-
-Noch offen, US23. Zu erstellen sind gemeinsamer Werkzeugvertrag, Fehlerantworten und ein Testadapter für kontrollierte Erfolgs- und Fehlerfälle. Die Schnittstelle muss Ressourcen-IDs und erreichte Zustände nachvollziehbar zurückgeben.
-
-### 4.5 Adapter für KubeVirt
-
-Noch offen, US24. Der Adapter setzt das Modell auf der bestehenden Plattform um. Zum ersten vollständigen Durchlauf gehören bereits Readiness, Reset und inventargestützter Abbau.
-
-### 4.6 Adapter für die Public Cloud
-
-Noch offen, US39 in Sprint 2 und US25 in Sprint 3. Zuerst wird der automatisierte AWS-Durchstich für create, status und delete umgesetzt. Danach folgen Reset, Fehlerbehandlung und Wiederaufnahme für die formalen Messläufe.
-
-### 4.7 Protokollierung und Nachvollziehbarkeit
-
-Noch offen als Bestandteil von US20 bis US25 sowie US39. Protokolle müssen Zeitstempel, Lauf- und Operationskennung, Plattform, aufgerufene Operation, Ergebnis und bekannte Ressourcen enthalten. Geheimnisse gehören nicht in die Ausgabe. US27 und US28 liefern später die tatsächlichen Laufprotokolle.
+Der Dokumentationsbuild benötigt zusätzlich `requirements-docs.txt`. Die Tests laufen ohne bereitgestellte VM. Infrastrukturversuche werden separat protokolliert.
 
 ## 5 Tests und Messungen
 
-Die formalen Vergleichsläufe auf den Zielplattformen sind noch nicht durchgeführt. Der lokale Prüfstand des Fachmodells ist in Kapitel 4.2 ausgewiesen. Der [Messplan](#messplan) legt Reihenfolge, Voraussetzungen und Abnahmekriterien fest. Für jeden Infrastrukturversuch wird die [Messprotokollvorlage](#messprotokollvorlage) unter [Messläufe](#messlaeufe) ausgefüllt und mit Rohdaten belegt.
+Die bisherigen Prüfungen haben unterschiedliche Zwecke. Die lokalen Tests sichern Modell und Hilfswerkzeuge ab. Lern- und Referenzversuche klären den praktischen Ablauf. Die drei LernMAAS-Basisläufe liefern die Ausgangswerte. Die formalen PoC-Serien folgen nach der Implementierung des vollständigen Lebenszyklus.
 
-Die lokale Modellvalidierung prüft gültige und ungültige Definitionen. Zustandsübergänge und Fehlerfälle der späteren Agentenlösung, etwa nicht erreichbarer Dienst, falscher Antwortinhalt, unterbrochener Aufbau und verbleibende Ressource beim Abbau, sind noch offen. Die sechs erfolgreichen PoC-Läufe erfolgen erst auf einer festgeschriebenen Version. Ergebnisse werden hier nachgetragen, sobald die entsprechenden Protokolle vorliegen.
-
-### 5.1 Messplan {#messplan}
-
-Die drei LernMAAS-Basisläufe dienen als Ausgangswerte. Nach der Implementierung folgen je drei vollständige PoC-Läufe auf KubeVirt und AWS. Jeder PoC-Lauf umfasst create, status, Readiness, reset, erneute Readiness, delete und die abschliessende Ressourcenprüfung. Die gemeinsamen Zeitgrenzen und Zählregeln stehen in Kapitel 3.4.
-
-| Schritt | Durchführung |
+| Prüfung | Stand |
 | --- | --- |
-| Vorbereitung | Neue Laufkennung vergeben; Codeversion, Definition, Cloud-init und konkretes Abbild festhalten. Zugang, Werkzeuge und Basisinfrastruktur sind vorbereitet. Es bestehen noch keine Ressourcen des neuen Laufs. |
-| Aufbau | Start vor der ersten wiederkehrenden Bedienhandlung markieren. Erstellung auslösen und den ermittelten Endpunkt automatisch prüfen. Ende ist die erste erfolgreiche HTTP-Antwort mit Status 200 und dem erwarteten Inhalt. |
-| Status und SSH | Laufenden VM-Zustand und tatsächlich zugeteilte Kapazitäten prüfen. SSH-Anmeldung und aktiven Testdienst kontrollieren. |
-| Reset, nur PoC | Vorheriges Ressourceninventar sichern, vollständig abbauen und dieselbe gespeicherte Definition neu erstellen. Neue Ressourcen-IDs und erneute Dienstbereitschaft protokollieren. |
-| Endgültiger Abbau | Löschung auslösen und anhand der vorher gesicherten IDs bis zum Endzustand prüfen. Gemeinsame Basisressourcen bleiben bestehen. |
-| Bedienaufwand | Aktive Zeit und bewusste Bedienhandlungen für Aufbau, Reset und Abbau getrennt erfassen. Technisches Warten pausieren; zusätzliche Fehlerkorrekturen eigens notieren. |
-| Auswertung | Aufbau und endgültigen Abbau vergleichen; Reset separat auswerten. Minimum, Median und Maximum nennen und Unterschiede bei Hardware, Abbild und Messmethode berücksichtigen. |
+| Modell und Hilfswerkzeuge | 35 automatisierte Tests erfolgreich, darunter zehn Testmethoden zum Modell |
+| KubeVirt-Referenzlauf | Manuelle Erstellung, HTTP, SSH und Ressourcenabschluss erfolgreich |
+| LernMAAS-Basisserie | Drei technische Abläufe abgeschlossen; abweichende Erfassung der Bedienzeit bei den Ergebnissen ausgewiesen |
+| AWS-Smoke-Test | Erstellung, HTTP, SSH und Abbau erfolgreich |
+| Formale PoC-Serien | Je drei vollständige Läufe auf KubeVirt und AWS nach der Umsetzung vorgesehen |
 
-Zeitstempel werden in UTC geführt. Für die formalen Serien werden Pollingintervall, Request-Timeout und Gesamtgrenzen vorab festgelegt. Der HTTP-Beobachter `scripts/probe-http.py` verwendet standardmässig zwei Sekunden Intervall und zwei Sekunden Request-Timeout. Seine eigene Laufzeit ist nur die Beobachtungsdauer; die Aufbaudauer beginnt beim getrennten Startmarker.
+### 5.1 Messplan
 
-Vor dem Abbau werden auf KubeVirt auch die Zuordnungen von PVC zu PV gesichert. Auf AWS werden Instanz und erzeugte abhängige Ressourcen erfasst. Auf LernMAAS werden Maschinen-ID, Pool und Hostzuteilung festgehalten. Fehlgeschlagene Abfragen oder Timeouts werden als Fehler protokolliert.
+Für die formalen Läufe gelten die Messgrenzen aus Kapitel 3.4. Die folgende Reihenfolge wird auf beiden Zielplattformen verwendet:
 
-Bei einem Teilaufbau bleiben Protokoll und Ressourceninventar erhalten. Nach einer Korrektur beginnt die formale Serie der betroffenen Plattform erneut. Reset darf erst nach vollständig bestätigtem Abbau neu erstellen.
-
-#### Durchführung der LernMAAS-Basisserie {#lernmaas-messserie-anleitung}
-
-Die Serie wurde am 30.09.2026 vorbereitet und am 07.10.2026 durchgeführt. Zwei SSH-Terminals auf `cloud-au-30` trennten die Bedienung von der Beobachtung. Die drei Kennungen `maas-b01-20260930` bis `maas-b03-20260930` blieben aus der Vorbereitung bestehen.
-
-Das Hilfswerkzeug `scripts/maas-beobachten.py` prüfte vor jedem Lauf Namen, Pool, SSH-Schlüssel, Zeitsynchronisation und Abbildstand. Es beobachtete MAAS und den HTTP-Dienst, erstellte aber keine VM. Der Aufbau erfolgte mit dem gesicherten `createvms`; Zone, Betriebssystem und Cloud-init wurden anschliessend in der MAAS-Oberfläche gesetzt. Sobald der Deployment-Endpunkt bekannt war, begann das HTTP-Polling.
-
-Nach HTTP und SSH wurden die Testmaschine und der leere Testpool gezielt gelöscht. Die Kontrolle verglich Maschinenbestand, Poolliste und Hostzuteilung mit dem Zustand vor dem Lauf. Für den Aufbau galt eine Gesamtgrenze von 1800 Sekunden, für HTTP höchstens 900 Sekunden innerhalb dieser Gesamtzeit. Die [Ergebnisse](#lernmaas-basisserie-20261007) nennen die tatsächlichen Zeiten und die abweichende Bedienzeiterfassung.
-
-### 5.2 Messprotokollvorlage {#messprotokollvorlage}
-
-Für jeden formalen Lauf werden die folgenden Angaben ausgefüllt. Fehlende Werte bleiben als fehlend gekennzeichnet.
-
-| Bereich | Zu erfassende Angaben |
+| Phase | Durchführung |
 | --- | --- |
-| Identität | Laufkennung, Plattform, Datum, Person, Serien- und Versuchsnummer |
-| Eingaben | Git-Commit, verwendete YAML-Definition, Cloud-init und Abbild-ID beziehungsweise datierte URL |
-| Umgebung | Host oder Region, tatsächliche vCPU, RAM und Datenträgergrösse; Cache und Hintergrundlast, soweit bekannt |
-| Voraussetzungen | Vorbereiteter Zugang und freie Testumgebung; vorhandene gemeinsame Basisressourcen |
-| Zeitgrenzen | HTTP-Endpunkt, Pollingintervall, Request-Timeout, Grenzen für Aufbau und Abbau |
-| Eingriffe | Aktive Bedienzeit und Zahl der Handlungen je Phase; zusätzliche Fehlerkorrekturen |
-| Abschluss | Ergebnis, Restressourcen, Abweichungen, Kosten soweit verfügbar und Links zu Rohprotokollen |
+| Vorbereitung | Laufkennung vergeben, Codeversion, Definition und Abbild festhalten. Zugang vorbereiten und freien Ausgangsbestand prüfen. |
+| create | Zeitnahme vor der ersten Bedienhandlung starten. Erstellung auslösen und den ermittelten HTTP-Endpunkt bis zum erwarteten Inhalt beobachten. |
+| status und SSH | Laufenden VM-Zustand, zugeteilte Kapazitäten, Anmeldung und aktiven Testdienst prüfen. |
+| reset | Inventar sichern, vollständig abbauen und aus derselben gespeicherten Definition neu erstellen. Neue IDs und zweite Dienstbereitschaft erfassen. |
+| delete | Endgültigen Abbau auslösen und Ressourcenabschluss anhand des Inventars prüfen. |
+| Auswertung | Verstrichene Zeiten, aktive Arbeit, Bedienhandlungen und Abweichungen je Phase zusammenführen. |
 
-| Ereignis | UTC-Zeitstempel | Ergebnis und Protokoll |
-| --- | --- | --- |
-| Aufbaustart vor erster Bedienhandlung | | |
-| create angefordert und zurückgekehrt | | |
-| Laufender VM-Zustand und erste erfolgreiche HTTP-Antwort | | |
-| SSH-Prüfung | | |
-| Reset angefordert, gespeicherte Definition zugeordnet | | |
-| Interner Abbau bestätigt, Neuerstellung begonnen | | |
-| Erste erfolgreiche HTTP-Antwort nach Reset | | |
-| Endgültiger Abbaustart und delete | | |
-| Ressourcenprüfung abgeschlossen oder Timeout | | |
+Die Protokolle verwenden UTC. Pollingintervall, Anfrage-Timeout und Gesamtgrenzen werden vor einer Serie festgelegt. `scripts/probe-http.py` prüft standardmässig im Abstand von zwei Sekunden mit zwei Sekunden Anfrage-Timeout. Die eigene Laufzeit des Beobachters ist von der gesamten Aufbaudauer ab Startmarker zu unterscheiden.
 
-Die Ressourcen der ersten und der zweiten Erstellung werden getrennt erfasst:
+Bei einem Fehler bleiben das Protokoll und das Ressourceninventar erhalten. Die Bereinigung wird gezielt abgeschlossen. Für eine erfolgreiche formale Serie gelten danach wieder drei aufeinanderfolgende Läufe ohne manuelle Korrektur.
 
-| Erstellung | Ressourcentyp | Name oder ID | Abhängige Ressource | Endzustand und Nachweis |
-| --- | --- | --- | --- | --- |
-| Vor Reset | | | | |
-| Nach Reset | | | | |
+#### Durchführung der LernMAAS-Basisserie
 
-Im Ergebnis stehen für Aufbau, Reset und endgültigen Abbau jeweils die verstrichene Dauer, aktive Bedienzeit, Zahl der Handlungen und das erreichte Endkriterium. Für LernMAAS entfällt Reset. Codeversion und zugehörige Laufdateien ermöglichen den späteren Nachvollzug.
+Zwei SSH-Terminals auf `cloud-au-30` trennten Bedienung und Beobachtung. Das Hilfswerkzeug `maas-beobachten.py` prüfte Eingaben und Ausgangszustand und beobachtete MAAS sowie den HTTP-Dienst. Die VM-Erstellung erfolgte mit dem gesicherten `createvms`; Zone, Betriebssystem und Cloud-init wurden in der MAAS-Oberfläche gesetzt.
 
-### 5.3 Messläufe {#messlaeufe}
+Sobald der Deployment-Endpunkt vorlag, begann das HTTP-Polling. Nach HTTP und SSH wurden Maschine und Testpool gelöscht. Maschinenbestand, Poolliste und Hostzuteilung wurden mit dem Zustand vor dem Lauf verglichen. Die Aufbaugrenze lag bei 1800 Sekunden, das HTTP-Polling bei höchstens 900 Sekunden innerhalb dieser Gesamtzeit. Die Laufkennungen aus der Vorbereitung blieben bestehen.
 
-Die drei LernMAAS-Basisläufe wurden am 07.10.2026 technisch erfolgreich durchgeführt. Aufbau- und Abbauzeiten sind je Lauf protokolliert; die Bedienzeit von b01 wurde für b02 und b03 übernommen, die Handlungszahl bleibt offen. Die sechs formalen PoC-Läufe auf KubeVirt und AWS stehen noch aus. Der KubeVirt-Referenzlauf und der AWS-Smoke-Test vom 13.10.2026 belegen die Machbarkeit der jeweiligen Einzel-VM-Bereitstellung. Der LernMAAS-Lauf vom 30.09.2026 bleibt als eigener Versuch mit seinen Messgrenzen und Abweichungen ausgewiesen.
+### 5.2 Messprotokollvorlage
 
-#### KubeVirt-Referenzlauf vom 22.09.2026 {#kv-ref-20260922-01}
+Ein Laufprotokoll enthält die folgenden Angaben. Fehlende Daten werden als fehlend gekennzeichnet. Die Ressourcen vor und nach einem Reset werden getrennt zugeordnet.
 
-Der manuelle Referenzlauf `kv-ref-20260922-01` auf `dl380-01` war erfolgreich. VM, HTTP-Dienst und SSH funktionierten. Nach dem Löschen waren die Testressourcen einschliesslich PersistentVolume und Datenverzeichnis entfernt. US38 ist abgeschlossen.
+| Bereich | Inhalt |
+| --- | --- |
+| Zuordnung | Laufkennung, Plattform, Datum, Person, Serien- und Versuchsnummer |
+| Eingaben und Umgebung | Git-Commit, YAML-Definition, Cloud-init, Abbild-ID oder datierte URL, Host beziehungsweise Region und tatsächliche Kapazitäten |
+| Ausgangsbestand | Vorbereiteter Zugang, bestehende Basisressourcen und freie Testumgebung |
+| Zeitmessung | Startmarker, erste Readiness, Resetbeginn, bestätigter interner Abbau, zweite Readiness, endgültiger Abbaustart und abgeschlossene Nachkontrolle |
+| Prüfparameter | Endpunkt, Pollingintervall, Anfrage-Timeout und Gesamtgrenzen |
+| Bedienaufwand | Aktive Zeit und Handlungszahl je Phase sowie zusätzliche Fehlerkorrekturen |
+| Ressourcenabschluss | Ressourcentyp, ID, Abhängigkeiten und Endzustand für beide Erstellungen; bekannte Restressourcen bei Fehlern |
+| Ergebnis | Erfolg oder Fehler, Abweichungen, Kosten soweit verfügbar und Verweise auf die Rohprotokolle |
+
+### 5.3 Messläufe
+
+Die folgenden Abschnitte dokumentieren die ausgeführten Versuche. Ihre Ergebnisse werden entsprechend dem jeweiligen Zweck verwendet: technische Machbarkeit, Vorbereitung der Messung oder Vergleichsbasis.
+
+#### KubeVirt-Referenzlauf
+
+Der Lauf `kv-ref-20260922-01` auf `dl380-01` bestätigte die manuelle Erstellung und Entfernung der Referenzumgebung. VM, HTTP-Dienst und SSH funktionierten; US38 ist abgeschlossen.
 
 | Merkmal | Konfiguration |
 | --- | --- |
-| Plattform | MicroK8s v1.35.6, KubeVirt und CDI; Einzelknoten `dl380-01` |
-| Definition | [Ausgeführtes Manifest](messungen/laeufe/kv-ref-20260922-01/manifest.yaml), eigener Namespace `da-kv-ref-20260922-01` |
-| VM | 2 vCPU, 2 GiB RAM, 12 GiB Systemdatenträger; Ubuntu 24.04 amd64, Build `20260911` |
-| Dienst und SSH | NodePorts 31946 für HTTP und 30526 für SSH; Prüfungen vom Clusterhost aus |
+| Plattform | MicroK8s v1.35.6 mit KubeVirt und CDI, Einzelknoten `dl380-01` |
+| Definition | [Manifest](messungen/laeufe/kv-ref-20260922-01/manifest.yaml), eigener Namespace `da-kv-ref-20260922-01` |
+| VM | 2 vCPU, 2 GiB RAM, 12 GiB Datenträger; Ubuntu 24.04 amd64, Build `20260911` |
+| Endpunkte | NodePort 31946 für HTTP und 30526 für SSH, geprüft vom Clusterhost |
 | Speicher | `microk8s-hostpath`, `WaitForFirstConsumer`, Reclaim-Policy `Delete` |
 
-| Zeitpunkt, UTC | Ergebnis |
+| Prüfung | Ergebnis |
 | --- | --- |
-| 18:22:35 | Erstellung gestartet |
-| 18:27:37,922 | HTTP 200 und Antwort `lernumgebung bereit`; 302,922 s ab Startmarker |
-| Nach HTTP | VM und VMI `Running/Ready`, DataVolume erfolgreich, PVC gebunden |
-| 18:39:35 | SSH erfolgreich, Dienst aktiv, Gastdatenträger 12 GiB |
-| 18:50:32 | Namespace-Löschung gestartet |
-| 18:51:20 | Namespace entfernt; Test-PV noch `Released` |
-| Nachkontrolle ab 18:53:15 | Test-PV nicht mehr vorhanden und zugeordnetes Datenverzeichnis entfernt |
+| Erstellung und HTTP | HTTP 200 mit `lernumgebung bereit`, 302,922 s ab Startmarker |
+| Plattformstatus | VM und VMI `Running/Ready`, DataVolume erfolgreich, PVC gebunden |
+| SSH | Anmeldung erfolgreich, Dienst aktiv und Gastdatenträger geprüft |
+| Namespace-Abbau | Namespace entfernt, Test-PV zunächst noch `Released` |
+| Storage-Nachkontrolle | PV und zugeordnetes Datenverzeichnis entfernt |
 
-Die Namespace-Löschung allein genügte noch nicht als Abschluss: Der PV verschwand erst danach. Die Kontrolle bezog sich auf den zuvor gesicherten PV `pvc-af106e61-e080-46c8-8b38-4ba46f59b092` und seinen gespeicherten HostPath. Der bestehende PV `rwm-volume` blieb erhalten.
+Die Nachkontrolle bezog sich auf den vorher gesicherten PV `pvc-af106e61-e080-46c8-8b38-4ba46f59b092` und seinen HostPath. Der bestehende PV `rwm-volume` blieb erhalten. Der Speicherabschluss wurde rund 163 Sekunden nach Abbaustart festgestellt. Eine Namespace-Löschung allein wäre dafür kein ausreichendes Endkriterium gewesen.
 
-Das HTTP-Polling begann erst nach dem Erstellen und lief selbst 234,367 Sekunden. Die 302,922 Sekunden sind deshalb eine beobachtete Aufbaudauer. Der Storage-Abschluss wurde erst bei der Nachkontrolle rund 163 Sekunden nach Abbaustart festgestellt. Aktive Bedienzeit und Handlungszahl wurden nicht gemessen; ein Zugriff vom Laptop über WireGuard und ein Reset waren nicht Teil dieses Referenzlaufs.
+Das HTTP-Polling begann nach dem Erstellungsaufruf und lief selbst 234,367 Sekunden. Als beobachtete Aufbaudauer werden die 302,922 Sekunden ab Startmarker verwendet. Bedienzeit, Handlungszahl, Zugriff vom Laptop und Reset wurden in diesem Referenzlauf nicht gemessen beziehungsweise geprüft.
 
-Die wichtigsten Rohbelege sind [HTTP-Protokoll](messungen/laeufe/kv-ref-20260922-01/http-create.jsonl), [SSH-Prüfung](messungen/laeufe/kv-ref-20260922-01/ssh-pruefung.txt), [Ressourcen vor Abbau](messungen/laeufe/kv-ref-20260922-01/inventar-vor-abbau.json), [PV-Zuordnung](messungen/laeufe/kv-ref-20260922-01/pv-vor-abbau.json), [Löschprotokoll](messungen/laeufe/kv-ref-20260922-01/abbau.txt) und [Storage-Nachkontrolle](messungen/laeufe/kv-ref-20260922-01/storage-nachkontrolle.txt). Sie sind im Repository unter der Laufkennung abgelegt.
+Belege: [HTTP](messungen/laeufe/kv-ref-20260922-01/http-create.jsonl), [SSH](messungen/laeufe/kv-ref-20260922-01/ssh-pruefung.txt), [Ressourceninventar](messungen/laeufe/kv-ref-20260922-01/inventar-vor-abbau.json), [PV-Zuordnung](messungen/laeufe/kv-ref-20260922-01/pv-vor-abbau.json), [Abbau](messungen/laeufe/kv-ref-20260922-01/abbau.txt) und [Storage-Nachkontrolle](messungen/laeufe/kv-ref-20260922-01/storage-nachkontrolle.txt).
 
-#### LernMAAS-Lauf vom 30.09.2026 {#lernmaas-20260930-01}
+#### LernMAAS-Vorversuch
 
-Dieser Versuch erprobte die spätere Ausgangsmessung. Aufbau, HTTP und SSH waren erfolgreich; Maschine und Pool wurden entfernt. Wegen abweichender Cloud-init-Eingabe und unvollständiger Bedienzeiterfassung bleibt er von der Basisserie getrennt.
+Mit `lernmaas-20260930-01` habe ich die gemeinsame Referenz auf LernMAAS erprobt. Der Lauf verwendete Controller `cloud-au-30`, KVM-Host `cloud-au-32` und MAAS-Pod 7. Die Maschine `daref-01-da20260930a` hatte die System-ID `rf376m`, der Pool die ID 16. Sie erhielt 2 vCPU, 2048 MiB RAM und 13 GB Datenträger unter Ubuntu 24.04 amd64 mit Kernel `ga-24.04` und MAAS-Abbildsatz `20260223`.
+
+Die im Gast bestätigten 13 000 000 000 Bytes erfüllen die Anforderung von mindestens 12 GiB. Die Definition wurde mit dem gesicherten Erstellungsskript ausgeführt; der LernMAAS-Repository-Stand war `1f105a74cd0684286379fe4dc539d58331bc62e8`.
+
+Der Ablauf umfasste Maschinenanlage, die Zustände `Ready`, `Deploying` und `Deployed`, die externe HTTP-Prüfung sowie die anschliessende Entfernung von Maschine und Pool. Die vollständigen Ereigniszeitstempel stehen in den verlinkten Protokollen.
+
+Bis zur beobachteten HTTP-Bereitschaft vergingen 652,061 Sekunden. Die 77,596 Sekunden bis zur bestätigten Poolentfernung enthalten einen längeren Abstand vor dem Pool-Löschaufruf und sind keine reine technische Löschzeit.
+
+Der Versuch zeigte zwei Probleme für die geplante Serie. Im Deployment-Dialog wurde eine verkürzte Cloud-init-Vorlage verwendet; die ausgelesene systemd-Unit lief dadurch als root. Ausserdem gelang SSH vom Controller mit einem vorhandenen Schlüssel, während der Laptop-Schlüssel abgewiesen wurde. Für die Basisserie wurden deshalb die vollständige Cloud-init-Datei und der passende öffentliche Schlüssel festgeschrieben. Die [nachträglich rekonstruierte Eingabe](messungen/laeufe/lernmaas-basis-20260930/lauf-01/cloud-init-verwendet-rekonstruiert.yaml) bleibt ausdrücklich als Rekonstruktion bezeichnet.
+
+Nach dem Abbau waren Maschine und Pool entfernt, die Hostzuteilung wieder auf dem Ausgangsstand und die zuvor vorhandenen 30 Maschinen weiterhin erfasst. Der Lauf bleibt wegen der abweichenden Eingabe und unvollständigen Bedienzeiterfassung ein Vorversuch.
+
+Belege: [Referenzprofil](messungen/laeufe/lernmaas-basis-20260930/config-referenz.yaml), [Erstellungsskript](messungen/laeufe/lernmaas-basis-20260930/createvms-original.sh), [Abbildstand](messungen/laeufe/lernmaas-basis-20260930/ubuntu-noble-ga24.04.json), [HTTP](messungen/laeufe/lernmaas-basis-20260930/lauf-01/http-create.jsonl), [SSH](messungen/laeufe/lernmaas-basis-20260930/lauf-01/ssh-pruefung-02.txt), [ausgelesener Dienst](messungen/laeufe/lernmaas-basis-20260930/lauf-01/testdienst-tatsaechlich.txt), [Maschinen nach Abbau](messungen/laeufe/lernmaas-basis-20260930/lauf-01/maschinen-abschluss.json) und [Pools nach Abbau](messungen/laeufe/lernmaas-basis-20260930/lauf-01/pools-abschluss.json). Die [Aufbereitung](messungen/laeufe/lernmaas-basis-20260930/aufbereitung.json) dokumentiert das Entfernen privater Zoneninhalte aus den öffentlichen Inventaren.
+
+#### LernMAAS-Basisserie
+
+Die drei Basisläufe wurden auf `cloud-au-30` durchgeführt. Sie verwendeten dieselbe reduzierte Referenzdefinition. Jeder Lauf umfasste Erstellung, manuelles Deployment, HTTP, SSH und anschliessenden Abbau. Alle drei technischen Abläufe waren erfolgreich.
+
+**Gemeinsame Eingaben**
 
 | Merkmal | Stand |
 | --- | --- |
-| Lauf | `lernmaas-20260930-01`, Ablage `lernmaas-basis-20260930/lauf-01` |
-| Controller und Host | `cloud-au-30`, KVM-Host `cloud-au-32`, MAAS-Pod 7 |
-| Maschine und Pool | `daref-01-da20260930a`, System-ID `rf376m`; Pool `daref-da20260930a`, ID 16 |
-| Kapazitäten | 2 vCPU, 2048 MiB RAM, 13 GB Datenträger; 13 000 000 000 Bytes im Gast bestätigt |
-| Abbild | Ubuntu 24.04, amd64, Kernel `ga-24.04`; MAAS-Abbildsatz `20260223` |
-| Endpunkt | `http://10.0.45.66:8080/`, HTTP 200 mit `lernumgebung bereit` |
+| Ausführung | KVM-Host `cloud-au-32`, MAAS-Pod 7, Zone `10-1-45-0` |
+| Referenz | Profil `daref`, eine VM, 2 vCPU, 2048 MiB RAM, 13 GB Datenträger |
+| Abbild | Ubuntu 24.04 LTS, `noble`, amd64, Kernel `ga-24.04`; identischer gesicherter MAAS-Abbildstand |
+| Erstkonfiguration | Vollständige `cloud-init-referenz.yaml` mit öffentlichem SSH-Schlüssel und HTTP-Dienst als `nobody:nogroup` |
+| Prüfung | HTTP 200 mit `lernumgebung bereit`, erfolgreiche SSH-Anmeldung als `ubuntu`, aktiver Dienst und Gastdatenträger bestätigt |
+| Zeitführung | UTC; vor jedem Lauf `NTPSynchronized=yes` |
+| Zeitgrenzen | 1800 s Aufbau, HTTP höchstens 900 s darin; Sollintervall und Anfrage-Timeout je 2 s. Löschaufruf höchstens 300 s, MAAS-Inventarabfrage höchstens 30 s. |
 
-Das installierte `createvms` und die Konfiguration wurden separat gesichert. Der LernMAAS-Repository-Stand war `1f105a74cd0684286379fe4dc539d58331bc62e8`. Die 13 GB aus der MAAS-Eingabe erfüllen die Mindestgrösse von 12 GiB, sind aber nicht exakt gleich gross wie der KubeVirt-Datenträger.
-
-| Ereignis am 30.09.2026 | UTC |
-| --- | --- |
-| Startmarker unmittelbar vor `createvms` | 09:44:32,436 |
-| `Ready` erstmals beobachtet | 09:47:22,703 |
-| `Deploying` erstmals beobachtet | 09:48:27,088 |
-| `Deployed` erstmals beobachtet | 09:55:16,436 |
-| Erste erfolgreiche HTTP-Antwort | 09:55:24,497 |
-| VM-Abbaustart | 10:21:41,790 |
-| Erste Nachkontrolle | 10:21:50,535 |
-| Poolentfernung bestätigt | 10:22:59,386 |
-
-Die beobachtete Aufbaudauer beträgt 652,061 Sekunden. HTTP wurde erst nach `Deployed` geprüft. Vom VM-Abbaustart bis zur bestätigten Poolentfernung vergingen 77,596 Sekunden; darin sind 65,672 Sekunden Abstand vor dem Pool-Löschaufruf enthalten. Das ist keine gemessene reine Löschzeit.
-
-Beim Deployment wurde statt der vorbereiteten vollständigen Cloud-init-Datei eine kürzere HTTP-Vorlage verwendet. Die später ausgelesene systemd-Unit enthielt keinen Dienstbenutzer und lief damit als root. Die nachträglich [rekonstruierte Eingabe](messungen/laeufe/lernmaas-basis-20260930/lauf-01/cloud-init-verwendet-rekonstruiert.yaml) ist als Rekonstruktion gekennzeichnet. SSH gelang vom Controller mit einem vorhandenen Standardschlüssel; der Laptop-Schlüssel wurde abgewiesen.
-
-Für einzelne GUI-Schritte wurde ungefähr eine Minute aktive Arbeit angegeben. Eine vollständige Bedienzeit und die Zahl der Handlungen fehlen. Für die Basisserie wurden daher die vollständige Cloud-init-Datei, der passende SSH-Schlüssel und gemeinsame Zeitgrenzen festgelegt.
-
-Nach dem Abbau fehlten Testmaschine und Pool in MAAS. Die Hostzuteilung ging von 10 auf 8 vCPU, von 10 240 auf 8192 MiB RAM und von 61 auf 48 Milliarden Bytes Speicher zurück. Die zuvor bestehenden 30 Maschinen waren weiterhin erfasst. Eine direkte Prüfung der libvirt-Domänen und Datenträgerdateien auf dem Host erfolgte nicht.
-
-Nachweise: [Referenzprofil](messungen/laeufe/lernmaas-basis-20260930/config-referenz.yaml), [installiertes Erstellungsskript](messungen/laeufe/lernmaas-basis-20260930/createvms-original.sh), [Abbildstand](messungen/laeufe/lernmaas-basis-20260930/ubuntu-noble-ga24.04.json), [HTTP](messungen/laeufe/lernmaas-basis-20260930/lauf-01/http-create.jsonl), [SSH](messungen/laeufe/lernmaas-basis-20260930/lauf-01/ssh-pruefung-02.txt), [ausgelesene Unit](messungen/laeufe/lernmaas-basis-20260930/lauf-01/testdienst-tatsaechlich.txt), [Maschinen nach Abbau](messungen/laeufe/lernmaas-basis-20260930/lauf-01/maschinen-abschluss.json) und [Pools nach Abbau](messungen/laeufe/lernmaas-basis-20260930/lauf-01/pools-abschluss.json).
-
-Die veröffentlichten Inventarauszüge enthalten bei Zonen nur ID und Namen. Eingebettete private VPN-Konfigurationen wurden aus den öffentlichen Auszügen entfernt; die [Aufbereitung](messungen/laeufe/lernmaas-basis-20260930/aufbereitung.json) hält dies fest.
-
-#### LernMAAS-Basisserie vom 07.10.2026 {#lernmaas-basisserie-20261007}
-
-Am 07.10.2026 wurden drei LernMAAS-Basisläufe mit derselben Referenzdefinition durchgeführt. Jeder Lauf umfasst das Erstellen einer VM, das manuelle Deployment, die HTTP- und SSH-Prüfung sowie das Löschen mit anschliessender MAAS-Ressourcenprüfung. Alle drei technischen Abläufe waren erfolgreich. Die aktive Bedienzeit wurde für b01 mit einer Stoppuhr erfasst und vom Diplomanden gemeldet. Für b02 und b03 wurden diese Werte übernommen. Die Zahl der Bedienhandlungen wurde nicht erfasst.
-
-**Identität und gemeinsame Voraussetzungen**
-
-Die Laufkennungen enden weiterhin auf `20260930`, weil die am 30.09.2026 vorbereitete Serie diese Namen festlegt. Das Durchführungsdatum ist bei allen drei Läufen der 07.10.2026. Die Rohdateien liegen unter `docs/messungen/laeufe/lernmaas-basis-20260930/maas-b01-20260930/` bis `maas-b03-20260930/`.
-
-| Merkmal | Gemeinsamer Stand |
-| --- | --- |
-| Controller und MAAS-Profil | `cloud-au-30`, CLI-Profil `ubuntu` |
-| KVM-Host | `cloud-au-32`, MAAS-Pod 7 |
-| Referenzprofil | `daref`, eine VM, 2 vCPU, 2048 MiB RAM, 13 GB Datenträger |
-| Gastabbild | Ubuntu 24.04 LTS, `noble`, amd64, Kernel `ga-24.04`; identischer gesicherter MAAS-Abbildstand |
-| Zone | `10-1-45-0`; Deployment-Adresse im Netz `10.0.45.0/24` |
-| Aufbau | Gesichertes `createvms-original.sh`, danach Zone und Deployment manuell in MAAS |
-| Cloud-init | Identische vollständige `cloud-init-referenz.yaml` mit öffentlichem SSH-Schlüssel und HTTP-Testdienst |
-| Readiness | HTTP 200 auf Gastport 8080 und Inhalt `lernumgebung bereit` |
-| SSH | Benutzer `ubuntu`; Dienst aktiv, `User=nobody`, `Group=nogroup`, Datenträger `vda` mit 13 000 000 000 Bytes |
-| Zeitführung | UTC mit Millisekunden; vor jedem Lauf `NTPSynchronized=yes` |
-| Beobachtungsgrenzen | 1800 s ab Aufbaustart, HTTP-Polling maximal 900 s innerhalb dieser Gesamtgrenze; Sollintervall 2 s, Request-Timeout 2 s |
-| Abbaugrenzen | Je Löschaufruf maximal 300 s, je MAAS-Inventarabfrage maximal 30 s |
-| Reset | Nicht Teil eines LernMAAS-Basislaufs |
-
-Cloud-init, Referenzprofil, Erstellungsskript, öffentlicher Schlüssel und Beobachter sind in allen drei Laufordnern identisch. Auch Name, Architektur und Abbildsätze des gesicherten MAAS-Abbilds stimmen überein. Das veränderliche Nutzungsfeld `last_deployed` gehört nicht zur Abbildversion. Cache und Hintergrundlast wurden während der Läufe nicht separat gemessen.
+Referenzprofil, Cloud-init, Erstellungsskript, öffentlicher Schlüssel und Beobachter sind in den drei Laufordnern identisch. Name, Architektur und Abbildsätze stimmen überein. Das veränderliche Feld `last_deployed` zählt nicht zur Abbildversion. Cache und Hintergrundlast wurden nicht separat gemessen.
 
 | Lauf | VM-Name | Maschinen-ID | Pool-ID | Deployment-IP |
 | --- | --- | --- | ---: | --- |
@@ -1154,92 +1138,45 @@ Cloud-init, Referenzprofil, Erstellungsskript, öffentlicher Schlüssel und Beob
 | b02 | `daref-01-da20260930b02` | `83md8a` | 18 | `10.0.45.65` |
 | b03 | `daref-01-da20260930b03` | `rbggst` | 19 | `10.0.45.73` |
 
-Die Poolnamen lauten entsprechend `daref-da20260930b01`, `daref-da20260930b02` und `daref-da20260930b03`. Der Beobachter prüft vor dem Messstart, dass Zielmaschine und Testpool noch nicht vorhanden sind. Vor dem nächsten Lauf darf kein Testpool der Serie verbleiben.
-
 **Zeitmessung und Ergebnisse**
 
-Die Aufbaudauer reicht vom Startmarker in `start-utc.txt` vor dem Ausführen von `createvms` bis zum ersten Ereignis `ready_observed` in `http-create.jsonl`. Sie enthält die Zeit bis zur Anlage der Maschine, Commissioning, Tests, den manuellen Zonenwechsel und das Deployment sowie die Zeit bis zur erfolgreichen Dienstantwort. Der HTTP-Prüfer wird beim erkannten Deployment-Endpunkt gestartet; seine eigene Laufzeit ist deshalb nicht die gesamte Aufbaudauer.
+Die Aufbaudauer reicht vom Startmarker vor `createvms` bis zum ersten Ereignis `ready_observed` im HTTP-Protokoll. Die Abbaudauer reicht vom Abbaustartmarker bis zur bestätigten Prüfung von Maschinenbestand, Pool und Hostzuteilung.
 
-Die Abbaudauer reicht von `abbau-start-utc.txt` bis `abbau-kontrolle-utc.txt`. Dazwischen liegen Identitätsprüfung, VM-Löschaufruf, Kontrolle der Maschinenliste, Pool-Löschaufruf und Kontrolle von Pools und Hostzuteilung. Die Auswertung verwendet dieselben Grenzen für alle drei Läufe.
+| Lauf | Aufbau bis HTTP in s | Abbau mit Nachkontrolle in s | Ergebnis |
+| --- | ---: | ---: | --- |
+| b01 | 568,332 | 26,043 | HTTP und SSH erfolgreich, Maschine und Pool entfernt |
+| b02 | 692,909 | 17,077 | HTTP und SSH erfolgreich, Maschine und Pool entfernt |
+| b03 | 919,463 | 16,756 | HTTP und SSH erfolgreich, Maschine und Pool entfernt |
 
-| Lauf | Aufbau bis HTTP in s | Abbau mit Nachkontrolle in s | Dienstprüfung | Ressourcenabschluss |
-| --- | ---: | ---: | --- | --- |
-| [b01](messungen/laeufe/lernmaas-basis-20260930/maas-b01-20260930/http-create.jsonl) | 568,332 | 26,043 | HTTP 200 und Inhalt passend; SSH bestanden | Maschine und Pool entfernt; Hostzuteilung wiederhergestellt |
-| [b02](messungen/laeufe/lernmaas-basis-20260930/maas-b02-20260930/http-create.jsonl) | 692,909 | 17,077 | HTTP 200 und Inhalt passend; SSH bestanden | Maschine und Pool entfernt; Hostzuteilung wiederhergestellt |
-| [b03](messungen/laeufe/lernmaas-basis-20260930/maas-b03-20260930/http-create.jsonl) | 919,463 | 16,756 | HTTP 200 und Inhalt passend; SSH bestanden | Maschine und Pool entfernt; Hostzuteilung wiederhergestellt |
+Die längere Gesamtdauer von b03 bleibt in der Auswertung erhalten. Zwischen dem erstmals beobachteten Zustand `Ready` und `Deploying` lagen bei b01 63,603 s, bei b02 133,443 s und bei b03 419,217 s. Dieser Abschnitt enthält den manuellen Deployment-Schritt und mögliche Zeit bis zu seiner Ausführung. Der genaue Grund der unterschiedlichen Abstände wurde nicht aufgezeichnet. Die längere Dauer kann deshalb nicht allein der Plattformleistung zugeschrieben werden. b03 blieb innerhalb der Gesamtgrenze von 1800 s; die 900-s-Grenze betraf das später gestartete HTTP-Polling.
 
-Alle folgenden Uhrzeiten sind UTC am 07.10.2026. Die Zustandswechsel geben den ersten protokollierten Beobachtungszeitpunkt an, nicht den exakten internen Zustandswechsel von MAAS. Die Vorbereitungszeit und die nachgelagerte SSH-Prüfung sind nicht Teil der Aufbaudauer.
+**Bedienzeit**
 
-| Ereignis | b01 | b02 | b03 |
-| --- | --- | --- | --- |
-| Aufbaustart | 09:42:22.468 | 10:01:21.946 | 11:05:38.523 |
-| Commissioning erstmals beobachtet | 09:42:40.964 | 10:01:40.028 | 11:05:56.606 |
-| Testing erstmals beobachtet | 09:45:01.370 | 10:04:04.701 | 11:08:19.148 |
-| Ready erstmals beobachtet | 09:45:08.778 | 10:04:14.947 | 11:08:24.357 |
-| Deploying erstmals beobachtet | 09:46:12.381 | 10:06:28.390 | 11:15:23.574 |
-| HTTP-Polling gestartet | 09:46:12.429 | 10:06:28.432 | 11:15:23.620 |
-| HTTP-Bereitschaft beobachtet | 09:51:50.800 | 10:12:54.855 | 11:20:57.986 |
-| Abbaustartmarker | 09:56:39.450 | 10:17:33.867 | 11:25:01.290 |
-| VM-Löschaufruf begonnen | 09:56:51.152 | 10:17:37.077 | 11:25:03.656 |
-| VM-Löschaufruf beendet | 09:56:56.227 | 10:17:41.643 | 11:25:08.625 |
-| MAAS-Nachkontrolle abgeschlossen | 09:57:05.493 | 10:17:50.944 | 11:25:18.046 |
+Für b01 wurden folgende Stoppuhrwerte erfasst und gemeldet:
 
-Für den Abbau werden zusätzlich die Zeit vor dem eigentlichen Löschaufruf und die anschliessende Zeit bis zum MAAS-Abschluss ausgewiesen. Die Zeit vor dem Löschaufruf enthält auch die vorgelagerte Inventar- und Identitätsprüfung; sie ist keine reine Löschzeit und kein eigener Messwert für aktive Bedienung.
-
-| Lauf | Startmarker bis VM-Löschaufruf in s | VM-Löschaufruf bis Nachkontrolle in s | Gesamter Abbau in s |
-| --- | ---: | ---: | ---: |
-| b01 | 11,702 | 14,341 | 26,043 |
-| b02 | 3,210 | 13,867 | 17,077 |
-| b03 | 2,366 | 14,390 | 16,756 |
-
-**Bedienzeit und Aussagegrenzen**
-
-Für b01 wurden folgende Stoppuhrwerte vom Diplomanden gemeldet. Die beiden Aufbauabschnitte wurden jeweils gemeinsam erfasst. Für b02 und b03 wurde auf Anweisung des Diplomanden derselbe Bedienzeitansatz verwendet; die jeweilige `bedienung.csv` kennzeichnet die Übernahme ausdrücklich.
-
-| Abschnitt | b01 in s | b02 in s | b03 in s |
-| --- | ---: | ---: | ---: |
-| YAML kopieren und CLI bedienen | 15 | 15 | 15 |
-| Zonenwechsel und Deployment | 25 | 25 | 25 |
-| SSH-Prüfung | 5 | 5 | 5 |
-| Löschen und Nachkontrolle | 10 | 10 | 10 |
-| Gesamt | 55 | 55 | 55 |
-| Herkunft | Stoppuhrwerte vom Diplomanden gemeldet | Von b01 übernommen | Von b01 übernommen |
-
-Der Ansatz ergibt 40 s Aufbau, 5 s SSH-Prüfung und 10 s Abbau. Eine Handlungsliste und die Zahl der Bedienhandlungen fehlen. Beobachterbedienung und Messnotizen wurden nicht separat gemessen.
-
-Die 55 s von b02 und b03 sind übernommene Werte. Sie erlauben keine Aussage über die Streuung der aktiven Arbeit und müssen bei einem späteren Einsparungsvergleich entsprechend gekennzeichnet bleiben.
-
-**Ressourcenabschluss**
-
-Vor dem Abbau wurden Maschinen-ID, Host, Pool, CPU und RAM der Testmaschine gesichert und geprüft. Nach dem Abbau zeigen die MAAS-Abfragen, dass die jeweilige Maschinen-ID, der VM-Name und die Pool-ID nicht mehr vorhanden sind. Alle Maschinen aus dem Vorher-Inventar sind weiterhin in der Nachher-Liste enthalten. Der gesamte `used`-Wert von Pod 7 ist in allen drei Vorher-Nachher-Vergleichen identisch: 8 zugeteilte Kerne, 8192 MiB RAM und 48 000 000 000 Bytes lokaler Speicher.
-
-Damit ist der Ressourcenabschluss über MAAS-Inventare und die gemeldete Hostzuteilung belegt. Eine direkte Prüfung der libvirt-Domänen oder Datenträgerdateien auf `cloud-au-32` wurde nicht durchgeführt. Die leeren Dateien der Löschaufrufe sind allein kein Löschbeleg; entscheidend sind die anschliessenden Inventarabfragen und der Ressourcenvergleich.
-
-**Einordnung der Gesamtdauer**
-
-Die längere Aufbaudauer von b03 wird unverändert übernommen. Zwischen dem erstmals beobachteten Zustand `Ready` und `Deploying` liegen folgende Zeiten:
-
-| Lauf | Beobachtetes Ready bis Deploying in s |
+| Phase | Aktive Zeit in s |
 | --- | ---: |
-| b01 | 63,603 |
-| b02 | 133,443 |
-| b03 | 419,217 |
+| YAML kopieren und CLI bedienen | 15 |
+| Zonenwechsel und Deployment | 25 |
+| SSH-Prüfung | 5 |
+| Löschen und Nachkontrolle | 10 |
+| Gesamt | 55 |
 
-Dieser Abstand enthält den manuellen Deployment-Schritt sowie mögliche Zeit bis zu dessen Ausführung und zur erneuten Statusbeobachtung. Er ist nicht ausschliesslich technische Provisionierungszeit und nicht mit aktiver Bedienzeit gleichzusetzen. Der genaue Grund der unterschiedlichen Abstände wurde nicht separat protokolliert. Insbesondere bei b03 lässt sich die längere Gesamtdauer deshalb nicht allein der Plattformleistung zuschreiben. Der Lauf bleibt innerhalb der Gesamtgrenze von 1800 s; die 900-s-Grenze betrifft das später gestartete HTTP-Polling.
+Für b02 und b03 wurde derselbe Ansatz übernommen und in der jeweiligen `bedienung.csv` gekennzeichnet. Diese beiden Werte sind keine unabhängigen Messungen. Eine Handlungszählung und eine zeitgestempelte Handlungsliste liegen nicht vor; die Bedienung des Beobachters wurde nicht separat gemessen. Der spätere Vergleich kann deshalb die technischen Zeiten je Lauf auswerten, bei der aktiven Arbeit aber nur mit dem entsprechend bezeichneten Ansatz arbeiten.
 
-**Nachweise**
+**Ressourcenabschluss und Belege**
 
-Die [Auswertung der drei Basisläufe](messungen/laeufe/lernmaas-basis-20260930/auswertung-b01-b03-20261007.json) fasst Eingaben, Zeitberechnung und Ressourcenprüfungen zusammen. Die Laufdateien bleiben unter ihren ursprünglichen Kennungen erhalten.
+Nach jedem Lauf fehlten die gesicherte Maschinen-ID, der VM-Name und der Testpool in MAAS. Alle zuvor erfassten Maschinen blieben vorhanden. Die gesamte gemeldete Hostzuteilung von Pod 7 entsprach jeweils wieder dem Ausgangsstand: acht Kerne, 8192 MiB RAM und 48 000 000 000 Bytes Speicher. Eine direkte Kontrolle der libvirt-Domänen und Datenträgerdateien auf dem KVM-Host erfolgte nicht; der Abschluss ist durch MAAS-Inventare und Hostzuteilung belegt.
 
-| Lauf | Definition | HTTP | SSH | Ressourcen nach Abbau | Bedienzeit |
-| --- | --- | --- | --- | --- | --- |
-| b01 | [Plan](messungen/laeufe/lernmaas-basis-20260930/maas-b01-20260930/plan.json) | [Protokoll](messungen/laeufe/lernmaas-basis-20260930/maas-b01-20260930/http-create.jsonl) | [Prüfung](messungen/laeufe/lernmaas-basis-20260930/maas-b01-20260930/ssh-pruefung.txt) | [Maschinen](messungen/laeufe/lernmaas-basis-20260930/maas-b01-20260930/maschinen-nachher.json), [Pools](messungen/laeufe/lernmaas-basis-20260930/maas-b01-20260930/pools-nachher.json), [Hostzuteilung](messungen/laeufe/lernmaas-basis-20260930/maas-b01-20260930/hosts-nachher.json) | [CSV](messungen/laeufe/lernmaas-basis-20260930/maas-b01-20260930/bedienung.csv) |
-| b02 | [Plan](messungen/laeufe/lernmaas-basis-20260930/maas-b02-20260930/plan.json) | [Protokoll](messungen/laeufe/lernmaas-basis-20260930/maas-b02-20260930/http-create.jsonl) | [Prüfung](messungen/laeufe/lernmaas-basis-20260930/maas-b02-20260930/ssh-pruefung.txt) | [Maschinen](messungen/laeufe/lernmaas-basis-20260930/maas-b02-20260930/maschinen-nachher.json), [Pools](messungen/laeufe/lernmaas-basis-20260930/maas-b02-20260930/pools-nachher.json), [Hostzuteilung](messungen/laeufe/lernmaas-basis-20260930/maas-b02-20260930/hosts-nachher.json) | [CSV](messungen/laeufe/lernmaas-basis-20260930/maas-b02-20260930/bedienung.csv) |
-| b03 | [Plan](messungen/laeufe/lernmaas-basis-20260930/maas-b03-20260930/plan.json) | [Protokoll](messungen/laeufe/lernmaas-basis-20260930/maas-b03-20260930/http-create.jsonl) | [Prüfung](messungen/laeufe/lernmaas-basis-20260930/maas-b03-20260930/ssh-pruefung.txt) | [Maschinen](messungen/laeufe/lernmaas-basis-20260930/maas-b03-20260930/maschinen-nachher.json), [Pools](messungen/laeufe/lernmaas-basis-20260930/maas-b03-20260930/pools-nachher.json), [Hostzuteilung](messungen/laeufe/lernmaas-basis-20260930/maas-b03-20260930/hosts-nachher.json) | [CSV](messungen/laeufe/lernmaas-basis-20260930/maas-b03-20260930/bedienung.csv) |
+Die [zusammengefasste Auswertung](messungen/laeufe/lernmaas-basis-20260930/auswertung-b01-b03-20261007.json) enthält die vollständigen Zeitstempel und Teilzeiten. In den Laufordnern liegen Eingaben und Einzelbelege:
 
-Die Serie liefert die Ausgangswerte für den späteren Plattformvergleich. Reset und Agentensteuerung werden erst mit den PoC-Läufen geprüft.
+| Lauf | Eingaben | HTTP und SSH | Abschluss | Bedienzeit |
+| --- | --- | --- | --- | --- |
+| b01 | [Plan](messungen/laeufe/lernmaas-basis-20260930/maas-b01-20260930/plan.json) | [HTTP](messungen/laeufe/lernmaas-basis-20260930/maas-b01-20260930/http-create.jsonl), [SSH](messungen/laeufe/lernmaas-basis-20260930/maas-b01-20260930/ssh-pruefung.txt) | [Maschinen](messungen/laeufe/lernmaas-basis-20260930/maas-b01-20260930/maschinen-nachher.json), [Pools](messungen/laeufe/lernmaas-basis-20260930/maas-b01-20260930/pools-nachher.json), [Host](messungen/laeufe/lernmaas-basis-20260930/maas-b01-20260930/hosts-nachher.json) | [CSV](messungen/laeufe/lernmaas-basis-20260930/maas-b01-20260930/bedienung.csv) |
+| b02 | [Plan](messungen/laeufe/lernmaas-basis-20260930/maas-b02-20260930/plan.json) | [HTTP](messungen/laeufe/lernmaas-basis-20260930/maas-b02-20260930/http-create.jsonl), [SSH](messungen/laeufe/lernmaas-basis-20260930/maas-b02-20260930/ssh-pruefung.txt) | [Maschinen](messungen/laeufe/lernmaas-basis-20260930/maas-b02-20260930/maschinen-nachher.json), [Pools](messungen/laeufe/lernmaas-basis-20260930/maas-b02-20260930/pools-nachher.json), [Host](messungen/laeufe/lernmaas-basis-20260930/maas-b02-20260930/hosts-nachher.json) | [CSV](messungen/laeufe/lernmaas-basis-20260930/maas-b02-20260930/bedienung.csv) |
+| b03 | [Plan](messungen/laeufe/lernmaas-basis-20260930/maas-b03-20260930/plan.json) | [HTTP](messungen/laeufe/lernmaas-basis-20260930/maas-b03-20260930/http-create.jsonl), [SSH](messungen/laeufe/lernmaas-basis-20260930/maas-b03-20260930/ssh-pruefung.txt) | [Maschinen](messungen/laeufe/lernmaas-basis-20260930/maas-b03-20260930/maschinen-nachher.json), [Pools](messungen/laeufe/lernmaas-basis-20260930/maas-b03-20260930/pools-nachher.json), [Host](messungen/laeufe/lernmaas-basis-20260930/maas-b03-20260930/hosts-nachher.json) | [CSV](messungen/laeufe/lernmaas-basis-20260930/maas-b03-20260930/bedienung.csv) |
 
-#### AWS-Smoke-Test vom 13.10.2026 {#aws-smoke-20261013}
+#### AWS-Smoke-Test
 
 **Zweck:** Früher Machbarkeitsnachweis für US14 und US15. Geprüft wurden eine einzelne Referenz-VM, SSH, der erwartete HTTP-Inhalt und der Abbau. Agent, MCP und Reset waren nicht Bestandteil dieses Tests.
 
@@ -1247,23 +1184,20 @@ Die Serie liefert die Ausgangswerte für den späteren Plattformvergleich. Reset
 | --- | --- |
 | Plattform | AWS Academy Learner Lab, `us-east-1`, Availability Zone `us-east-1a` |
 | VM | `t3.small`, zwei vCPU und 2048 MiB zugewiesener RAM; im Gast 1905 MiB sichtbar |
-| Betriebssystem | Ubuntu 24.04.5 LTS; AMI `ami-0fa5967347d08d2df`, Canonical-Abbild vom 04.10.2026 |
+| Betriebssystem | Ubuntu 24.04.5 LTS; AMI `ami-0fa5967347d08d2df`, Canonical-Abbild |
 | Speicher | 12 GiB EBS `gp3`, automatische Löschung bei Terminierung aktiviert |
 | Netzwerk | Vorhandene Default-VPC, Subnetz und Internet-Gateway; automatische öffentliche IPv4-Adresse, keine Elastic IP angelegt |
 | Zugang und Dienst | Benutzer `ubuntu`, Schlüsselpaar `vockey`; HTTP auf Port 8080, Inhalt `lernumgebung bereit` |
 
 Die [Cloud-init-Konfiguration](messungen/laeufe/aws-smoke-20261013/cloud-init-aws.yaml) übernimmt HTML-Datei, systemd-Unit und Dienststart unverändert aus der LernMAAS-Basisserie. Der SSH-Zugang verwendet den Ubuntu-Standardbenutzer und den AWS-Schlüssel. Der Dienst läuft auf beiden Plattformen als `nobody:nogroup`; Paketaktualisierungen sind deaktiviert. Die Abbildwege und Infrastruktur unterscheiden sich weiterhin.
 
-| Ereignis | Zeitpunkt in UTC beziehungsweise Ergebnis |
+| Prüfung | Ergebnis |
 | --- | --- |
-| Startmarker vor dem Erstellungsaufruf | 13:22:13 |
-| Erste erfolgreiche HTTP-Prüfung | 13:22:40,634; HTTP 200 und erwarteter Inhalt |
-| Aufbau bis beobachteter HTTP-Bereitschaft | 27,634 s |
-| SSH-Prüfung | 13:36:05; Ubuntu, CPU-Zahl, Datenträger und Dienst geprüft; Cloud-init ohne Fehler abgeschlossen |
-| Abbaustart | 13:38:59,167 |
-| Abbau bis abschliessender Nachkontrolle | 30,656 s |
+| Aufbau bis HTTP-Bereitschaft | 27,634 s; HTTP 200 und erwarteter Inhalt |
+| SSH und Gast | Ubuntu, CPU-Zahl, Datenträger und Dienst geprüft; Cloud-init ohne Fehler abgeschlossen |
+| Vollständiger Abbau | 30,656 s bis zur abschliessenden Nachkontrolle |
 
-Beim ersten SSH-Versuch hatte das Lab-Terminal nach einem Hostwechsel eine andere öffentliche Quelladresse. Die Security Group erlaubte noch die bisherige Adresse; die Hostschlüssel-Abfrage blieb leer. Nach der Anpassung auf die aktuelle Quelladresse war SSH erfolgreich. Port 22 und 8080 waren jeweils auf eine einzelne Quelladresse beschränkt. Der spätere Ablauf muss einen Wechsel des Aufzeichnungsrechners berücksichtigen.
+Beim SSH-Zugriff änderte sich nach einem Wechsel des Lab-Terminals dessen öffentliche Quelladresse. Die Security Group erlaubte noch die vorherige Adresse, weshalb die Verbindung scheiterte und die Hostschlüssel-Abfrage leer blieb. Ich ermittelte die neue Quelladresse, passte die Regel an und entfernte die alte Freigabe. Danach war SSH erfolgreich. Die eingehenden Ports 22 und 8080 blieben auf die jeweilige einzelne Quelladresse beschränkt. Für weitere Versuche muss der vorbereitete Zugang deshalb auch nach einem Terminalwechsel stimmen.
 
 **Ressourcenabschluss**
 
@@ -1274,166 +1208,26 @@ Beim ersten SSH-Versuch hatte das Lab-Terminal nach einem Hostwechsel eine ander
 | Netzwerkinterface | `eni-0e285a28037829c01` | ID-Abfrage ohne Treffer |
 | Eigene Security Group | `sg-0bb906f137fcbca0c` | ID-Abfrage ohne Treffer |
 
-VPC, Subnetz, Internet-Gateway und Schlüsselpaar gehörten zur vorhandenen Lab-Basis und blieben bestehen. Für den anschliessenden Nachweistransfer wurde separat ein privater S3-Bucket verwendet. Die Nachweise wurden heruntergeladen. Die Löschung des Transfer-Buckets ist im Laufarchiv nicht separat belegt; bestätigt wurde die Beendigung der Lab-Sitzung.
+VPC, Subnetz, Internet-Gateway und Schlüsselpaar gehörten zur vorhandenen Lab-Basis und blieben bestehen. Für den Nachweistransfer wurde anschliessend ein privater S3-Bucket verwendet. Nach dem Download wurde der Bucket gelöscht. Diese spätere Bestätigung ergänzt die im Laufarchiv enthaltenen API-Abfragen des VM-Abbaus.
 
 **Einordnung und Nachweise**
 
 Das [HTTP-Protokoll](messungen/laeufe/aws-smoke-20261013/http-create.jsonl), die [SSH-Prüfung](messungen/laeufe/aws-smoke-20261013/ssh-pruefung.txt), das [Instanzinventar](messungen/laeufe/aws-smoke-20261013/instanz-vor-abbau.json), die [Datenträgerprüfung](messungen/laeufe/aws-smoke-20261013/datentraeger-pruefung.json) und das [Abbauergebnis](messungen/laeufe/aws-smoke-20261013/abbau-ergebnis.json) belegen den Ablauf.
 
-Die Zeiten gehören zu einem einzelnen Smoke-Test. HTTP wurde im Abstand von fünf Sekunden geprüft; Anfragezeiten kommen hinzu, und der Startmarker hat Sekundenauflösung. Die Nachkommastellen bedeuten deshalb keine entsprechende Messgenauigkeit. Aktive Bedienzeit und Handlungszahl wurden nicht gemessen. Wegen des manuellen Eingriffs bei SSH, des fehlenden Resets und der direkten CLI-Bedienung zählt der Test nicht als formaler PoC-Lauf und erlaubt keinen Leistungsvergleich mit LernMAAS. Die [Budgetaufnahme](messungen/laeufe/aws-smoke-20261013/budget-nach-test.txt) dokumentiert die verzögerte Anzeige, keine tatsächlichen Einzelkosten.
+HTTP wurde alle fünf Sekunden geprüft, der Startmarker hat Sekundenauflösung. Die Nachkommastellen geben die Berechnung aus den gespeicherten Zeitstempeln wieder, nicht eine entsprechend hohe Messgenauigkeit. Bedienzeit und Handlungszahl wurden nicht erfasst. Der Test enthält direkte CLI-Bedienung und einen korrigierenden Eingriff bei SSH; Reset wurde nicht geprüft. Er bestätigt die Cloud-Machbarkeit und zählt nicht zur formalen PoC-Serie. Die [damalige Budgetaufnahme](messungen/laeufe/aws-smoke-20261013/budget-nach-test.txt) wird durch den späteren Kostenstand in Kapitel 3.6 ergänzt.
 
-## 6 Bewertung und Vergleich
+### 5.4 Ergebnisse der Ausgangsmessung
 
-Die [LernMAAS-Basisserie vom 07.10.2026](#lernmaas-basisserie-20261007) liefert die ersten protokollierten Ausgangswerte. Für die drei technisch erfolgreichen Läufe ergeben sich folgende verstrichene Zeiten:
+Die drei LernMAAS-Basisläufe liefern folgende verstrichene Zeiten:
 
 | Phase | Minimum in s | Median in s | Maximum in s |
 | --- | ---: | ---: | ---: |
 | Aufbau bis HTTP-Bereitschaft | 568,332 | 692,909 | 919,463 |
 | Endgültiger Abbau mit MAAS-Nachkontrolle | 16,756 | 17,077 | 26,043 |
 
-Die Aufbaudauer umfasst den manuellen Bereitstellungsablauf ab Startmarker bis zur beobachteten HTTP-Bereitschaft. Insbesondere der Abstand zwischen `Ready` und `Deploying` unterscheidet sich; die Gesamtdauer misst damit nicht isoliert die technische Plattformleistung. Der Ressourcenabschluss ist für alle drei Läufe durch MAAS-Inventare und die wiederhergestellte Hostzuteilung belegt.
+Die Streuung beim Aufbau fällt deutlich grösser aus als beim Abbau. Die Ereignisprotokolle zeigen, dass sich vor allem der Abschnitt zwischen `Ready` und `Deploying` unterscheidet. In diesem Abschnitt wird das Deployment manuell ausgelöst. Die Werte beschreiben daher den beobachteten Gesamtprozess und lassen sich nicht als reiner Leistungsvergleich der Infrastruktur lesen.
 
-Für die Bedienzeit wird ein gemeinsamer Ansatz von 40 s Aufbau, 5 s SSH-Prüfung und 10 s Abbau, insgesamt 55 s, verwendet. Die Werte stammen aus der gemeldeten Stoppuhrmessung von b01 und wurden bei b02 und b03 übernommen. Daraus wird keine statistische Auswertung dreier unabhängiger Bedienzeitmessungen abgeleitet. Die Anzahl der Bedienhandlungen ist nicht erfasst.
-
-Der AWS-Smoke-Test belegt inzwischen die Cloud-Machbarkeit. Seine Einzelzeiten werden wegen des abweichenden Ablaufs und der fehlenden Bedienzeitmessung nicht in die Basisserie oder den späteren PoC-Vergleich eingerechnet. Der Plattformvergleich bleibt offen, bis die drei vollständigen PoC-Läufe je Plattform vorliegen. Ausgewertet werden dann gemeinsame Aufbau- und endgültige Abbauphasen, ergänzt um Reset, Fehlerverhalten und Ressourcenabschluss. Ein Vergleich der aktiven Arbeit weist die abweichende Erfassung der Basisserie ausdrücklich aus. Die MCP-Bewertung und Wirtschaftlichkeitsbetrachtung folgen den festgelegten Grenzen. Aus diesen drei Basisläufen allein werden keine Automatisierungsersparnis, allgemeine Zuverlässigkeit oder statistische Signifikanz abgeleitet.
-
-## 7 Betrieb und Schulung
-
-Noch offen, Sprint 3. Verbindlich ist das Runbook für Aufbau, Bedienung, Fehleranalyse und vollständigen Abbau. Eine zusätzliche Schulungsunterlage und durchgeführte Einführung sind als ergänzende Ausarbeitung vorgesehen, soweit die Kapazität reicht.
-
-## 8 Projektverlauf
-
-Hier werden die tatsächlich durchgeführten Sprintplanungen, Reviews und Retrospektiven dokumentiert. Zu jedem Review gehören Datum, gezeigter Stand, Rückmeldungen und daraus abgeleitete Aufgaben. Bisher liegen in diesem Arbeitsstand keine abgeschlossenen Reviews vor. Wöchentliche Entwicklung: [Statusberichte](#statusberichte).
-
-### 8.1 Statusberichte {#statusberichte}
-
-Die folgenden Berichte halten frühere Arbeitsstände fest. Seit dem in US05 festgehaltenen Entscheid werden zusätzliche Wochenberichte nur bei ausdrücklichem Bedarf erstellt. Der aktuelle Stand steht in der Übersicht vom 15.10.2026; fehlende Wochen werden nicht nachträglich als damals verfasste Berichte ergänzt.
-
-| Stand | Bericht |
-| --- | --- |
-| 19.09.2026 | [KW38: Projektstart und Grundlagen](#statusbericht-kw38) |
-| 23.09.2026 | [KW39: Zwischenstand](#statusbericht-kw39) |
-| 15.10.2026 | [Abgleich mit Repository und Issues](#projektstand-20261015) |
-
-#### KW 38: Projektstart und Grundlagen {#statusbericht-kw38}
-
-**Datum:** 19.09.2026  
-**Berichtszeitraum:** 14.09. bis 19.09.2026  
-**Sprint:** 1, 14.09. bis 18.10.2026
-
-**Aktueller Stand**
-
-In der ersten Projektwoche habe ich die Projektorganisation eingerichtet, die vorhandene Infrastruktur untersucht und die Grundlagen für die Umsetzung und den späteren Vergleich ausgearbeitet. Erste Versuche mit LernMAAS und KubeVirt liegen vor. Der vollständige automatisierte Lebenszyklus mit Agent und Adaptern sowie die formalen Vergleichsmessungen sind noch offen.
-
-**Vergangene Woche**
-
-| Bereich | Erledigte Arbeiten und vorliegende Ergebnisse |
-| --- | --- |
-| Projektorganisation | Repository strukturiert und das öffentliche Project Board eingerichtet. User Stories, Akzeptanzkriterien, Prioritäten und Sprintzuordnung sind erfasst. Das Board zeigt Story Points sowie geplante Start- und Enddaten. |
-| Dokumentation | Die zentrale Dokumentation mit Projektplanung, Analyse, Architekturentwurf und Messkonzept aufgebaut. Die Veröffentlichung über GitHub Pages ist eingerichtet; US04 steht weiterhin auf In Progress. Alle Wochenberichte werden direkt in dieser Datei geführt. |
-| IST-Analyse | Die heutige Bereitstellung mit MAAS, LernMAAS, Profilen und Shellskripten untersucht. Aufbau, manuelle Bedienhandlungen, Abbau und mögliche Teilfehler sind beschrieben. |
-| Lokale Infrastruktur | Voller Zugang zum DL380 und den Terra-Rechnern sowie deren vollumfängliche Nutzung für die Diplomarbeit sind bestätigt. Die vorhandenen Systeme sowie den Kubernetes-Cluster und KubeVirt untersucht und dokumentiert. Die Storage-Eigenschaften und die nötige gesonderte Prüfung der PersistentVolumes sind erfasst. |
-| Erste praktische Versuche | LernMAAS-Abläufe protokolliert. Auf KubeVirt wurde eine Referenz-VM gestartet und eine erfolgreiche HTTP-Antwort nachgewiesen. Für einen vollständigen Referenznachweis fehlen noch der SSH-Nachweis und die lückenlose Prüfung des Abbaus. |
-| Test-Lernumgebung | Eine reduzierte Testumgebung aus den Merkmalen von m239, m254 und m426 beschrieben. Die Spezifikation umfasst eine Ubuntu-VM, festgelegte Mindestressourcen, SSH-Zugang und einen HTTP-Testdienst. |
-| Messkonzept | Gemeinsame Start- und Endkriterien, getrennte Erfassung von aktiver Bedienzeit und Wartezeit sowie die Ressourcenprüfung nach dem Abbau festgelegt. Messplan und Protokollvorlage sind vorbereitet. |
-| Architektur und AWS | Den Entwurf für YAML-Modell, Agent, Zustandsführung und MCP-Adapter beschrieben. AWS ist als zweite Zielplattform vorgesehen; Kontobedingungen, Berechtigungen, Quotas und der praktische Smoke-Test sind noch zu prüfen. |
-| Hilfswerkzeuge | Skripte für Repository-Prüfungen, HTTP-Beobachtung und den Abgleich von Issues und Project-Feldern ergänzt. Der Board-Abgleich übernimmt Sprinttermine und Story Points und berücksichtigt abgeschlossene Issues. |
-
-Die ausführlichen Ergebnisse und ihre Nachweise stehen in der [Infrastrukturaufnahme](#31-ausgangslage-der-infrastruktur), der [IST-Analyse](#32-ist-analyse-der-heutigen-bereitstellung), dem [Messplan](#messplan) und dem [Nachweisverzeichnis](#nachweise).
-
-**Stand der User Stories**
-
-Der zuletzt abgeglichene Board-Stand umfasst 38 aktive Stories mit insgesamt 111 Story Points.
-
-| Status | Anzahl |
-| --- | ---: |
-| Done | 7 |
-| In Progress | 1 |
-| Ready | 3 |
-| Backlog | 27 |
-
-Abgeschlossen sind US01 (Repository), US02 (Project Board), US03 (Vorlagen und Regeln), US07 (IST-Analyse), US09 (Messkonzept), US12 (Kubernetes-Prüfung) und US13 (KubeVirt und Storage). US04 ist in Bearbeitung. Die Anzahl abgeschlossener Stories beschreibt den Aufgabenstand und ist keine Aussage über den prozentualen Fertigstellungsgrad der Diplomarbeit.
-
-**Nächste Woche, 21.09. bis 27.09.2026**
-
-1. Die ausführbare Testdefinition auf Grundlage der dokumentierten Spezifikation vorbereiten und versionieren (US08).
-2. Den vollständigen KubeVirt-Referenzlauf durchführen: VM erstellen, SSH und HTTP prüfen, Ressourcen inventarisieren und nach dem Löschen einschliesslich PersistentVolume kontrollieren (US38).
-3. Die drei LernMAAS-Basisläufe mit der versionierten Testdefinition durchführen. Dabei aktive Bedienzeit, Aufbaudauer, Bedienhandlungen und vollständigen Abbau getrennt protokollieren (US10).
-4. Die AWS-Kontobedingungen, Berechtigungen, Quotas und Kostenkontrolle prüfen und den Smoke-Test vorbereiten (US14, US15).
-5. Ergebnisse und Rückmeldungen direkt in dieser Dokumentation ergänzen und die betroffenen Issues aktualisieren.
-
-**Offene Punkte und Abhängigkeiten**
-
-- Die bisherigen Versuche liefern noch keine vollständige Vergleichsserie. Insbesondere fehlen durchgängige Readiness-Zeitpunkte, belastbar gemessene aktive Bedienzeiten und vollständige Abbaunachweise.
-- Agent, JSON-Schema und MCP-Adapter sind noch zu implementieren. Die drei formalen PoC-Läufe je Zielplattform folgen nach der Umsetzung.
-- Die Roadmap-Ansicht benötigt noch die Zuordnung der vorhandenen Datumsfelder, damit die geplanten Zeiträume als Balken angezeigt werden.
-
-#### KW 39: Zwischenstand und Abgleich vom 23.09.2026 {#statusbericht-kw39}
-
-**Datum:** 23.09.2026
-
-**Berichtszeitraum:** 21.09. bis 23.09.2026
-
-**Sprint:** 1, 14.09. bis 18.10.2026
-
-**Stand:** Zwischenbericht; der Wochenabschluss folgt am Wochenende.
-
-**Belegte Ergebnisse**
-
-Der manuelle KubeVirt-Referenzlauf `kv-ref-20260922-01` vom 22.09.2026 ist erfolgreich abgeschlossen. HTTP, SSH und der vollständige Abbau einschliesslich PersistentVolume und Datenverzeichnis sind belegt. Die Dokumentation und Rohdateien liegen in den Commits `533bafe` und `309ac4e` vor. Der Nachweis ersetzt weder Reset noch Agent, MCP-Adapter oder formale Vergleichsläufe.
-
-Am 23.09.2026 wurden die GitHub-Issues mit `scripts/backlog.json`, der Dokumentation und den vorhandenen Nachweisen abgeglichen. Alle 38 aktiven Stories sind vorhanden; Titel, Anforderungen, Story Points im Issue, Sprintzuordnung, Epic und Priorität stimmen überein. US06 bleibt als nicht geplant geschlossen und ausserhalb des aktiven Boards. Die belegten Teilkriterien von US04, US05, US08, US11, US14 und US16 wurden nachgeführt. US38 ist geschlossen und im öffentlichen Board auf Done.
-
-| Board-Status am 23.09.2026 nach dem Abgleich | Anzahl |
-| --- | ---: |
-| Done | 8 |
-| In Progress | 2 |
-| Ready | 5 |
-| Backlog | 23 |
-
-Abgeschlossen sind US01, US02, US03, US07, US09, US12, US13 und US38. US04 und US05 stehen auf In Progress. Die Zahlen aus KW38 bleiben als damaliger Stand erhalten.
-
-Die Veröffentlichung der Dokumentation ist erreichbar. Der [Dokumentationslauf vom 22.09.2026](https://github.com/Cancani/diplomarbeit/actions/runs/35772702901) für Commit `309ac4e` war erfolgreich. Der Versand des Links an beide Experten und der geforderte negative Build-Nachweis sind noch nicht abschliessend belegt; US04 bleibt offen.
-
-**Offene Arbeiten und nächste Schritte**
-
-- US08: Die reduzierte Testumgebung ist beschrieben; die Abstimmung mit dem Firmenexperten ist noch zu dokumentieren. Originalprofile und ausgeführten LernMAAS-Skriptstand für die Vergleichsläufe sichern.
-- US11: Voller Zugriff auf DL380 und Terra ist bestätigt. Die ausdrückliche Aussage zur bestehenden Nutzung und zur fehlenden Unterrichtskollision bleibt als Nachweis offen. Ein Terra-Referenzlauf ist erst vor seiner Nutzung als nachgewiesener Ersatz nötig.
-- US14 und US15: Die konkreten Bedingungen des AWS Academy Learner Labs prüfen und den Smoke-Test anhand der gemeinsamen Referenzspezifikation vorbereiten. Allgemeine AWS-Kontobedingungen ersetzen diesen Nachweis nicht.
-- US17 und US18: Das plattformneutrale YAML-Modell, JSON-Schema und die lokale Validierung wurden nach dem Issue-Abgleich vorgezogen. Der in Kapitel 4.2 dokumentierte lokale Testlauf ist erfolgreich; Commit, Push und erster Pipeline-Lauf dieses Stands sind noch offen. Agent und Adapter sind weiterhin offen.
-- US10 sowie US27 und US28: Drei LernMAAS-Basisläufe und sechs vollständige PoC-Läufe bleiben offen.
-
-Der Stand vor der Modellimplementierung ist in Commit `19ae849` festgehalten. Modell und Validierung sind lokal umgesetzt und geprüft; ihre Veröffentlichung ist noch offen.
-
-### 8.2 Projektstand vom 15.10.2026 {#projektstand-20261015}
-
-Dieser Abgleich fasst die vorhandenen Laufprotokolle und den aktuellen Repository-Stand zusammen. Er ersetzt keine damals nicht verfassten Wochenberichte.
-
-| Bereich | Stand |
-| --- | --- |
-| Lokale Machbarkeit | KubeVirt-Referenzlauf vom 22.09.2026 erfolgreich; US38 abgeschlossen. DL380 und Terra stehen exklusiv zur Verfügung; aktualisierter Netzwerkstand in Kapitel 3.1.2. |
-| Vergleichsbasis | Drei LernMAAS-Läufe vom 07.10.2026 technisch erfolgreich; US10 geschlossen. Übernommene Bedienzeit und fehlende Handlungszählung bleiben als Messgrenzen bestehen. |
-| AWS | Smoke-Test, Budget und Preisabschätzung liegen vor. Lab-Gültigkeit, Budgetempfänger und gespeicherte Kostenfilter sowie die Transfer-Bucket-Nachkontrolle bleiben offen. |
-| Fachmodell | Schema, Beispiele und Validierung versioniert; 35 automatisierte Tests erfolgreich. US17 und US18 sind auf GitHub noch offen. |
-| Umsetzung | Agent, Zustandsspeicher und MCP-Adapter noch nicht implementiert |
-| Formale Versuche | Je drei vollständige PoC-Läufe auf KubeVirt und AWS noch offen |
-| Projektführung | US05 geschlossen: zusätzliche Wochenberichte nur bei ausdrücklichem Bedarf. Ein erstes durchgeführtes Review ist noch nicht dokumentiert. |
-
-Die nächsten Umsetzungsschritte sind Agent und Zustandsführung, der lokale Lebenszyklus und der AWS-Durchstich für create, status und delete. Die verbleibenden AWS-Kontobedingungen werden ergänzend geklärt. Für US11 ist die exklusive Nutzung von DL380 und Terra am 15.10.2026 bestätigt; die Netzwerkaufnahme ist ergänzt. Der bisher offene Nutzungspunkt ist damit geklärt.
-
-### 8.3 Vorlage für einen zusätzlichen Statusbericht {#statusvorlage}
-
-Bei Bedarf werden Datum, erledigte Arbeiten, nächste Schritte und aktuelle Hindernisse in einem kurzen Bericht festgehalten. Ergebnisse verweisen auf das zugehörige Kapitel oder Issue.
-
-## 9 Reflexion
-
-> Wird am Projektende verfasst. Gliederung: fachliche Reflexion, methodische Reflexion zur Projektführung, persönliche Reflexion, Lessons Learned.
-
-## 10 Fazit und Ausblick
-
-> Wird am Projektende verfasst. Enthält: Zielerreichung im Detail gegen die Zieltabelle, Gesamtfazit, Ausblick auf mögliche Weiterentwicklungen.
-
----
+Der manuelle KubeVirt-Lauf und der AWS-Smoke-Test bestätigen inzwischen, dass die Referenz auf beiden Zielplattformen funktioniert. Ihre einzelnen Zeiten werden wegen der unterschiedlichen Abläufe nicht mit den Basisläufen zu einer gemeinsamen Leistungsrangfolge verrechnet.
 
 ## Verzeichnisse
 
@@ -1441,14 +1235,23 @@ Bei Bedarf werden Datum, erledigte Arbeiten, nächste Schritte und aktuelle Hind
 
 | Begriff | Bedeutung |
 | --- | --- |
-| KubeVirt | Erweiterung für Kubernetes, die den Betrieb virtueller Maschinen als Kubernetes-Ressourcen ermöglicht |
-| MCP | Model Context Protocol, hier als einheitliches Kommunikationsprotokoll zwischen Agent und plattformspezifischen Adaptern eingesetzt |
-| MAAS | Metal as a Service, Grundlage der heutigen Bereitstellung von Lernumgebungen an der TBZ |
-| LernMAAS | Die TBZ-eigene Umsetzung der Lernumgebungen auf Basis von MAAS |
-| Readiness-Check | Automatisierte Prüfung, ob die virtuelle Maschine läuft und der festgelegte Testdienst erreichbar ist |
-| Teardown | Vollständiges Entfernen aller einem Testlauf zugeordneten Ressourcen |
-| Story Point | Relative Schätzgrösse für Aufwand, Komplexität und Unsicherheit einer User Story |
-| Velocity | Anzahl der in einem Sprint tatsächlich abgeschlossenen Story Points |
+| Agent | In dieser Arbeit ein Programm, das Operationen anhand festgelegter Regeln und gespeicherter Zustände steuert |
+| ADR | Architectural Decision Record; hält Kontext, Entscheid, Alternativen und Folgen einer Architekturentscheidung fest |
+| cloud-init | Erstkonfiguration einer Maschine beim ersten Start, beispielsweise für SSH-Schlüssel und Dienststart |
+| CDI | Containerized Data Importer; unterstützt unter anderem den Import eines VM-Abbilds in den Kubernetes-Speicher |
+| DataVolume | Von CDI verwendetes Objekt zur Verwaltung der Befüllung eines Volumes |
+| KubeVirt | Kubernetes-Erweiterung für den Betrieb virtueller Maschinen als Kubernetes-Ressourcen |
+| MAAS | Metal as a Service; Grundlage der heutigen Maschinenverwaltung und Bereitstellung |
+| LernMAAS | TBZ-Umsetzung von Lernumgebungen mit MAAS, Modulprofilen und Hilfsskripten |
+| MCP | Model Context Protocol; hier zur Kommunikation zwischen Agent und providerbezogenen Adaptern vorgesehen |
+| Modell-Snapshot | Unveränderte Kopie der für einen Lauf verwendeten fachlichen Definition |
+| NodePort | Kubernetes-Service, der einen Dienst über einen Port auf dem Knoten erreichbar macht |
+| PV und PVC | PersistentVolume als clusterweite Speicherressource und PersistentVolumeClaim als Speicheranforderung im Namespace |
+| Readiness | Geprüfte Nutzbarkeit: VM läuft, HTTP-Status und Antwortinhalt entsprechen der Definition |
+| Reset | Vollständiger Abbau und Neuerstellung aus derselben gespeicherten Definition |
+| Teardown | Abbau aller laufbezogenen Ressourcen bis zum festgelegten Endzustand |
+| Story Point | Relative Schätzgrösse für Aufwand, Komplexität und Unsicherheit |
+| Velocity | In einem Sprint tatsächlich abgeschlossene Story Points; keine feste Umrechnung in Stunden |
 
 ### Quellenverzeichnis
 
@@ -1457,43 +1260,39 @@ Bei Bedarf werden Datum, erledigte Arbeiten, nächste Schritte und aktuelle Hind
 | Bewilligte Projektbeschreibung, Efekan Demirci, 10.09.2026 | Verbindlicher Umfang, Ziele, Lieferobjekte und Budget; als separate Originaldatei bereitgestellt |
 | TBZ, Experteninformation 2026 | Hinweise zur Begleitung und Abgabe; konkrete Termine und gültiges Merkblatt mit der Schule abgleichen |
 | Bewertungsblatt Semesterarbeit 5 | Rückmeldungen zu Demo, Testerklärung und Nachweisführung |
-| [LernMAAS](https://github.com/mc-b/lernmaas) | Profilstruktur und Hilfsskripte; Repository-Commit, installiertes `createvms` und Konfigurationsdatei am 30.09.2026 gesichert, siehe [Laufnachweis](#lernmaas-20260930-01) |
+| [LernMAAS](https://github.com/mc-b/lernmaas) | Profilstruktur und Hilfsskripte; Repository-Commit, installiertes `createvms` und Konfigurationsdatei gesichert, siehe [Laufnachweis](#lernmaas-vorversuch) |
 | [Lerncloud](https://github.com/mc-b/lerncloud) | Bestehende Erstkonfiguration und Dienste |
-| [Kubernetes: Persistent Volumes](https://kubernetes.io/docs/concepts/storage/persistent-volumes/) | Clusterweiter PV und Reclaim-Verhalten; geprüft am 18.09.2026 |
-| [Botocore Stubber](https://docs.aws.amazon.com/botocore/latest/reference/stubber.html) | Isolierte Tests direkter API-Clients; geprüft am 18.09.2026 |
-| [MCP: Transports, Version 2025-06-18](https://modelcontextprotocol.io/specification/2025-06-18/basic/transports) | stdio und Trennung von Protokoll und Diagnose; geprüft am 18.09.2026 |
-| [AWS Academy Learner Lab](https://awsacademy.instructure.com/courses/182558/modules/items/18005637), Readme Stand 24.06.2025 | Konkrete Lab-Bedingungen zu Regionen, Ressourcen, Sitzungen und Budget; eingesehen am 13.10.2026, siehe Kapitel 3.6 |
-| [AWS Free Tier FAQ](https://aws.amazon.com/free/free-tier-faqs/) | Allgemeine Kontopläne; kein Beleg für die konkreten Learner-Lab-Bedingungen |
-| Eigene Netzwerkaufnahme, Efekan Demirci, Stand 15.10.2026 | Zuordnung der Geräte, Adressvergabe, aktuelles VLAN und reserviertes Ausweichnetz; Zusammenfassung in Kapitel 3.1.2 |
-| [Netplan: YAML-Konfiguration](https://netplan.readthedocs.io/en/stable/netplan-yaml/) | DHCP-Client-Kennung beim networkd-Backend; eingesehen am 15.10.2026 |
-| [AWS T3](https://aws.amazon.com/ec2/instance-types/t3/), [gp3](https://docs.aws.amazon.com/prescriptive-guidance/latest/optimize-costs-microsoft-workloads/ebs-migrate-gp2-gp3.html), [EBS-Abrechnung](https://aws.amazon.com/ebs/pricing/), [öffentliche IPv4](https://aws.amazon.com/vpc/pricing/) | Veröffentlichte Rechenansätze der Preisabschätzung; eingesehen am 15.10.2026 |
-| [SNB-Datenportal](https://data.snb.ch/en) | USD-Monatsmittel August 2026, CHF 0,8078 je USD; historische Umrechnungsbasis, eingesehen am 15.10.2026 |
-| [AWS: GetResources](https://docs.aws.amazon.com/resourcegroupstagging/latest/APIReference/API_GetResources.html) | Grenze der Tagging-Abfragen; geprüft am 18.09.2026 |
-| [Scrum Guide](https://scrumguides.org/scrum-guide.html) | Abgrenzung des angepassten Vorgehens; geprüft am 18.09.2026 |
+| [Kubernetes: Persistent Volumes](https://kubernetes.io/docs/concepts/storage/persistent-volumes/) | Clusterweiter PV und Reclaim-Verhalten |
+| [MCP: Transports, Version 2025-06-18](https://modelcontextprotocol.io/specification/2025-06-18/basic/transports) | stdio und Trennung von Protokoll und Diagnose |
+| [jsonschema: Schema Validation](https://python-jsonschema.readthedocs.io/en/stable/validate/) | Draft202012Validator und explizite Formatprüfung; verwendete Bibliotheksversion 4.26.0 |
+| [AWS Academy Learner Lab](https://awsacademy.instructure.com/courses/182558/modules/items/18005637), Readme Stand 24.06.2025 | Konkrete Lab-Bedingungen zu Regionen, Ressourcen, Sitzungen und Budget, siehe Kapitel 3.6 |
+| Eigene Board- und Milestone-Screenshots sowie Meetingübersicht | Statusspalten, Sprintzuordnung und Issue-Zahlen für Kapitel 2; Reviewtermine vom Diplomanden bereitgestellt |
+| Eigene Netzwerkaufnahme, Efekan Demirci | Zuordnung der Geräte, Adressvergabe, aktuelles VLAN und reserviertes Ausweichnetz; Zusammenfassung in Kapitel 3.1.2 |
+| [Netplan: YAML-Konfiguration](https://netplan.readthedocs.io/en/stable/netplan-yaml/) | DHCP-Client-Kennung beim networkd-Backend |
+| [AWS T3](https://aws.amazon.com/ec2/instance-types/t3/), [gp3](https://docs.aws.amazon.com/prescriptive-guidance/latest/optimize-costs-microsoft-workloads/ebs-migrate-gp2-gp3.html), [EBS-Abrechnung](https://aws.amazon.com/ebs/pricing/), [öffentliche IPv4](https://aws.amazon.com/vpc/pricing/) | Veröffentlichte Rechenansätze der Preisabschätzung |
+| [SNB-Datenportal](https://data.snb.ch/en) | USD-Monatsmittel August 2026, CHF 0,8078 je USD; historische Umrechnungsbasis |
+| [AWS: GetResources](https://docs.aws.amazon.com/resourcegroupstagging/latest/APIReference/API_GetResources.html) | Grenze der Tagging-Abfragen |
+| [Scrum Guide](https://scrumguides.org/scrum-guide.html) | Abgrenzung des angepassten Vorgehens |
 
 Interne Betriebsunterlagen und die Reservationsliste sind in der IST-Analyse benannt. Die Rohprotokolle sind eigene Erhebungen des Diplomanden.
 
-### Nachweise und Aussagegrenzen {#nachweise}
+### Nachweise und Aussagegrenzen
 
-Die Dateien dokumentieren die Infrastrukturaufnahme, die Versuche vom 14., 16., 22. und 30.09.2026, die drei LernMAAS-Basisläufe vom 07.10.2026 und den AWS-Smoke-Test vom 13.10.2026 sowie die Budgeteinrichtung vom 15.10.2026. Die Tabelle ordnet ein, welche Aussagen die jeweiligen Belege stützen und welche Nachweise noch fehlen.
+Die Rohprotokolle und verwendeten Eingaben bleiben in den ursprünglichen Laufordnern erhalten. Die Versuchskapitel verlinken die für ihre Ergebnisse massgeblichen Dateien. Die Übersicht erleichtert die Zuordnung:
 
-| Datei | Nutzbarer Inhalt | Grenze |
-| --- | --- | --- |
-| [AWS-Budget, 15.10.2026](#aws-budget-20261015) | CSV-Export des erstellten USD-50-Budgets; Warnschwellen bei 50 und 80 Prozent in der Konsole geprüft | Empfang der Warnung und gespeicherte Kostenfilter nicht bestätigt; Zeitraum beginnt nach dem Smoke-Test; historische USD 0,92 nicht dem einzelnen Test zugeordnet |
-| [AWS-Smoke-Test, 13.10.2026](#aws-smoke-20261013) | Referenz-VM mit HTTP und SSH; Instanz terminiert, Datenträger, Netzwerkinterface und eigene Security Group über IDs entfernt; 48 Rohdateien im Laufordner abgelegt | Einzelner Machbarkeitstest mit manueller SSH-Firewallkorrektur, ohne Agent, MCP, Reset und Bedienzeitmessung; Kosten- und Guthabenangaben teilweise offen; Transfer-Bucket-Löschung nicht separat belegt |
-| [LernMAAS-Basisserie b01 bis b03, 07.10.2026](#lernmaas-basisserie-20261007) | Drei identische Laufdefinitionen; Aufbau- und Abbauzeiten je Lauf; HTTP und SSH erfolgreich; Maschine und Pool entfernt; MAAS-Hostzuteilung wiederhergestellt | Bedienzeit bei b01 vom Diplomanden gemeldet, bei b02/b03 übernommen; Handlungszahl offen; keine direkte libvirt- oder Datenträgerprüfung |
-| [LernMAAS-Lauf lernmaas-20260930-01](#lernmaas-20260930-01) | HTTP nach 652,061 s beobachtet, SSH erfolgreich, Testmaschine und Pool entfernt, Hostbelegung auf Ausgangsstand | Bedienzeit unvollständig, Cloud-init abweichend, kein formaler Vergleichslauf; veröffentlichte Inventare um private Zoneninhalte bereinigt |
-| [Referenzlauf kv-ref-20260922-01](#kv-ref-20260922-01) | VM läuft, HTTP und SSH erfolgreich, Namespace, PV und Datenverzeichnis entfernt | Manueller Referenzlauf; keine aktive Bedienzeit, kein Reset, keine formale Vergleichsserie |
-| [Lernlauf](nachweise/lernlauf-lernmaas-00-20260916.txt) | Heutiger Ablauf, Commissioning, IP-Wechsel, einzelne Abbauaktionen | Kein Zeitstempel der ersten HTTP-Bereitschaft; aktive Zeiten sind nicht belastbar gemessen |
-| [mess01](messungen/messprotokoll-mess01.txt) | Zeitpunkte bis Deployed und späterer HTTP-Check | 673 s endet bei Deployed, 797 s bei beobachtetem HTTP-Erfolg; kein lückenloser Vollnachweis |
-| [parallel01](messungen/messprotokoll-parallel01.txt) | Teilaufbau und I/O-Fehler | Kein abschliessender Bereinigungsnachweis; keine Evidenz für fehlende Eingabevalidierung |
-| [KubeVirt-Test](nachweise/nachweis-testvm-20260914.txt) | Laufende VM, Antwort `testvm bereit` | 324 s nicht eindeutig rekonstruierbar; Released/entfernter PV nicht protokolliert |
-| [Manifest des Referenzversuchs](nachweise/testvm.yaml) | Aufbau des damaligen Referenzversuchs | Bearbeitet, Passwort entfernt, HTTP-Inhalt inzwischen geändert; kein durchgängiges Labeling und kein SSH-Schlüssel |
-| [dl380-01](nachweise/recon-dl380-01-20260914.txt), [kvcontrol](nachweise/recon-kvcontrol-20260914.txt) | Systemaufnahme vom 14.09.2026 | Zustand zum Zeitpunkt der Aufnahme |
-| [Kubernetes](nachweise/recon-k8s-20260914.txt), [Details](nachweise/recon-detail-20260914.txt), [Cluster](nachweise/recon-cluster-20260914.txt) | Vorgefundene Plattform | Übernommene Vorarbeit; bestehende Infrastrukturressourcen nicht als Testreste behandeln |
-| [cloud-init des Referenzversuchs](messungen/cloud-init-messlauf.yaml) | Minimaler HTTP-Dienst | Kein vollständiges SSH-Setup, keine festgeschriebene Abbildversion; nicht allein als neue Laufdefinition verwenden |
+| Nachweis | Inhalt und Verwendung |
+| --- | --- |
+| [KubeVirt-Referenzlauf](#kubevirt-referenzlauf) | Manifest, HTTP, SSH, Ressourceninventar und Storage-Nachkontrolle für die lokale Machbarkeit |
+| [LernMAAS-Vorversuch](#lernmaas-vorversuch) | Vorbereitung der gemeinsamen Referenz; abweichende Eingabe und Messgrenzen im Versuchskapitel beschrieben |
+| [LernMAAS-Basisserie](#lernmaas-basisserie) | Drei technische Läufe, Zeitstempel, Eingaben und MAAS-Ressourcenvergleich; Herkunft der Bedienzeiten dort ausgewiesen |
+| [AWS-Smoke-Test](#aws-smoke-test) | EC2-Aufbau, HTTP, SSH und API-Abbauprüfung; S3-Transfer-Bucket nach dem Download gelöscht |
+| [AWS-Budget](#363-budgetwarnungen-und-kostenstand) | CSV-Export, Warnschwellen und bestätigter aktiver Empfänger; historische Erfassungsnotiz bleibt unverändert |
+| [LernMAAS-Lernlauf](nachweise/lernlauf-lernmaas-00-20260916.txt), [mess01](messungen/messprotokoll-mess01.txt), [parallel01](messungen/messprotokoll-parallel01.txt) | Frühe Ablaufanalyse; Einordnung der unvollständigen Mess- und Abbaudaten in Kapitel 3.5 |
+| [Erster KubeVirt-Versuch](nachweise/nachweis-testvm-20260914.txt), [damaliges Manifest](nachweise/testvm.yaml), [frühe Cloud-init-Vorlage](messungen/cloud-init-messlauf.yaml) | Historische Vorbereitung; das bearbeitete Manifest und die frühe Vorlage sind keine unveränderten Definitionen der späteren Serie |
+| [DL380](nachweise/recon-dl380-01-20260914.txt), [kvcontrol](nachweise/recon-kvcontrol-20260914.txt) | Systemaufnahme |
+| [Kubernetes](nachweise/recon-k8s-20260914.txt), [Details](nachweise/recon-detail-20260914.txt), [Cluster](nachweise/recon-cluster-20260914.txt) | Ausgangszustand der übernommenen Plattform |
 
-Die Rohprotokolle liegen unter den jeweiligen Laufkennungen im Repository. Dort vorhandene Prüfsummenlisten stammen aus der Übertragung und bleiben als Archivdateien erhalten; sie sind keine zusätzliche fachliche Abgabeanforderung.
+Die Bestätigung des aktiven Budgetempfängers ist kein Test einer tatsächlich ausgelösten Warnung. Die später bestätigte Bucket-Löschung wird von den im Smoke-Test gespeicherten API-Prüfungen unterschieden. Die historische Budgetnotiz enthält entsprechend noch den damaligen Prüfstand.
 
 ### Abbildungsverzeichnis
 
@@ -1502,10 +1301,6 @@ Die Rohprotokolle liegen unter den jeweiligen Laufkennungen im Repository. Dort 
 | 1 | Projektorganisation und Berichtswege | Vorhanden |
 | 2 | Systemkontext der geplanten Bereitstellungslösung | Entwurf |
 | 3 | Geplanter Aufbau von CLI, Agent und Adaptern | Entwurf, noch keine implementierte Architektur |
-
-## Ehrenwort
-
-> Wird unterschrieben dem Management Summary beigelegt.
 
 ## Kontakt
 
