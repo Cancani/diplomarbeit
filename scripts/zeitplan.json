@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "note": "Planungsentwurf gemäss Projektplanung_Diplomarbeit.xlsx. Sprint 1 ist rückblickend geplant und zeigt keine Ist-Zeiten. Mehrere Arbeitsblöcke derselben Story werden im GitHub-Zeitplan durch den frühesten Beginn und das späteste Ende abgebildet. Die künftigen Aufgabenfenster und der Umsetzungsstart sind im ersten Review zu besprechen.",
+  "note": "Start- und Zieldaten werden gemäss Planung angepasst.",
   "stories": {
     "US01": {
       "start": "2026-09-14",
