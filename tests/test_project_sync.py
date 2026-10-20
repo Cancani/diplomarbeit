@@ -30,7 +30,7 @@ class ProjectTests(unittest.TestCase):
             issues.remove_old_section(issues.HISTORY+'\nEigene Notiz')
 
     def test_dates_and_weekly_report(self):
-        self.assertEqual(sync.plan_dates({'id': 'US17', 'sprint': 2}), ('2026-09-23', '2026-09-23'))
+        self.assertEqual(sync.plan_dates({'id': 'US17', 'sprint': 2}), ('2026-10-16', '2026-10-17'))
         self.assertEqual(sync.plan_dates({'id': 'US19', 'sprint': 2}), ('2026-10-26', '2026-10-28'))
         self.assertEqual(sync.plan_dates({'id': 'US05', 'sprint': 1}), (None, None))
 
