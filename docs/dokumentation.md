@@ -11,7 +11,7 @@
 | Schulexperte | Thanam Pangri, HF-Lehrgangsleitung |
 | Bewilligter Zeitraum | 11.09.2026 bis 18.12.2026 |
 | Arbeitsplanung | 14.09.2026 bis 18.12.2026 |
-| Version | 0.14, Arbeitsstand vor dem ersten Review |
+| Version | 0.15, Arbeitsstand vor dem ersten Review |
 | Grundlage | Bewilligte Projektbeschreibung vom 10.09.2026; schulische Vorgaben gemäss gültigem Merkblatt |
 
 ---
@@ -92,7 +92,7 @@ Der Ausblick greift die für eine spätere Einführung relevanten Erweiterungen 
 
 ### 1.7 Zielgruppe und Lesehinweise
 
-Die Dokumentation richtet sich an die Experten, den Informatikdienst und die HF-Lehrgangsleitung. Kapitel 3 erklärt die Ausgangslage und die technischen Entscheide; Kapitel 3.9 fasst die ADRs zusammen. Kapitel 4 beschreibt die bisherige Umsetzung. Messverfahren und Ergebnisse stehen in Kapitel 5. Planung, Retrospektive und Review von Sprint 1 stehen in Kapitel 2.10. Kapitel 2.11 enthält die Planung für Sprint 2. Rohprotokolle sind bei den betreffenden Versuchen verlinkt; zentrale Begriffe stehen im Glossar.
+Die Dokumentation richtet sich an die Experten, den Informatikdienst und die HF-Lehrgangsleitung. Kapitel 3 erklärt die Ausgangslage und die technischen Entscheide; Kapitel 3.9 fasst die ADRs zusammen. Kapitel 4 beschreibt die bisherige Umsetzung. Messverfahren und Ergebnisse stehen in Kapitel 5. Planung, Retrospektive und Review von Sprint 1 stehen in Kapitel 2.10. Die weiteren Sprints folgen in Kapitel 2.11 und 2.12. Rohprotokolle sind bei den betreffenden Versuchen verlinkt; zentrale Begriffe stehen im Glossar.
 
 ### 1.8 Themenfeldabdeckung
 
@@ -177,7 +177,7 @@ Die GitHub-Milestones bündeln die User Stories nach Sprint. Die folgende Übers
 | M5 | Abgabe | 18.12.2026 | Dokumentation, Management Summary, Ehrenwort und vereinbarte Abgabeunterlagen fertig |
 | M6 | Kolloquium | Mit Schule bestätigen | Präsentation, kurze Demo und vorbereitete Ersatznachweise verfügbar |
 
-Die Reviewtermine sind fest vereinbart. Alle Uhrzeiten gelten für Zürich. Die Aufgaben mit ihren Start- und Enddaten stehen im [GitHub-Zeitplan](https://github.com/users/Cancani/projects/7/views/2). Die Sprintplanung in Kapitel 2.10 und 2.11 zeigt die zugehörigen Ausschnitte.
+Die Reviewtermine sind fest vereinbart. Alle Uhrzeiten gelten für Zürich. Die Aufgaben mit ihren Start- und Enddaten stehen im [GitHub-Zeitplan](https://github.com/users/Cancani/projects/7/views/2). Die Sprintplanungen stehen in Kapitel 2.10 bis 2.12.
 
 | Review | Termin | Durchführung |
 | --- | --- | --- |
@@ -338,7 +338,7 @@ Gemäss Rückmeldung von Thanam Pangri ist ein regelmässiges Wochenjournal nich
 | Git-Commits und CI | Inhalt und Zeitpunkt der Änderungen sowie zugehöriger automatisierter Prüfstand |
 | Fachkapitel und Laufprotokolle | Technische Entscheidungen, Ergebnisse, Abweichungen und deren Nachweise |
 | Kapitel 2.10 | Planung, Bearbeitungsstand und eigene Retrospektive zu Sprint 1 sowie anschliessend die Rückmeldungen aus dem gemeinsamen Review |
-| Kapitel 2.11 | Planungsvorschlag für Sprint 2 und nach dem Review die gemeinsam festgelegten Prioritäten |
+| Kapitel 2.11 und 2.12 | Planung der weiteren Sprints sowie anschliessend ihre Retrospektiven und Reviewrückmeldungen |
 
 Bei relevanten Änderungen werden Anlass, Auswirkung und die daraus folgende Aufgabe im betroffenen Issue oder Fachkapitel festgehalten.
 
@@ -570,7 +570,9 @@ Das Review ist noch nicht durchgeführt. Ich stelle den erreichten Stand vor und
 
 Die Rückmeldungen der Experten und die gemeinsam vereinbarten nächsten Schritte werden nach dem Termin ergänzt. Aufgaben erhalten einen Bezug zur betroffenen User Story. Änderungen an Architekturentscheiden werden zusätzlich bei der jeweiligen ADR festgehalten. US16 bleibt bis zur Durchführung des Reviews und Dokumentation der Rückmeldungen offen. Eine fachliche Abnahme ist damit noch nicht vorweggenommen.
 
-### 2.11 Sprint 2 Planung
+### 2.11 Sprint 2
+
+#### Sprint 2 Planung
 
 **Zeitraum:** 19.10. bis 15.11.2026. Das zweite Review findet am 18.11.2026 statt.
 
@@ -584,7 +586,7 @@ Die Milestone-Ansicht zeigt die sieben offenen Issues und die beiden vorgezogene
 
 <small id="abb-08"><em>Abbildung 8: Milestone Sprint 2 mit offenen und vorgezogenen Stories</em></small>
 
-#### Zeitplan der User Stories
+##### Zeitplan der User Stories
 
 Die geplanten Start- und Enddaten sind im [GitHub-Zeitplan](https://github.com/users/Cancani/projects/7/views/2) einsehbar. Der Zeitplan zeigt die noch offenen Arbeiten. US17 und US18 sind bereits vorgezogen; ihre geplanten Zeiträume stehen bei Sprint 1. Die Umsetzung ab dem 26.10. und ihre Prioritäten werden im ersten Review abgestimmt. Sprint 2 endet am 15.11.; die Vorbereitung und Durchführung des zweiten Reviews liegen anschliessend.
 
@@ -613,7 +615,7 @@ gantt
 
 <small id="abb-09"><em>Abbildung 9: Zeitplan der offenen User Stories für Sprint 2 mit anschliessendem Review</em></small>
 
-#### Arbeitspakete und Zeitplanung
+##### Arbeitspakete und Zeitplanung
 
 | Geplanter Zeitraum | Story | Arbeitspaket | Erwartetes Ergebnis | SP |
 | --- | --- | --- | --- | --- |
@@ -627,7 +629,7 @@ gantt
 
 Der Beginn der weiteren Umsetzung am 26.10.2026 ist als Vorschlag nach dem ersten Review eingeplant. Die Sprintgrenzen bleiben bestehen. Die Auswirkungen des späteren Reviewabschlusses und die verfügbare Kapazität werden im Review besprochen. Die 27 offenen Story Points liegen über dem bisherigen Orientierungswert von acht Punkten pro Woche für die verbleibenden drei Umsetzungswochen. Die Planung muss deshalb gemeinsam auf ihre Umsetzbarkeit geprüft werden.
 
-#### Abhängigkeiten und Ergebnisprüfung
+##### Abhängigkeiten und Ergebnisprüfung
 
 Das bereits geprüfte Modell bildet die Eingabe für den Agenten. Das Grundgerüst und die Zustandsführung schaffen die Grundlage für die Lebenszyklusfunktionen. Die MCP-Anbindung legt fest, wie der Agent mit den Adaptern zusammenarbeitet. Die Funktionen werden schrittweise mit dem KubeVirt-Adapter verbunden und im ersten vollständigen lokalen Durchlauf gemeinsam geprüft.
 
@@ -635,11 +637,59 @@ Für den lokalen Durchlauf müssen create, status, reset und delete funktioniere
 
 Der AWS-Durchstich prüft zunächst create, status und delete. Die Vervollständigung des AWS-Adapters um Reset und Wiederaufnahme gehört mit US25 weiterhin zur ursprünglichen Sprint-3-Planung. Die Serienmessungen mit je drei vollständigen Durchläufen pro Plattform folgen ebenfalls in Sprint 3.
 
-#### Gemeinsame Priorisierung im ersten Review
+##### Gemeinsame Priorisierung im ersten Review
 
 Ich bringe die Arbeitspakete als Vorschlag in das Review ein. Gemeinsam mit den Experten kläre ich, welches Ergebnis bis Sprintende erreichbar ist, welche Arbeiten zuerst erfolgen und was bei knapper Zeit innerhalb des Projektplans später umgesetzt werden kann. Der vereinbarte Kernumfang bleibt dabei bestehen. Änderungen an verbindlichen Ergebnissen werden mit beiden Experten abgestimmt.
 
 Nach dem Review ergänze ich die vereinbarten Prioritäten und passe die betroffenen Issues sowie das Project Board an. Die Verbesserungen aus der Retrospektive übernehme ich in die weitere Arbeitsweise: kleinere Arbeitsschritte, frühzeitige Bereitstellung der Dokumentation und gezielte Abstimmung offener Fragen.
+
+#### Sprint 2 Retrospektive
+
+Die eigene Rückschau zur Arbeitsweise und die Verbesserungen für Sprint 3 werden vor dem zweiten Review ergänzt.
+
+#### Sprint 2 Review mit den Experten
+
+**Termin:** Mittwoch, 18.11.2026, 15:00 Uhr, online, gemeinsam mit Kuno Vogt und Thanam Pangri.
+
+Die Ergebnisse und die Planung für Sprint 3 werden im zweiten Review besprochen. Rückmeldungen und Vereinbarungen werden anschliessend ergänzt.
+
+### 2.12 Sprint 3
+
+#### Sprint 3 Planung
+
+**Zeitraum:** 16.11. bis 18.12.2026.
+
+**Vorgeschlagenes Sprintziel:** Beide Plattformen vollständig prüfen, die Ergebnisse vergleichen, MCP bewerten und die Arbeit für die Abgabe abschliessen.
+
+Der bestehende Backlog enthält für Sprint 3 die folgenden 13 Stories mit 38 Story Points. Die Zuordnung, Reihenfolge und Zeitplanung werden im zweiten Review abgestimmt und können sich ändern. Die Plantermine stehen im [GitHub-Zeitplan](https://github.com/users/Cancani/projects/7/views/2).
+
+| User Story | Aufgabe | SP |
+| --- | --- | --- |
+| US25 | AWS-Adapter um Reset und Wiederaufnahme vervollständigen | 5 |
+| US26 | Readiness auf beiden Plattformen validieren | 2 |
+| US27 | Drei vollständige Durchläufe auf der lokalen Plattform | 2 |
+| US28 | Drei vollständige Durchläufe in der Public Cloud | 3 |
+| US29 | Nachweis des vollständigen Abbaus | 3 |
+| US30 | Vorher-Nachher-Vergleich | 3 |
+| US31 | Bewertung der MCP-Architektur gegen eine direkte API-Anbindung | 3 |
+| US32 | Wirtschaftlichkeitsbetrachtung | 3 |
+| US33 | Beurteilung der Übertragbarkeit in den Produktivbetrieb | 3 |
+| US34 | Runbook für Aufbau, Bedienung, Fehleranalyse und Abbau | 2 |
+| US35 | Schulungsunterlage und Einführung | 3 |
+| US36 | Dokumentation finalisieren, Management Summary, Ehrenwort | 3 |
+| US37 | Kolloquiumspräsentation und Demo-Skript | 3 |
+
+US35 bleibt eine ergänzende Aufgabe bei freier Kapazität. Der Scope-Freeze ist am 04.12.2026, die Abgabe am 18.12.2026. Änderungen an verbindlichen Ergebnissen werden mit beiden Experten abgestimmt.
+
+#### Sprint 3 Retrospektive
+
+Die eigene Rückschau zur Arbeitsweise und die daraus gewonnenen Erkenntnisse werden vor dem dritten Review ergänzt.
+
+#### Sprint 3 Review mit den Experten
+
+**Termin:** Mittwoch, 16.12.2026, 15:00 Uhr, online, gemeinsam mit Kuno Vogt und Thanam Pangri.
+
+Ergebnisse und offene Punkte bis zur Abgabe werden im dritten Review besprochen. Rückmeldungen und Vereinbarungen werden anschliessend ergänzt.
 
 ## 3 Analyse und Konzept
 
