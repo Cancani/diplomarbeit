@@ -519,25 +519,23 @@ Die Tabelle ist eine Zwischenbilanz. Die Architekturarbeit ist vorhanden; für U
 
 #### Sprint 1 Retrospektive
 
+![alt text](./bilder/projektmanagement/Sprint1_Retrospektive.png)
+
 ##### Was gut funktioniert hat
 
-Die Arbeit mit GitHub hat sich bewährt. User Stories und Project Board unterstützen mich dabei, die Aufgaben zu strukturieren und den Fortschritt zu verfolgen. Durch einzelne Commits bleiben Änderungen nachvollziehbar. Das erleichtert auch, frühere Entscheidungen und Bearbeitungsstände später wieder nachzuvollziehen.
-
-Die selbstständige Bearbeitung hat ebenfalls gut funktioniert. Ich konnte die Planung und Dokumentation eigenständig aufbauen und die technischen Grundlagen für die weitere Umsetzung erarbeiten.
+GitHub und das Project Board haben mir geholfen, die Aufgaben zu organisieren und den Überblick zu behalten. Kleine Commits machen Änderungen nachvollziehbar. Die Planung, Dokumentation und technischen Abklärungen konnte ich selbstständig bearbeiten.
 
 ##### Was schwierig war
 
-Nach der ersten Nachricht fand kein weiterer regelmässiger Austausch über den Projektstand mit Kuno und Thanam statt. Ich arbeitete selbstständig weiter, informierte die Experten jedoch zu wenig über Ergebnisse, Planung und offene Fragen. Dadurch war mein Fortschritt für sie nicht ausreichend sichtbar. Im Gespräch mit Kuno zeigte sich zudem, dass seine Erwartungen an die Planung und die Gestaltung des Reviews noch nicht genügend abgestimmt waren.
+Nach der ersten Nachricht habe ich Kuno und Thanam zu wenig über den Fortschritt informiert. Im Gespräch mit Kuno wurde deutlich, dass wir die Erwartungen an die Planung und das Review früher hätten abstimmen sollen.
 
-Eine technische Schwierigkeit waren die Netzwerkanpassungen im Labor. Diese erforderten zusätzliche Abklärungen, konnten aber gelöst werden.
+Die Netzwerkanpassungen im Labor erforderten zusätzliche Abklärungen, konnten aber gelöst werden.
 
 ##### Verbesserungen für Sprint 2
 
-Für den nächsten Sprint möchte ich den Austausch mit den Experten gezielter vorbereiten. Vor den Reviews sollen sie den aktuellen Dokumentationsstand und die offenen Fragen erhalten, damit sie sich ein Bild vom Fortschritt machen können.
+Ich möchte Zwischenstände früher zeigen und gezielt Feedback einholen. Vor den Reviews stelle ich den aktuellen Dokumentationsstand und offene Fragen bereit. Grössere Aufgaben teile ich in kleinere, überprüfbare Schritte auf.
 
-Die Aufgaben möchte ich in kleinere Arbeitsschritte mit konkreten Zeiträumen gliedern. Die Prioritäten für Sprint 2 bespreche ich im ersten Review gemeinsam mit den Experten. Anschliessend halte ich die Vereinbarungen in der Dokumentation und im Project Board fest.
-
-Die Arbeit mit GitHub, User Stories und einzelnen Commits führe ich weiter.
+Die Prioritäten für Sprint 2 bespreche ich im ersten Review gemeinsam mit den Experten und halte die Vereinbarungen anschliessend fest. Die Arbeit mit GitHub und kleinen Commits behalte ich bei.
 
 #### Sprint 1 Review mit den Experten
 
