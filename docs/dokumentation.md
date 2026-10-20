@@ -11,7 +11,7 @@
 | Schulexperte | Thanam Pangri, HF-Lehrgangsleitung |
 | Bewilligter Zeitraum | 11.09.2026 bis 18.12.2026 |
 | Arbeitsplanung | 14.09.2026 bis 18.12.2026 |
-| Version | 0.15, Arbeitsstand vor dem ersten Review |
+| Version | 0.16, Arbeitsstand vor dem ersten Review |
 | Grundlage | Bewilligte Projektbeschreibung vom 10.09.2026; schulische Vorgaben gemäss gültigem Merkblatt |
 
 ---
@@ -519,7 +519,9 @@ Die Tabelle ist eine Zwischenbilanz. Die Architekturarbeit ist vorhanden; für U
 
 #### Sprint 1 Retrospektive
 
-![alt text](./bilder/projektmanagement/Sprint1_Retrospektive.png)
+![Starfish-Retrospektive zu Sprint 1](./bilder/projektmanagement/Sprint1_Retrospektive.png)
+
+<small id="abb-08"><em>Abbildung 8: Starfish-Retrospektive zu Sprint 1</em></small>
 
 ##### Was gut funktioniert hat
 
@@ -582,7 +584,7 @@ Die Milestone-Ansicht zeigt die sieben offenen Issues und die beiden vorgezogene
 
 ![Milestone Sprint 2 mit sieben offenen und zwei abgeschlossenen Stories](bilder/projektmanagement/sprint2-milestone.png)
 
-<small id="abb-08"><em>Abbildung 8: Milestone Sprint 2 mit offenen und vorgezogenen Stories</em></small>
+<small id="abb-09"><em>Abbildung 9: Milestone Sprint 2 mit offenen und vorgezogenen Stories</em></small>
 
 ##### Zeitplan der User Stories
 
@@ -611,7 +613,7 @@ gantt
     Review 2 :milestone, crit, s2review, 2026-11-18, 0d
 ```
 
-<small id="abb-09"><em>Abbildung 9: Zeitplan der offenen User Stories für Sprint 2 mit anschliessendem Review</em></small>
+<small id="abb-10"><em>Abbildung 10: Zeitplan der offenen User Stories für Sprint 2 mit anschliessendem Review</em></small>
 
 ##### Arbeitspakete und Zeitplanung
 
@@ -899,10 +901,10 @@ Die Aufstellung stammt aus dem Lernlauf auf `cloud-au-30` in der Zone `10-1-45-0
 | 5 | Zone in der Oberfläche setzen | manuell |
 | 6 | Deploy-Dialog öffnen | manuell |
 | 7 | Betriebssystem wählen | manuell |
-| 8 | Erstkonfiguration in das Textfeld einfügen | manuell |
-| 9 | Bereitstellung bestätigen | manuell |
-| 10 | Bereitstellung abwarten | automatisch |
-| 11 | Adresse der Maschine ermitteln | manuell |
+| 9 | Erstkonfiguration in das Textfeld einfügen | manuell |
+| 10 | Bereitstellung bestätigen | manuell |
+| 11 | Bereitstellung abwarten | automatisch |
+| 12 | Adresse der Maschine ermitteln | manuell |
 | 12 | Testdienst prüfen | manuell |
 | 13 | Maschine freigeben | manuell |
 | 14 | Maschine löschen | manuell |
@@ -1133,7 +1135,7 @@ flowchart TD
     System <-->|"VM-Lebenszyklus und Zustandsabfragen"| Cloud
 ```
 
-<small id="abb-10"><em>Abbildung 10: Systemkontext der geplanten Bereitstellungslösung</em></small>
+<small id="abb-11"><em>Abbildung 11: Systemkontext der geplanten Bereitstellungslösung</em></small>
 
 Innerhalb der Systemgrenze liegen die selbst entwickelten Bestandteile: Kommandozeilenschnittstelle, Agent, Zustandsspeicher und Adapter. Kubernetes mit KubeVirt sowie AWS liegen ausserhalb dieser Grenze. Pro Lernumgebung wird eine der beiden Zielplattformen verwendet. Die YAML-Definition beschreibt die fachlichen Anforderungen; die Zuordnung zu konkreten Plattformressourcen übernimmt die Lösung.
 
@@ -1149,7 +1151,7 @@ flowchart TD
     AWSAdapter --> AWS["AWS EC2"]
 ```
 
-<small id="abb-11"><em>Abbildung 11: Geplanter Aufbau von CLI, Agent und Adaptern</em></small>
+<small id="abb-12"><em>Abbildung 12: Geplanter Aufbau von CLI, Agent und Adaptern</em></small>
 
 Die Kommandozeilenschnittstelle nimmt Definition und Zielplattform entgegen. Der Agent validiert die Eingabe und steuert den Auftrag. Mit Agent ist hier ein Programm mit festen Regeln gemeint: Es entscheidet anhand der Operation und des gespeicherten Zustands über den nächsten Schritt. Eine Sprachmodellentscheidung ist dafür nicht vorgesehen.
 
@@ -1595,10 +1597,11 @@ Die Bestätigung des aktiven Budgetempfängers ist kein Test einer tatsächlich 
 | 5 | [Zeitplan der User Stories für Sprint 1 mit anschliessendem Review](#abb-05) | Planung |
 | 6 | [Project Board mit Bearbeitungsstand und US16 in Bearbeitung](#abb-06) | Bearbeitungsstand vor dem Review |
 | 7 | [Milestone Sprint 1 mit offener US16](#abb-07) | Reviewabschluss offen |
-| 8 | [Milestone Sprint 2 mit offenen und vorgezogenen Stories](#abb-08) | Grundlage für die Sprintplanung |
-| 9 | [Zeitplan der offenen User Stories für Sprint 2 mit anschliessendem Review](#abb-09) | Planungsvorschlag, Prioritäten im ersten Review abzustimmen |
-| 10 | [Systemkontext der geplanten Bereitstellungslösung](#abb-10) | Entwurf |
-| 11 | [Geplanter Aufbau von CLI, Agent und Adaptern](#abb-11) | Entwurf, noch keine implementierte Architektur |
+| 8 | [Starfish-Retrospektive zu Sprint 1](#abb-08) | Eigene Rückschau und Verbesserungen |
+| 9 | [Milestone Sprint 2 mit offenen und vorgezogenen Stories](#abb-09) | Grundlage für die Sprintplanung |
+| 10 | [Zeitplan der offenen User Stories für Sprint 2 mit anschliessendem Review](#abb-10) | Planungsvorschlag, Prioritäten im ersten Review abzustimmen |
+| 11 | [Systemkontext der geplanten Bereitstellungslösung](#abb-11) | Entwurf |
+| 12 | [Geplanter Aufbau von CLI, Agent und Adaptern](#abb-12) | Entwurf, noch keine implementierte Architektur |
 
 ## Kontakt
 
