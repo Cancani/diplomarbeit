@@ -174,7 +174,18 @@ def ensure_fields(pid, fields, apply, log):
 
 
 def plan_dates(story):
-    return (SPRINTS[1][0], SPRINTS[3][1]) if story['id'] == 'US05' else SPRINTS[story['sprint']]
+    schedule = json.loads((ROOT/'scripts/zeitplan.json').read_text(encoding='utf-8'))
+    entry = schedule.get('stories', {}).get(story['id'])
+    if entry is None:
+        raise ValueError(f'Kein Aufgabenzeitraum für {story["id"]} hinterlegt')
+    start, end = entry.get('start'), entry.get('end')
+    if start is None and end is None and entry.get('basis') == 'Entfallen':
+        return None, None
+    if not isinstance(start, str) or not isinstance(end, str):
+        raise ValueError(f'Unvollständiger Aufgabenzeitraum für {story["id"]}')
+    if date.fromisoformat(start) > date.fromisoformat(end):
+        raise ValueError(f'Ende liegt vor Beginn: {story["id"]}')
+    return start, end
 
 
 def complete_body(body):
@@ -314,6 +325,11 @@ def sync_item(pid, fields, item, issue, story, done, apply):
         desired['Status'] = 'Backlog'
     for name, value in desired.items():
         field = fields[name]
+        if value is None and field['dataType'] == 'DATE':
+            if field['id'] in current and apply:
+                mutation('clearProjectV2ItemFieldValue', 'ClearProjectV2ItemFieldValueInput',
+                         dict(projectId=pid, itemId=item['id'], fieldId=field['id']), 'projectV2Item{id}')
+            continue
         target = field_value(field, value)
         if current.get(field['id']) != target and apply:
             mutation('updateProjectV2ItemFieldValue', 'UpdateProjectV2ItemFieldValueInput',
@@ -390,7 +406,7 @@ def main():
             item_map[content['number']] = item
     log = [f'Project: {project["title"]}; öffentlich: {project["public"]}',
            '38 Stories, 111 SP: Sprint 1 = 38, Sprint 2 = 35, Sprint 3 = 38.',
-           'Zeiträume sind Plantermine. US05 läuft bis 18.12.2026.']
+           'Aufgabenzeiträume gemäss scripts/zeitplan.json; US05 erhält keinen Zeitbalken.']
     # Validate field compatibility and every issue before the first write.
     preview_fields = ensure_fields(project['id'], fields, False, log)
     for plan in plans:

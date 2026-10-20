@@ -1,0 +1,322 @@
+{
+  "version": 1,
+  "note": "Planungsentwurf: Sprint 1 ist aus Commits und Nachweisen rekonstruiert, keine Erfassung tatsächlicher Arbeitszeiten. Bei einzelnen Nachweistagen sind Start und Ende gleich. Die künftigen Aufgabenfenster sind Vorschläge für das erste Review.",
+  "stories": {
+    "US01": {
+      "start": "2026-09-14",
+      "end": "2026-09-19",
+      "basis": "Rekonstruktion",
+      "sources": [
+        "https://github.com/Cancani/diplomarbeit/commit/b933b6eb8d694f34422c378718095acbe72cd977",
+        "https://github.com/Cancani/diplomarbeit/commit/9c1271d07beffb6911f63b3350836786acf9f73e"
+      ]
+    },
+    "US02": {
+      "start": "2026-09-14",
+      "end": "2026-09-19",
+      "basis": "Rekonstruktion",
+      "sources": [
+        "https://github.com/Cancani/diplomarbeit/commit/46c50b1c7b67384583152cb906727deac1fa763d",
+        "https://github.com/Cancani/diplomarbeit/commit/7155790dbb085a7a934d4108c0bb90396d581f28"
+      ]
+    },
+    "US03": {
+      "start": "2026-09-14",
+      "end": "2026-09-19",
+      "basis": "Rekonstruktion",
+      "sources": [
+        "https://github.com/Cancani/diplomarbeit/commit/d14bf8a3422bd1c84c83001010fae20a5d423296",
+        "https://github.com/Cancani/diplomarbeit/commit/6bf3cb4adf942279dc821346b0a11ab1fd6a4238"
+      ]
+    },
+    "US04": {
+      "start": "2026-09-14",
+      "end": "2026-09-19",
+      "basis": "Rekonstruktion",
+      "sources": [
+        "https://github.com/Cancani/diplomarbeit/commit/a99b1a53e491292f6117e6a4af6f302144929f2e",
+        "https://github.com/Cancani/diplomarbeit/commit/78fac69bfb557f2d4d92d905710314d7a41cd445"
+      ]
+    },
+    "US05": {
+      "start": null,
+      "end": null,
+      "basis": "Entfallen",
+      "sources": [
+        "https://github.com/Cancani/diplomarbeit/issues/5"
+      ]
+    },
+    "US07": {
+      "start": "2026-09-14",
+      "end": "2026-09-16",
+      "basis": "Rekonstruktion",
+      "sources": [
+        "https://github.com/Cancani/diplomarbeit/commit/1ad27f758a808d9d44ce6d0bd78693924883616e",
+        "https://github.com/Cancani/diplomarbeit/commit/ab06e457a57daf8bccadfe157e267963b3ba25e0"
+      ]
+    },
+    "US08": {
+      "start": "2026-09-14",
+      "end": "2026-09-22",
+      "basis": "Rekonstruktion",
+      "sources": [
+        "https://github.com/Cancani/diplomarbeit/commit/1ad27f758a808d9d44ce6d0bd78693924883616e",
+        "https://github.com/Cancani/diplomarbeit/commit/533bafe1440e0e39ff54443a17524fc4020f6403"
+      ]
+    },
+    "US09": {
+      "start": "2026-09-14",
+      "end": "2026-09-19",
+      "basis": "Rekonstruktion",
+      "sources": [
+        "https://github.com/Cancani/diplomarbeit/commit/1ad27f758a808d9d44ce6d0bd78693924883616e",
+        "https://github.com/Cancani/diplomarbeit/commit/78fac69bfb557f2d4d92d905710314d7a41cd445"
+      ]
+    },
+    "US10": {
+      "start": "2026-09-30",
+      "end": "2026-10-07",
+      "basis": "Nachweise",
+      "sources": [
+        "https://github.com/Cancani/diplomarbeit/commit/c5af587100a0da193fdbbc6bd7c6105506028ae4",
+        "https://github.com/Cancani/diplomarbeit/commit/29df6f93d79386da09d84d91c64860695746a8ad"
+      ]
+    },
+    "US11": {
+      "start": "2026-09-14",
+      "end": "2026-09-14",
+      "basis": "Nachweisdatum",
+      "sources": [
+        "https://github.com/Cancani/diplomarbeit/commit/0e9e3a55b6242da283b2285c899a91225185a710"
+      ]
+    },
+    "US12": {
+      "start": "2026-09-14",
+      "end": "2026-09-14",
+      "basis": "Nachweisdatum",
+      "sources": [
+        "https://github.com/Cancani/diplomarbeit/commit/0e9e3a55b6242da283b2285c899a91225185a710"
+      ]
+    },
+    "US13": {
+      "start": "2026-09-14",
+      "end": "2026-09-22",
+      "basis": "Rekonstruktion",
+      "sources": [
+        "https://github.com/Cancani/diplomarbeit/commit/0e9e3a55b6242da283b2285c899a91225185a710",
+        "https://github.com/Cancani/diplomarbeit/commit/533bafe1440e0e39ff54443a17524fc4020f6403"
+      ]
+    },
+    "US38": {
+      "start": "2026-09-22",
+      "end": "2026-09-22",
+      "basis": "Nachweisdatum",
+      "sources": [
+        "https://github.com/Cancani/diplomarbeit/commit/533bafe1440e0e39ff54443a17524fc4020f6403"
+      ]
+    },
+    "US14": {
+      "start": "2026-10-13",
+      "end": "2026-10-15",
+      "basis": "Rekonstruktion",
+      "sources": [
+        "https://github.com/Cancani/diplomarbeit/commit/4944e4c32a2103ef1585ba4a74682167d9ce7b8b",
+        "https://github.com/Cancani/diplomarbeit/commit/8a51d5eafe0d9acb51d75550994cd9e3d17ba63c",
+        "https://github.com/Cancani/diplomarbeit/commit/b76172e00408394adb85e419ffe1405e3d9dbac7"
+      ]
+    },
+    "US15": {
+      "start": "2026-10-13",
+      "end": "2026-10-15",
+      "basis": "Nachweise",
+      "sources": [
+        "https://github.com/Cancani/diplomarbeit/commit/8a51d5eafe0d9acb51d75550994cd9e3d17ba63c",
+        "https://github.com/Cancani/diplomarbeit/commit/b76172e00408394adb85e419ffe1405e3d9dbac7"
+      ]
+    },
+    "US16": {
+      "start": "2026-10-20",
+      "end": "2026-10-25",
+      "basis": "Planvorschlag",
+      "sources": [
+        "https://cancani.com/diplomarbeit/dokumentation/#23-termine-und-meilensteine"
+      ]
+    },
+    "US17": {
+      "start": "2026-09-23",
+      "end": "2026-09-23",
+      "basis": "Nachweisdatum",
+      "sources": [
+        "https://github.com/Cancani/diplomarbeit/commit/8b96ab108b46b0a8c1b67799cebf7e4ec93a8bf3"
+      ]
+    },
+    "US18": {
+      "start": "2026-09-23",
+      "end": "2026-09-23",
+      "basis": "Nachweisdatum",
+      "sources": [
+        "https://github.com/Cancani/diplomarbeit/commit/8b96ab108b46b0a8c1b67799cebf7e4ec93a8bf3"
+      ]
+    },
+    "US19": {
+      "start": "2026-10-26",
+      "end": "2026-10-28",
+      "basis": "Planvorschlag",
+      "sources": [
+        "https://cancani.com/diplomarbeit/dokumentation/#23-termine-und-meilensteine"
+      ]
+    },
+    "US20": {
+      "start": "2026-10-29",
+      "end": "2026-11-01",
+      "basis": "Planvorschlag",
+      "sources": [
+        "https://cancani.com/diplomarbeit/dokumentation/#23-termine-und-meilensteine"
+      ]
+    },
+    "US21": {
+      "start": "2026-11-04",
+      "end": "2026-11-06",
+      "basis": "Planvorschlag",
+      "sources": [
+        "https://cancani.com/diplomarbeit/dokumentation/#23-termine-und-meilensteine"
+      ]
+    },
+    "US22": {
+      "start": "2026-11-07",
+      "end": "2026-11-08",
+      "basis": "Planvorschlag",
+      "sources": [
+        "https://cancani.com/diplomarbeit/dokumentation/#23-termine-und-meilensteine"
+      ]
+    },
+    "US23": {
+      "start": "2026-11-02",
+      "end": "2026-11-03",
+      "basis": "Planvorschlag",
+      "sources": [
+        "https://cancani.com/diplomarbeit/dokumentation/#23-termine-und-meilensteine"
+      ]
+    },
+    "US24": {
+      "start": "2026-11-09",
+      "end": "2026-11-12",
+      "basis": "Planvorschlag",
+      "sources": [
+        "https://cancani.com/diplomarbeit/dokumentation/#23-termine-und-meilensteine"
+      ]
+    },
+    "US25": {
+      "start": "2026-11-19",
+      "end": "2026-11-22",
+      "basis": "Planvorschlag",
+      "sources": [
+        "https://cancani.com/diplomarbeit/dokumentation/#23-termine-und-meilensteine"
+      ]
+    },
+    "US26": {
+      "start": "2026-11-23",
+      "end": "2026-11-24",
+      "basis": "Planvorschlag",
+      "sources": [
+        "https://cancani.com/diplomarbeit/dokumentation/#23-termine-und-meilensteine"
+      ]
+    },
+    "US27": {
+      "start": "2026-11-25",
+      "end": "2026-11-26",
+      "basis": "Planvorschlag",
+      "sources": [
+        "https://cancani.com/diplomarbeit/dokumentation/#23-termine-und-meilensteine"
+      ]
+    },
+    "US28": {
+      "start": "2026-11-27",
+      "end": "2026-11-28",
+      "basis": "Planvorschlag",
+      "sources": [
+        "https://cancani.com/diplomarbeit/dokumentation/#23-termine-und-meilensteine"
+      ]
+    },
+    "US29": {
+      "start": "2026-11-29",
+      "end": "2026-11-30",
+      "basis": "Planvorschlag",
+      "sources": [
+        "https://cancani.com/diplomarbeit/dokumentation/#23-termine-und-meilensteine"
+      ]
+    },
+    "US30": {
+      "start": "2026-12-01",
+      "end": "2026-12-02",
+      "basis": "Planvorschlag",
+      "sources": [
+        "https://cancani.com/diplomarbeit/dokumentation/#23-termine-und-meilensteine"
+      ]
+    },
+    "US31": {
+      "start": "2026-12-03",
+      "end": "2026-12-04",
+      "basis": "Planvorschlag",
+      "sources": [
+        "https://cancani.com/diplomarbeit/dokumentation/#23-termine-und-meilensteine"
+      ]
+    },
+    "US32": {
+      "start": "2026-12-05",
+      "end": "2026-12-06",
+      "basis": "Planvorschlag",
+      "sources": [
+        "https://cancani.com/diplomarbeit/dokumentation/#23-termine-und-meilensteine"
+      ]
+    },
+    "US33": {
+      "start": "2026-12-07",
+      "end": "2026-12-08",
+      "basis": "Planvorschlag",
+      "sources": [
+        "https://cancani.com/diplomarbeit/dokumentation/#23-termine-und-meilensteine"
+      ]
+    },
+    "US34": {
+      "start": "2026-12-09",
+      "end": "2026-12-10",
+      "basis": "Planvorschlag",
+      "sources": [
+        "https://cancani.com/diplomarbeit/dokumentation/#23-termine-und-meilensteine"
+      ]
+    },
+    "US35": {
+      "start": "2026-12-11",
+      "end": "2026-12-12",
+      "basis": "Planvorschlag",
+      "sources": [
+        "https://cancani.com/diplomarbeit/dokumentation/#23-termine-und-meilensteine"
+      ]
+    },
+    "US36": {
+      "start": "2026-12-13",
+      "end": "2026-12-17",
+      "basis": "Planvorschlag",
+      "sources": [
+        "https://cancani.com/diplomarbeit/dokumentation/#23-termine-und-meilensteine"
+      ]
+    },
+    "US37": {
+      "start": "2026-12-11",
+      "end": "2026-12-12",
+      "basis": "Planvorschlag",
+      "sources": [
+        "https://cancani.com/diplomarbeit/dokumentation/#23-termine-und-meilensteine"
+      ]
+    },
+    "US39": {
+      "start": "2026-11-13",
+      "end": "2026-11-15",
+      "basis": "Planvorschlag",
+      "sources": [
+        "https://cancani.com/diplomarbeit/dokumentation/#23-termine-und-meilensteine"
+      ]
+    }
+  }
+}
