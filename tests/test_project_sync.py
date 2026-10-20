@@ -30,9 +30,9 @@ class ProjectTests(unittest.TestCase):
             issues.remove_old_section(issues.HISTORY+'\nEigene Notiz')
 
     def test_dates_and_weekly_report(self):
-        self.assertEqual(sync.plan_dates({'id': 'US17', 'sprint': 2}), ('2026-10-16', '2026-10-17'))
-        self.assertEqual(sync.plan_dates({'id': 'US19', 'sprint': 2}), ('2026-10-26', '2026-10-28'))
-        self.assertEqual(sync.plan_dates({'id': 'US05', 'sprint': 1}), (None, None))
+        for n, dates in sync.SPRINTS.items():
+            self.assertEqual(sync.plan_dates({'id': 'US17', 'sprint': n}), dates)
+        self.assertEqual(sync.plan_dates({'id': 'US05', 'sprint': 1}), ('2026-09-14', '2026-12-18'))
 
     def test_complete_only_reviewed_stories_and_keep_notes(self):
         body = '## Kriterien\n\n- [ ] erledigt'
@@ -183,7 +183,6 @@ class EndToEndTests(unittest.TestCase):
             root = Path(temp)
             (root/'scripts').mkdir()
             (root/'scripts/backlog.json').write_text(json.dumps(stories),encoding='utf-8')
-            (root/'scripts/zeitplan.json').write_text((ROOT/'scripts/zeitplan.json').read_text(encoding='utf-8'),encoding='utf-8')
             with patch.object(sync,'ROOT',root), patch.object(sync,'choose_project',return_value=dict(id=pid,title='Board',url='url',public=True)), \
                  patch.object(issues,'list_issues',side_effect=lambda r:deepcopy(list(rows.values()))), \
                  patch.object(sync,'connection',side_effect=fake_connection), patch.object(sync,'api',side_effect=fake_api), \
