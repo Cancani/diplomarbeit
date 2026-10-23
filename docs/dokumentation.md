@@ -1,7 +1,7 @@
 # Diplomarbeit: Agentenbasierte Hybrid-Cloud-Bereitstellung von Lernumgebungen mit Kubernetes, KubeVirt und MCP
 
 !!! info "Arbeitsstand: Sprint 1"
-    Die Grundlagen aus Sprint 1 sind erarbeitet: Infrastrukturaufnahme, Vergleichsbasis, Machbarkeitsversuche und Architektur liegen vor. Das Fachmodell mit Schema-Validierung ist bereits umgesetzt. Als Abschluss von US16 folgen noch die Zwischenpräsentation und ihre Rückmeldungen. Die Umsetzung des Agenten und der Adapter beginnt anschliessend in Sprint 2.
+    Die Grundlagen aus Sprint 1 sind erarbeitet: Infrastrukturaufnahme, Vergleichsbasis, Machbarkeitsversuche und Architektur liegen vor. Das Fachmodell mit Schema-Validierung ist bereits umgesetzt. Als Abschluss von US16 folgen noch die Zwischenpräsentation und ihre Rückmeldungen. Agent und Adapter sind für Sprint 2 vorgesehen. Der Übergang zur weiteren Umsetzung wird im ersten Review besprochen.
 
 | | |
 | --- | --- |
@@ -11,7 +11,7 @@
 | Schulexperte | Thanam Pangri, HF-Lehrgangsleitung |
 | Bewilligter Zeitraum | 11.09.2026 bis 18.12.2026 |
 | Arbeitsplanung | 14.09.2026 bis 18.12.2026 |
-| Version | 0.10, Arbeitsstand Sprint 1 |
+| Version | 0.16, Arbeitsstand vor dem ersten Review |
 | Grundlage | Bewilligte Projektbeschreibung vom 10.09.2026; schulische Vorgaben gemäss gültigem Merkblatt |
 
 ---
@@ -22,7 +22,7 @@ Die Grundlagen für den Proof of Concept sind erarbeitet. Die bestehende LernMAA
 
 Systemkontext, Komponentensicht und vier Architekturentscheide liegen vor. Das plattformneutrale YAML-Modell mit JSON-Schema und automatisierter Validierung ist bereits umgesetzt. Diese Ergebnisse gehören zu den vorgezogenen Stories US17 und US18 aus Sprint 2. Der gemeinsame Agent mit Zustandsführung und die MCP-Adapter sind noch nicht implementiert. Die bisherigen Einzelversuche belegen deshalb die praktische Machbarkeit, aber noch keinen vollständig automatisierten Lebenszyklus und keine gemessene Verbesserung gegenüber LernMAAS.
 
-Aus der ursprünglichen Sprint-1-Planung sind 14 fachliche Stories mit 34 Story Points abgeschlossen. US05 ist entfallen; US16 mit drei Punkten bleibt offen. Der nächste Schritt ist die erste Zwischenpräsentation am Freitag, 23.10.2026, von 11:30 bis 12:00 Uhr vor Ort. Danach werden die tatsächlichen Rückmeldungen und die Retrospektive zum Sprintabschluss ergänzt. Anschliessend folgen Agent und Adapter sowie später je drei vollständige PoC-Läufe auf KubeVirt und AWS, der Vergleich und die abschliessende Bewertung.
+Aus der ursprünglichen Sprint-1-Planung sind 14 fachliche Stories mit 34 Story Points abgeschlossen. US05 ist entfallen; US16 mit drei Punkten bleibt offen. Der nächste Schritt ist die erste Zwischenpräsentation am Freitag, 23.10.2026, von 11:30 bis 12:00 Uhr vor Ort. Die eigene Retrospektive zu Sprint 1 ist in Kapitel 2.10 festgehalten. Die Rückmeldungen der Experten werden nach dem Review ergänzt; Kapitel 2.11 enthält den Planungsvorschlag für Sprint 2. Für Sprint 2 sind Agent und Adapter vorgesehen. Die Auswirkungen des späteren Reviewabschlusses auf die weitere Umsetzung werden im Review besprochen. Später folgen je drei vollständige PoC-Läufe auf KubeVirt und AWS, der Vergleich und die abschliessende Bewertung.
 
 ---
 
@@ -62,7 +62,7 @@ Die vorhandenen Machbarkeitsversuche erfüllen diese Ziele noch nicht vollständ
 
 ### 1.5 Erfolgskriterien des Proof of Concept
 
-Die Zieltabelle wird durch folgende Abnahmeregeln konkretisiert:
+Die Zieltabelle wird durch folgende Prüfkriterien konkretisiert:
 
 - Das versionierte Modell beschreibt den festgelegten Testfall. Die Validierung akzeptiert eine gültige Definition und weist eine bewusst ungültige Definition verständlich zurück.
 - create, status, reset und delete verwenden einen persistent gespeicherten Zustand. Ein Reset besteht aus vollständigem Abbau und Neuerstellung aus derselben gespeicherten Definition.
@@ -92,7 +92,7 @@ Der Ausblick greift die für eine spätere Einführung relevanten Erweiterungen 
 
 ### 1.7 Zielgruppe und Lesehinweise
 
-Die Dokumentation richtet sich an die Experten, den Informatikdienst und die HF-Lehrgangsleitung. Kapitel 3 erklärt die Ausgangslage und die technischen Entscheide, Kapitel 4 die bisherige Umsetzung. Messverfahren und Ergebnisse stehen in Kapitel 5. Planung und Bearbeitungsstand von Sprint 1 stehen in Kapitel 2.10. Rohprotokolle sind bei den betreffenden Versuchen verlinkt; zentrale Begriffe stehen im Glossar.
+Die Dokumentation richtet sich an die Experten, den Informatikdienst und die HF-Lehrgangsleitung. Kapitel 3 erklärt die Ausgangslage und die technischen Entscheide; Kapitel 3.9 fasst die ADRs zusammen. Kapitel 4 beschreibt die bisherige Umsetzung. Messverfahren und Ergebnisse stehen in Kapitel 5. Planung, Retrospektive und Review von Sprint 1 stehen in Kapitel 2.10. Die weiteren Sprints folgen in Kapitel 2.11 und 2.12. Rohprotokolle sind bei den betreffenden Versuchen verlinkt; zentrale Begriffe stehen im Glossar.
 
 ### 1.8 Themenfeldabdeckung
 
@@ -112,8 +112,8 @@ Der Ablauf eines Sprints verbindet die Aufgabensteuerung im Board mit einem übe
 | --- | --- |
 | Planung | Sprintziel und zugehörige Stories prüfen. Nutzen, Akzeptanzkriterien, Abhängigkeiten und Schätzung müssen verständlich sein, bevor die fachliche Bearbeitung beginnt. |
 | Durchführung | Bearbeitete Stories im Board nachführen. Umsetzung, Tests und Dokumentation zusammen bearbeiten; Hindernisse und Änderungen beim betroffenen Issue festhalten. |
-| Review | Den erreichten Stand den Experten anhand einer vorbereiteten Demo und vorhandener Nachweise zeigen. Rückmeldungen und daraus folgende Aufgaben anschliessend dokumentieren. |
-| Retrospektive | Die eigene Arbeitsweise beurteilen: Was hat funktioniert, was hat gebremst und welche konkrete Anpassung wird für den nächsten Sprint übernommen? Die Erkenntnisse beim Sprintabschluss in Kapitel 2.10 festhalten. |
+| Review | Den erreichten Stand den Experten anhand der Ergebnisse und zugehörigen Nachweise vorstellen. Rückmeldungen und daraus folgende Aufgaben anschliessend dokumentieren. |
+| Retrospektive | Die eigene Arbeitsweise vor dem Review beurteilen: Was hat funktioniert, was hat gebremst und welche konkrete Anpassung wird für den nächsten Sprint übernommen? Die Erkenntnisse in Kapitel 2.10 festhalten. |
 
 Als Einzelprojekt benötigt die Arbeit kein tägliches Teammeeting. Für die Steuerung sind der aktuelle Aufgabenstand, die nächsten ausführbaren Schritte und erkennbare Hindernisse massgeblich. Die Reviews beurteilen das Ergebnis; die Retrospektive betrachtet zusätzlich Planung und Arbeitsweise.
 
@@ -129,17 +129,37 @@ flowchart TD
     Schulexperte --> Diplomand
 ```
 
-<small><em>Abbildung 1: Projektorganisation und Berichtswege</em></small>
+<small id="abb-01"><em>Abbildung 1: Projektorganisation und Berichtswege</em></small>
 
-Ich übernehme Planung, Umsetzung, Tests und Dokumentation. Kuno Vogt ist zugleich mein direkter Vorgesetzter und Firmenexperte. Er vertritt den Auftraggeber und wird bei Priorisierung und betrieblichen Fragen einbezogen. Thanam Pangri begleitet die Arbeit als Schulexperte. Beide Experten beurteilen die Ergebnisse und werden bei Änderungen an Zielen oder Fokus einbezogen.
+Die Arbeit wird als Einzelprojekt durchgeführt. Die bewilligte Projektbeschreibung überträgt mir die technischen Entscheide und die Umsetzung. Die folgende Tabelle ordnet die Aufgaben und Entscheidungsbefugnisse zu.
+
+| Person und Rolle | Aufgaben | Entscheidungsbefugnisse und Abstimmung |
+| --- | --- | --- |
+| Efekan Demirci, Diplomand und Projektleiter | Planung, Priorisierung des Backlogs, technische Auswahl, Umsetzung, Tests und Dokumentation | Technische Entscheide innerhalb des bewilligten Umfangs selbst treffen und begründen. Ergebnisse anhand der Akzeptanzkriterien prüfen und zur Beurteilung im Review vorlegen. |
+| Kuno Vogt, Firmenexperte und Leiter Informatikdienst | Auftraggeberinteressen vertreten, fachliche und betriebliche Anforderungen einbringen, Ergebnisse beurteilen | Betriebliche Rahmenbedingungen und Prioritäten aus Sicht des Auftraggebers klären. Auswirkungen auf den Auftrag und offene Fragen gemeinsam mit dem Diplomanden und dem Schulexperten abstimmen. |
+| Thanam Pangri, Schulexperte | Einhaltung der schulischen Vorgaben begleiten, Projektfortschritt und Ergebnisse beurteilen | Schulische Anforderungen und Vorgaben zur Prüfungsleistung klären. Änderungen am bewilligten Kernumfang gemeinsam mit dem Firmenexperten und dem Diplomanden abstimmen. |
+
+Planung, Priorisierung und Ablaufsteuerung liegen im Einzelprojekt bei mir. Eine getrennte Besetzung der Rollen Product Owner und Scrum Master besteht nicht. Änderungen an Zielen oder zugesagten Ergebnissen werden mit beiden Experten abgestimmt.
+
+#### Ergebnisprüfung und Abnahme
+
+Ich prüfe die Akzeptanzkriterien und dokumentiere den fachlichen Abschluss einer Story mit den zugehörigen Nachweisen. Der Status Done bezeichnet diesen Bearbeitungsstand. Die Beurteilung durch die Experten wird beim Review separat festgehalten.
+
+Für das erste Review ist vorgeschlagen, die erarbeiteten Ergebnisse und ihre Nachweise gemeinsam zu beurteilen. Wer die fachliche Abnahme verbindlich bestätigt und wie sie dokumentiert wird, ist mit Kuno Vogt und Thanam Pangri noch zu klären. Die technischen Entscheidungsbefugnisse gemäss bewilligter Projektbeschreibung bleiben dabei die Grundlage.
 
 Dozierende sind die späteren Nutzenden der Lernumgebungen, Lernende deren indirekte Nutzende. Ihr Interesse betrifft vor allem einen verständlichen Ablauf und eine zuverlässig nutzbare Umgebung. Der PoC liefert noch keine produktive Einführung.
 
-Die laufende Abstimmung erfolgt über den vereinbarten Teams-Kanal. Rückmeldungen und Beschlüsse werden mit Datum und Bezug zum betroffenen Issue festgehalten. Die Termine der Zwischenpräsentationen werden mit beiden Experten vereinbart.
+Für die Abstimmung mit den Experten steht der vereinbarte Teams-Kanal zur Verfügung. In Sprint 1 habe ich diesen Austausch nach der ersten Nachricht zu wenig genutzt. Die daraus abgeleiteten Verbesserungen stehen in der Retrospektive in Kapitel 2.10. Rückmeldungen und Beschlüsse werden beim betroffenen Issue und in der Dokumentation festgehalten. Die Termine der Zwischenpräsentationen sind mit beiden Experten vereinbart.
 
 ### 2.3 Termine und Meilensteine
 
 Der bewilligte Projektzeitraum beginnt am 11.09.2026. Die operative Wochenplanung beginnt am Montag, 14.09.2026, und umfasst 14 Wochen bis zur Abgabe am 18.12.2026. Für die drei Reviews liegen konkrete Termine vor. Der Kolloquiumstermin ist noch mit der Schule zu bestätigen.
+
+Die GitHub-Milestones bündeln die User Stories nach Sprint. Die folgende Übersicht zeigt diese Gliederung. Die Bearbeitungsstände werden in den jeweiligen Sprintkapiteln erläutert.
+
+![Milestone-Übersicht der drei Sprints](bilder/projektmanagement/milestones.png)
+
+<small id="abb-02"><em>Abbildung 2: Milestone-Übersicht der drei Sprints</em></small>
 
 | Abschnitt | Zeitraum | Ergebnis am Ende |
 | --- | --- | --- |
@@ -157,7 +177,7 @@ Der bewilligte Projektzeitraum beginnt am 11.09.2026. Die operative Wochenplanun
 | M5 | Abgabe | 18.12.2026 | Dokumentation, Management Summary, Ehrenwort und vereinbarte Abgabeunterlagen fertig |
 | M6 | Kolloquium | Mit Schule bestätigen | Präsentation, kurze Demo und vorbereitete Ersatznachweise verfügbar |
 
-Die Reviewtermine sind fest vereinbart. Alle Uhrzeiten gelten für Zürich.
+Die Reviewtermine sind fest vereinbart. Alle Uhrzeiten gelten für Zürich. Die Aufgaben mit ihren Start- und Enddaten stehen im [GitHub-Zeitplan](https://github.com/users/Cancani/projects/7/views/2). Die Sprintplanungen stehen in Kapitel 2.10 bis 2.12.
 
 | Review | Termin | Durchführung |
 | --- | --- | --- |
@@ -165,7 +185,7 @@ Die Reviewtermine sind fest vereinbart. Alle Uhrzeiten gelten für Zürich.
 | 2 | Mittwoch, 18.11.2026, 15:00 Uhr | Online |
 | 3 | Mittwoch, 16.12.2026, 15:00 Uhr | Online |
 
-Die Sprintzeiträume bleiben die ursprünglichen Planungsabschnitte. Das erste Review findet in der Folgewoche statt; US16 bleibt bis zur Durchführung und Dokumentation der Rückmeldungen offen. Weitere Sprint-2-Umsetzung ist bis zu diesem Abschluss zurückgestellt. Durchgeführte Reviews werden in Kapitel 2.10 dokumentiert. Ab dem Scope-Freeze am 04.12.2026 ist die verbleibende Zeit für Fehlerkorrekturen, Messungen und Abschluss vorgesehen.
+Die Sprintzeiträume bleiben die ursprünglichen Planungsabschnitte. Das erste Review findet nach dem geplanten Ende von Sprint 1 statt; US16 bleibt bis zur Durchführung und Dokumentation der Rückmeldungen offen. Der geplante Beginn von Sprint 2 liegt damit vor dem ersten Review. Welche Auswirkungen dieser spätere Reviewabschluss auf den Umsetzungsstart und die Abhängigkeiten hat, wird im ersten Review besprochen. Durchgeführte Reviews werden in Kapitel 2.10 dokumentiert. Ab dem Scope-Freeze am 04.12.2026 ist die verbleibende Zeit für Fehlerkorrekturen, Messungen und Abschluss vorgesehen.
 
 ### 2.4 Backlog und Prioritäten
 
@@ -177,6 +197,12 @@ Das öffentliche [Project Board](https://github.com/users/Cancani/projects/7) di
 | Ready | Aufgabe ist für die Bearbeitung vorbereitet: Ziel, prüfbare Kriterien, Zuordnung und notwendige Voraussetzungen sind geklärt. |
 | In Progress | Aufgabe wird aktiv bearbeitet. Offene Fragen und Hindernisse werden im Issue sichtbar gehalten. |
 | Done | Akzeptanzkriterien und Abschlussnachweise sind erfüllt, Änderungen geprüft und Dokumentation nachgeführt. Issue-Abschluss und Boardstatus müssen zusammenpassen. |
+
+Die Backlog-Ansicht zeigt die Aufgaben vor ihrer Einordnung in die Bearbeitung. Sprint, Story Points und weitere Merkmale sind auf den Karten sichtbar.
+
+![Project Board mit Aufgaben im Backlog](bilder/projektmanagement/board-backlog.png)
+
+<small id="abb-03"><em>Abbildung 3: Project Board mit Aufgaben im Backlog</em></small>
 
 Die [User-Story-Vorlage](https://github.com/Cancani/diplomarbeit/blob/main/.github/ISSUE_TEMPLATE/01_user_story.yml) enthält die Definition of Ready und die Definition of Done. Eine entfallene Aufgabe wird mit Begründung geschlossen und in der Sprintbilanz separat ausgewiesen. Ein geschlossener Issue zählt dadurch nicht automatisch als fachlich erbrachtes Ergebnis.
 
@@ -261,7 +287,7 @@ Als erste Orientierung dienen acht Story Points pro Woche. Sprint 2 umfasst den 
 | 3 | 5 | 40 SP | 38 SP | -2 SP |
 | Gesamt | 14 | 112 SP | 111 SP | -1 SP |
 
-Die ursprünglichen 35 Punkte in Sprint 2 lagen über dem Richtwert. US17 und US18 mit zusammen acht Punkten sind inzwischen vorgezogen und abgeschlossen. Es verbleiben 27 Punkte für Agent, Zustandsführung und Adapter. Die Sprintzuordnung bleibt für den Vergleich mit der ursprünglichen Planung bestehen. Zunächst wird Sprint 1 mit der Zwischenpräsentation abgeschlossen.
+Die ursprünglichen 35 Punkte in Sprint 2 lagen über dem Richtwert. US17 und US18 mit zusammen acht Punkten sind inzwischen vorgezogen und abgeschlossen. Es verbleiben 27 Punkte für Agent, Zustandsführung und Adapter. Die Sprintzuordnung bleibt für den Vergleich mit der ursprünglichen Planung bestehen. Der Umgang mit dem noch offenen Reviewabschluss und dem Beginn der weiteren Umsetzung wird im ersten Review abgestimmt.
 
 Für die Schätzung verwende ich 1, 2, 3, 5 und 8 Punkte. US01 dient mit zwei Punkten als Bezug. Grössere Stories werden in überprüfbare Ergebnisse zerlegt. Beim Sprintabschluss werden geplante und fachlich abgeschlossene Story Points, entfallene Aufgaben und vorgezogene Arbeiten gegenübergestellt. Offene Stories zählen nicht anteilig als fertig. Die ursprüngliche Sprintzuordnung bleibt dabei sichtbar. Aus den Punkten wird keine tatsächliche Arbeitszeit abgeleitet. Bisher liegt noch keine abschliessende Sprintbilanz vor.
 
@@ -298,20 +324,21 @@ Der Arbeitsablauf zu einer Story besteht aus folgenden Schritten:
 
 Der [Dokumentationsworkflow](https://github.com/Cancani/diplomarbeit/blob/main/.github/workflows/docs.yaml) prüft Repository-Konsistenz, automatisierte Tests, Shell-Syntax und den strikten MkDocs-Build. Die Veröffentlichung über GitHub Pages folgt erst nach erfolgreicher Prüfung. Ein Commit auf `main` allein bestätigt deshalb noch keinen erfolgreichen Prüfstand.
 
-Eine Story ist abgeschlossen, wenn ihre Akzeptanzkriterien erfüllt und die Ergebnisse dokumentiert sind. Für Infrastrukturarbeiten gehören dazu Protokolle vom Zielsystem. Die lokalen Tests prüfen dagegen den Code ohne Bereitstellung einer VM.
+Den fachlichen Abschluss einer Story halte ich fest, wenn ihre Akzeptanzkriterien erfüllt und die Ergebnisse dokumentiert sind. Für Infrastrukturarbeiten gehören dazu Protokolle vom Zielsystem. Die lokalen Tests prüfen den Code ohne Bereitstellung einer VM. Die Expertenbeurteilung und die noch abzustimmende Form der Abnahme stehen in Kapitel 2.2.
 
-Die späteren Agententests sollen auch Timeouts, unterbrochene Operationen und verbleibende Ressourcen abdecken. Die sechs vollständigen PoC-Läufe werden anschliessend auf den Zielplattformen protokolliert. Vor einem Review bereite ich eine kurze Demo vor und halte Rückmeldungen sowie daraus folgende Aufgaben fest.
+Die späteren Agententests sollen auch Timeouts, unterbrochene Operationen und verbleibende Ressourcen abdecken. Die sechs vollständigen PoC-Läufe werden anschliessend auf den Zielplattformen protokolliert. Für ein Review bereite ich die Präsentation der Ergebnisse und die passenden Nachweise vor. Rückmeldungen sowie daraus folgende Aufgaben werden nach dem Meeting festgehalten.
 
 ### 2.7 Projektstand und Berichte
 
-Eine feste wöchentliche Berichtspflicht wird nicht weitergeführt, solange sie nicht ausdrücklich verlangt wird; dies ist in [US05](https://github.com/Cancani/diplomarbeit/issues/5) festgehalten. Ein separates Journal wird nicht geführt. Der im Antrag vorgesehene laufende Projektverlauf wird innerhalb der vorhandenen Ablagen nachvollziehbar gemacht:
+Gemäss Rückmeldung von Thanam Pangri ist ein regelmässiges Wochenjournal nicht erforderlich. Zusätzliche Berichte können verlangt werden, wenn der Fortschritt zu gering oder nicht ausreichend nachvollziehbar ist. US05 wurde entsprechend [gestrichen](https://github.com/Cancani/diplomarbeit/issues/5). Der Projektverlauf bleibt über die folgenden Ablagen nachvollziehbar:
 
 | Ablage | Beitrag zum Projektverlauf |
 | --- | --- |
 | Issues und Board | Aufgaben, Bearbeitungsstand, Hindernisse, Akzeptanzkriterien und Abschlussnachweise |
 | Git-Commits und CI | Inhalt und Zeitpunkt der Änderungen sowie zugehöriger automatisierter Prüfstand |
 | Fachkapitel und Laufprotokolle | Technische Entscheidungen, Ergebnisse, Abweichungen und deren Nachweise |
-| Kapitel 2.10 | Sprintplanung, Bearbeitungsstand sowie später Reviewrückmeldungen und Retrospektive |
+| Kapitel 2.10 | Planung, Bearbeitungsstand und eigene Retrospektive zu Sprint 1 sowie anschliessend die Rückmeldungen aus dem gemeinsamen Review |
+| Kapitel 2.11 und 2.12 | Planung der weiteren Sprints sowie anschliessend ihre Retrospektiven und Reviewrückmeldungen |
 
 Bei relevanten Änderungen werden Anlass, Auswirkung und die daraus folgende Aufgabe im betroffenen Issue oder Fachkapitel festgehalten.
 
@@ -368,6 +395,12 @@ Für eine spätere produktive Nutzung wären insbesondere Zugriffsrechte, Netzwe
 
 **Sprintziel:** Die Ausgangslage und den bisherigen Bereitstellungsablauf verstehen, eine belastbare Vergleichsgrundlage vorbereiten, die reduzierte Referenzumgebung auf beiden Zielplattformen praktisch prüfen und die Zielarchitektur festlegen.
 
+Die Planungsansicht zeigt den ursprünglichen Umfang von Sprint 1 mit allen 16 User Stories als offen. Die später entfallene US05 ist darin noch enthalten.
+
+![Sprint 1 mit allen User Stories offen](bilder/projektmanagement/sprint1-planung.png)
+
+<small id="abb-04"><em>Abbildung 4: Sprint 1 mit allen User Stories offen</em></small>
+
 Die ursprüngliche Planung umfasst 16 Stories mit 38 Story Points. Die vollständige Aufgabenliste steht in Kapitel 2.4. Der Sprint enthält folgende Arbeitspakete:
 
 | Arbeitspaket | Stories | Erwartetes Ergebnis |
@@ -380,7 +413,77 @@ Die ursprüngliche Planung umfasst 16 Stories mit 38 Story Points. Die vollstän
 
 US06 ist als entfallenes Kickoff nicht Teil des aktiven Backlogs. US05 wurde im Verlauf gestrichen; eine feste wöchentliche Berichtspflicht wird nicht weitergeführt. Die ursprüngliche Planung bleibt für den Vergleich sichtbar. Die bereits umgesetzten Stories US17 und US18 gehören weiterhin zur ursprünglichen Sprint-2-Planung.
 
-#### Bisheriger Bearbeitungsstand
+##### Zeitplan der User Stories
+
+Die geplanten Zeiträume sind im [GitHub-Zeitplan](https://github.com/users/Cancani/projects/7/views/2) hinterlegt. Die folgende Darstellung zeigt die Aufgaben innerhalb des Sprints sowie die anschliessende Reviewvorbereitung und den Abschluss von US16. Die Balken zeigen Plantermine, keine tatsächlich geleisteten Arbeitszeiten.
+
+```mermaid
+gantt
+    title Sprint 1: User Stories und Review
+    dateFormat YYYY-MM-DD
+    axisFormat %d.%m.
+    tickInterval 1week
+    todayMarker off
+    section Projektgrundlagen
+    US01 Repository :s1us01, 2026-09-14, 2026-09-16
+    US02 Project Board :s1us02, 2026-09-16, 2026-09-18
+    US03 Vorlagen und Regeln :s1us03, 2026-09-18, 2026-09-19
+    US04 Dokumentation :s1us04, 2026-09-19, 2026-09-21
+    section Analyse und Referenz
+    US07 IST-Analyse :s1us07, 2026-09-21, 2026-09-24
+    US08 Referenzdefinition :s1us08, 2026-09-24, 2026-09-26
+    US09 Messkonzept :s1us09, 2026-09-26, 2026-09-28
+    section Lokale Plattform
+    US11 Hardware :s1us11, 2026-09-28, 2026-09-30
+    US12 Kubernetes :s1us12, 2026-09-30, 2026-10-02
+    US13 KubeVirt und Storage :s1us13, 2026-10-02, 2026-10-05
+    US38 Referenzlauf :s1us38, 2026-10-05, 2026-10-07
+    section Messung und Public Cloud
+    US10 Ausgangsmessungen :s1us10, 2026-10-07, 2026-10-11
+    US14 AWS-Auswahl :s1us14, 2026-10-11, 2026-10-13
+    US15 AWS-Smoke-Test :s1us15, 2026-10-13, 2026-10-15
+    section Architektur und Modell
+    US16 Zielarchitektur und ADRs :s1us16a, 2026-10-15, 2026-10-19
+    US17 YAML-Modell, vorgezogen :s1us17, 2026-10-16, 2026-10-18
+    US18 Modellprüfung, vorgezogen :s1us18, 2026-10-18, 2026-10-19
+    Sprintende :milestone, s1ende, 2026-10-18, 0d
+    section Review und Abschluss
+    US16 und PM Reviewvorbereitung :s1us16b, 2026-10-20, 2026-10-23
+    Review 1 :milestone, crit, s1review, 2026-10-23, 0d
+    US16 Rückmeldungen :s1us16c, 2026-10-24, 2026-10-26
+```
+
+<small id="abb-05"><em>Abbildung 5: Zeitplan der User Stories für Sprint 1 mit anschliessendem Review</em></small>
+
+US05 entfällt und erhält keinen Zeitbalken. US17 und US18 sind aus Sprint 2 vorgezogen. US16 ist in Architekturarbeit, Reviewvorbereitung und Nachbereitung aufgeteilt. Im GitHub-Zeitplan umfasst die Story deshalb den Zeitraum vom 15.10. bis 25.10.2026.
+
+??? info "Plantermine der User Stories in Sprint 1"
+
+    | User Story | Geplanter Beginn | Geplantes Ende |
+    | --- | --- | --- |
+    | [US01](https://github.com/Cancani/diplomarbeit/issues/1) | 14.09.2026 | 15.09.2026 |
+    | [US02](https://github.com/Cancani/diplomarbeit/issues/2) | 16.09.2026 | 17.09.2026 |
+    | [US03](https://github.com/Cancani/diplomarbeit/issues/3) | 18.09.2026 | 18.09.2026 |
+    | [US04](https://github.com/Cancani/diplomarbeit/issues/4) | 19.09.2026 | 20.09.2026 |
+    | [US05](https://github.com/Cancani/diplomarbeit/issues/5) | Entfallen | Entfallen |
+    | [US07](https://github.com/Cancani/diplomarbeit/issues/7) | 21.09.2026 | 23.09.2026 |
+    | [US08](https://github.com/Cancani/diplomarbeit/issues/8) | 24.09.2026 | 25.09.2026 |
+    | [US09](https://github.com/Cancani/diplomarbeit/issues/9) | 26.09.2026 | 27.09.2026 |
+    | [US11](https://github.com/Cancani/diplomarbeit/issues/11) | 28.09.2026 | 29.09.2026 |
+    | [US12](https://github.com/Cancani/diplomarbeit/issues/12) | 30.09.2026 | 01.10.2026 |
+    | [US13](https://github.com/Cancani/diplomarbeit/issues/13) | 02.10.2026 | 04.10.2026 |
+    | [US38](https://github.com/Cancani/diplomarbeit/issues/14) | 05.10.2026 | 06.10.2026 |
+    | [US10](https://github.com/Cancani/diplomarbeit/issues/10) | 07.10.2026 | 10.10.2026 |
+    | [US14](https://github.com/Cancani/diplomarbeit/issues/15) | 11.10.2026 | 12.10.2026 |
+    | [US15](https://github.com/Cancani/diplomarbeit/issues/16) | 13.10.2026 | 14.10.2026 |
+    | [US16](https://github.com/Cancani/diplomarbeit/issues/17) | 15.10.2026 | 18.10.2026 |
+    | [US17](https://github.com/Cancani/diplomarbeit/issues/18) (aus Sprint 2 vorgezogen) | 16.10.2026 | 17.10.2026 |
+    | [US18](https://github.com/Cancani/diplomarbeit/issues/19) (aus Sprint 2 vorgezogen) | 18.10.2026 | 18.10.2026 |
+    | [US16](https://github.com/Cancani/diplomarbeit/issues/17) / PM, Reviewvorbereitung | 20.10.2026 | 22.10.2026 |
+    | Review 1 mit den Experten | 23.10.2026 | 23.10.2026 |
+    | [US16](https://github.com/Cancani/diplomarbeit/issues/17), Rückmeldungen und Abschlussprüfung | 24.10.2026 | 25.10.2026 |
+
+##### Bisheriger Bearbeitungsstand
 
 | Bereich | Erreichtes Ergebnis |
 | --- | --- |
@@ -390,9 +493,21 @@ US06 ist als entfallenes Kickoff nicht Teil des aktiven Backlogs. US05 wurde im 
 | Vergleichsbasis | Drei LernMAAS-Basisläufe technisch erfolgreich; Grenzen der Bedienzeiterfassung bei den Ergebnissen beschrieben |
 | AWS | Smoke-Test erfolgreich; Budget, Preisabschätzung und Ressourcenabbau dokumentiert |
 | Architektur | Systemkontext, Komponentensicht und vier ADRs vorhanden |
-| Vorgezogene Arbeiten | Fachmodell und Schema-Validierung aus US17 und US18 umgesetzt; 35 automatisierte Tests erfolgreich |
+| Vorgezogene Arbeiten | Fachmodell und Modellprüfung mit JSON-Schema aus US17 und US18 umgesetzt |
 
 Von den ursprünglichen Sprint-1-Stories sind 14 fachlich abgeschlossen, US05 ist entfallen und US16 bleibt in Bearbeitung. Die Milestone-Detailansicht zeigt entsprechend einen offenen und 15 geschlossene Issues. Das Board führt US16 auf In Progress. Die geschlossene US05 zählt nicht als fachlich erbrachte Leistung.
+
+Das Project Board zeigt den Bearbeitungsstand über alle Sprints hinweg. Die 16 Karten in Done umfassen die 14 fachlich abgeschlossenen Stories aus Sprint 1 sowie US17 und US18, die aus Sprint 2 vorgezogen wurden.
+
+![Project Board mit Bearbeitungsstand und US16 in Bearbeitung](bilder/projektmanagement/board-bearbeitungsstand.png)
+
+<small id="abb-06"><em>Abbildung 6: Project Board mit Bearbeitungsstand und US16 in Bearbeitung</em></small>
+
+Die Detailansicht von Sprint 1 weist US16 als einziges offenes Issue aus. Der Abschluss hängt noch von der Durchführung des Reviews und der Dokumentation seiner Rückmeldungen ab.
+
+![Milestone Sprint 1 mit offener US16](bilder/projektmanagement/sprint1-us16-offen.png)
+
+<small id="abb-07"><em>Abbildung 7: Milestone Sprint 1 mit offener US16</em></small>
 
 | Zuordnung | Ursprünglich geplant | Fachlich abgeschlossen | Entfallen | Noch offen |
 | --- | --- | --- | --- | --- |
@@ -400,17 +515,181 @@ Von den ursprünglichen Sprint-1-Stories sind 14 fachlich abgeschlossen, US05 is
 | Sprint 2 | 9 Stories, 35 SP | US17 und US18, zusammen 8 SP, vorgezogen | Keine | 7 Stories, 27 SP |
 | Sprint 3 | 13 Stories, 38 SP | Keine | Keine | 13 Stories, 38 SP |
 
-Die Tabelle ist eine Zwischenbilanz. Weitere Sprint-2-Umsetzung ist bis zum Abschluss von Sprint 1 zurückgestellt. Die Architekturarbeit ist vorhanden; für US16 fehlen noch die durchgeführte Zwischenpräsentation und die dokumentierten Rückmeldungen.
-
-#### Sprint 1 Review
-
-**Vereinbarter Termin:** Freitag, 23.10.2026, 11:30 bis 12:00 Uhr, vor Ort.
-
-Das Review ist noch nicht durchgeführt. Vorgesehen sind Ausgangslage und Referenzdefinition, die Ergebnisse der LernMAAS-, KubeVirt- und AWS-Versuche sowie die Zielarchitektur mit den wichtigsten Entscheiden. Tatsächliche Rückmeldungen und daraus folgende Aufgaben werden nach dem Meeting ergänzt.
+Die Tabelle ist eine Zwischenbilanz. Die Architekturarbeit ist vorhanden; für US16 fehlen noch die durchgeführte Zwischenpräsentation und die dokumentierten Rückmeldungen. Der Übergang zur weiteren Sprint-2-Umsetzung wird im ersten Review besprochen.
 
 #### Sprint 1 Retrospektive
 
-Die Retrospektive wird beim Sprintabschluss ergänzt. Sie betrachtet die eigene Arbeitsweise: Was hat bei Planung, Umsetzung und Dokumentation funktioniert? Wo entstanden Schwierigkeiten? Welche konkrete Anpassung wird für Sprint 2 übernommen? Ein rückblickendes Ergebnis liegt noch nicht vor.
+![Starfish-Retrospektive zu Sprint 1](./bilder/projektmanagement/Sprint1_Retrospektive.png)
+
+<small id="abb-08"><em>Abbildung 8: Starfish-Retrospektive zu Sprint 1</em></small>
+
+##### Was gut funktioniert hat
+
+GitHub und das Project Board haben mir geholfen, die Aufgaben zu organisieren und den Überblick zu behalten. Kleine Commits machen Änderungen nachvollziehbar. Die Planung, Dokumentation und technischen Abklärungen konnte ich selbstständig bearbeiten.
+
+##### Was schwierig war
+
+Nach der ersten Nachricht habe ich Kuno und Thanam zu wenig über den Fortschritt informiert. Im Gespräch mit Kuno wurde deutlich, dass wir die Erwartungen an die Planung und das Review früher hätten abstimmen sollen.
+
+Die Netzwerkanpassungen im Labor erforderten zusätzliche Abklärungen, konnten aber gelöst werden.
+
+##### Verbesserungen für Sprint 2
+
+Ich möchte Zwischenstände früher zeigen und gezielt Feedback einholen. Vor den Reviews stelle ich den aktuellen Dokumentationsstand und offene Fragen bereit. Grössere Aufgaben teile ich in kleinere, überprüfbare Schritte auf.
+
+Die Prioritäten für Sprint 2 bespreche ich im ersten Review gemeinsam mit den Experten und halte die Vereinbarungen anschliessend fest. Die Arbeit mit GitHub und kleinen Commits behalte ich bei.
+
+#### Sprint 1 Review mit den Experten
+
+**Vereinbarter Termin:** Freitag, 23.10.2026, 11:30 bis 12:00 Uhr, vor Ort.
+
+**Vorgesehene Teilnehmende:** Efekan Demirci, Kuno Vogt als Firmenexperte und Thanam Pangri als Schulexperte.
+
+Das Review ist noch nicht durchgeführt. Ich stelle den erreichten Stand vor und bespreche die Ergebnisse gemeinsam mit den Experten. Grundlage sind die Sprintziele, die Ergebnisse aus den User Stories und die zugehörigen Nachweise. Die eigene Retrospektive dient zusätzlich dazu, Verbesserungen für die weitere Zusammenarbeit und Planung zu besprechen.
+
+##### Vorgesehene Inhalte
+
+| Thema | Grundlage und Ziel der Besprechung |
+| --- | --- |
+| Sprintziel und Ergebnisse | Geplante Arbeitspakete mit dem Bearbeitungsstand vergleichen. Fachlich abgeschlossene, entfallene und offene Stories unterscheiden. |
+| IST-Analyse und Machbarkeit | Ergebnisse aus LernMAAS, KubeVirt und AWS sowie ihre Aussagegrenzen erläutern. |
+| Zielarchitektur und ADRs | Die Entscheide aus Kapitel 3.9 vorstellen und fachliche oder betriebliche Rückmeldungen aufnehmen. |
+| Retrospektive und Zusammenarbeit | Erfahrungen aus Sprint 1 und die vorgesehenen Verbesserungen der Kommunikation und Planung besprechen. |
+| Planung für Sprint 2 | Den Vorschlag aus Kapitel 2.11 prüfen und die Prioritäten gemeinsam festlegen. |
+
+##### Offene Abstimmungen
+
+| Thema | Im ersten Review zu klären |
+| --- | --- |
+| Ergebnisprüfung und Abnahme | Wer bestätigt die fachliche Abnahme, wie wird sie festgehalten und wie wird sie vom Bearbeitungsstatus der Stories unterschieden? |
+| Vorgehensmodell und Planungsabschnitte | Wie werden die vier beziehungsweise fünf Wochen langen Iterationen und die fest vereinbarten Reviewtermine im Einzelprojekt gehandhabt? |
+| Übergang zu Sprint 2 | Welche Auswirkungen hat das nachlaufende Review auf den Umsetzungsstart und auf Arbeiten, die von den Rückmeldungen abhängen? |
+| Prioritäten und erreichbares Sprintziel | Welche Ergebnisse sollen bis Sprintende am 15.11.2026 fertig und beim zweiten Review am 18.11.2026 vorführbar sein? |
+
+##### Rückmeldungen und Vereinbarungen
+
+Die Rückmeldungen der Experten und die gemeinsam vereinbarten nächsten Schritte werden nach dem Termin ergänzt. Aufgaben erhalten einen Bezug zur betroffenen User Story. Änderungen an Architekturentscheiden werden zusätzlich bei der jeweiligen ADR festgehalten. US16 bleibt bis zur Durchführung des Reviews und Dokumentation der Rückmeldungen offen. Eine fachliche Abnahme ist damit noch nicht vorweggenommen.
+
+### 2.11 Sprint 2
+
+#### Sprint 2 Planung
+
+**Zeitraum:** 19.10. bis 15.11.2026. Das zweite Review findet am 18.11.2026 statt.
+
+**Vorgeschlagenes Sprintziel:** Den Agenten mit Zustandsführung und MCP-Anbindung so weit umsetzen, dass die Referenzumgebung auf KubeVirt erstellt, geprüft, zurückgesetzt und vollständig gelöscht werden kann. Ergänzend ist ein erster automatisierter AWS-Durchstich für create, status und delete vorgesehen.
+
+Die ursprüngliche Planung umfasst neun Stories mit 35 Story Points. Das YAML-Modell und die Modellprüfung aus US17 und US18 mit zusammen acht Punkten sind bereits umgesetzt. Es verbleiben sieben Stories mit 27 Punkten. Die folgenden Zeiträume bilden die aktuelle Planung ab. Umfang, Reihenfolge und Prioritäten werden im ersten Review gemeinsam mit den Experten besprochen.
+
+Die Milestone-Ansicht zeigt die sieben offenen Issues und die beiden vorgezogenen, bereits abgeschlossenen Stories. Die offenen Aufgaben bilden die Grundlage für die gemeinsame Priorisierung.
+
+![Milestone Sprint 2 mit sieben offenen und zwei abgeschlossenen Stories](bilder/projektmanagement/sprint2-milestone.png)
+
+<small id="abb-09"><em>Abbildung 9: Milestone Sprint 2 mit offenen und vorgezogenen Stories</em></small>
+
+##### Zeitplan der User Stories
+
+Die geplanten Start- und Enddaten sind im [GitHub-Zeitplan](https://github.com/users/Cancani/projects/7/views/2) einsehbar. Der Zeitplan zeigt die noch offenen Arbeiten. US17 und US18 sind bereits vorgezogen; ihre geplanten Zeiträume stehen bei Sprint 1. Die Umsetzung ab dem 26.10. und ihre Prioritäten werden im ersten Review abgestimmt. Sprint 2 endet am 15.11.; die Vorbereitung und Durchführung des zweiten Reviews liegen anschliessend.
+
+```mermaid
+gantt
+    title Sprint 2: Agent, Adapter und Review
+    dateFormat YYYY-MM-DD
+    axisFormat %d.%m.
+    tickInterval 1week
+    todayMarker off
+    section Grundlagen
+    US19 Agent und CLI :s2us19, 2026-10-26, 2026-10-29
+    US20 Zustandsführung :s2us20, 2026-10-29, 2026-11-02
+    section MCP und Lebenszyklus
+    US23 MCP-Funktionsset :s2us23, 2026-11-02, 2026-11-04
+    US21 create und status :s2us21, 2026-11-04, 2026-11-07
+    US22 reset und delete :s2us22, 2026-11-07, 2026-11-09
+    section Plattformdurchläufe
+    US24 KubeVirt-Adapter und Durchlauf :s2us24, 2026-11-09, 2026-11-13
+    US39 AWS-Durchstich :s2us39, 2026-11-13, 2026-11-16
+    Sprintende :milestone, s2ende, 2026-11-15, 0d
+    section Review
+    PM Reviewvorbereitung und Reserve :s2pm, 2026-11-16, 2026-11-18
+    Review 2 :milestone, crit, s2review, 2026-11-18, 0d
+```
+
+<small id="abb-10"><em>Abbildung 10: Zeitplan der offenen User Stories für Sprint 2 mit anschliessendem Review</em></small>
+
+##### Arbeitspakete und Zeitplanung
+
+| Geplanter Zeitraum | Story | Arbeitspaket | Erwartetes Ergebnis | SP |
+| --- | --- | --- | --- | --- |
+| 26.10. bis 28.10.2026 | US19 | Agent-Grundgerüst und CLI | Aufträge über die Kommandozeile entgegennehmen und den Ablauf starten. | 3 |
+| 29.10. bis 01.11.2026 | US20 | Persistente Zustandsführung | Modelldefinition, Laufkennung, Phase und Ressourcen-IDs speichern und Zustandsübergänge verwalten. | 5 |
+| 02.11. bis 03.11.2026 | US23 | Einheitliches Funktionsset über MCP | Werkzeugverträge für die Lebenszyklusfunktionen festlegen und die MCP-Anbindung umsetzen. | 3 |
+| 04.11. bis 06.11.2026 | US21 | create und status | Erstellung steuern und Ressourcenstatus sowie Dienstbereitschaft unterscheiden. | 5 |
+| 07.11. bis 08.11.2026 | US22 | reset und delete | Ressourcen anhand der gespeicherten IDs abbauen und für reset aus derselben Modelldefinition erneut erstellen. | 3 |
+| 09.11. bis 12.11.2026 | US24 | KubeVirt-Adapter und erster vollständiger Durchlauf | Agent, Zustandsführung und Adapter auf der lokalen Plattform gemeinsam prüfen. | 5 |
+| 13.11. bis 15.11.2026 | US39 | Automatisierter AWS-Durchstich | create, status und delete auf AWS ausführen und den Abbau nachkontrollieren. | 3 |
+
+Der Beginn der weiteren Umsetzung am 26.10.2026 ist als Vorschlag nach dem ersten Review eingeplant. Die Sprintgrenzen bleiben bestehen. Die Auswirkungen des späteren Reviewabschlusses und die verfügbare Kapazität werden im Review besprochen. Die 27 offenen Story Points liegen über dem bisherigen Orientierungswert von acht Punkten pro Woche für die verbleibenden drei Umsetzungswochen. Die Planung muss deshalb gemeinsam auf ihre Umsetzbarkeit geprüft werden.
+
+##### Abhängigkeiten und Ergebnisprüfung
+
+Das bereits geprüfte Modell bildet die Eingabe für den Agenten. Das Grundgerüst und die Zustandsführung schaffen die Grundlage für die Lebenszyklusfunktionen. Die MCP-Anbindung legt fest, wie der Agent mit den Adaptern zusammenarbeitet. Die Funktionen werden schrittweise mit dem KubeVirt-Adapter verbunden und im ersten vollständigen lokalen Durchlauf gemeinsam geprüft.
+
+Für den lokalen Durchlauf müssen create, status, reset und delete funktionieren. Eine laufende VM allein gilt noch nicht als bereite Lernumgebung. Zusätzlich wird die HTTP-Antwort des Testdienstes geprüft. Beim Löschen müssen die zugehörigen Testressourcen nach der Nachkontrolle entfernt sein. Reset umfasst den vollständigen Abbau und die erneute Erstellung aus der unveränderten Modelldefinition.
+
+Der AWS-Durchstich prüft zunächst create, status und delete. Die Vervollständigung des AWS-Adapters um Reset und Wiederaufnahme gehört mit US25 weiterhin zur ursprünglichen Sprint-3-Planung. Die Serienmessungen mit je drei vollständigen Durchläufen pro Plattform folgen ebenfalls in Sprint 3.
+
+##### Gemeinsame Priorisierung im ersten Review
+
+Ich bringe die Arbeitspakete als Vorschlag in das Review ein. Gemeinsam mit den Experten kläre ich, welches Ergebnis bis Sprintende erreichbar ist, welche Arbeiten zuerst erfolgen und was bei knapper Zeit innerhalb des Projektplans später umgesetzt werden kann. Der vereinbarte Kernumfang bleibt dabei bestehen. Änderungen an verbindlichen Ergebnissen werden mit beiden Experten abgestimmt.
+
+Nach dem Review ergänze ich die vereinbarten Prioritäten und passe die betroffenen Issues sowie das Project Board an. Die Verbesserungen aus der Retrospektive übernehme ich in die weitere Arbeitsweise: kleinere Arbeitsschritte, frühzeitige Bereitstellung der Dokumentation und gezielte Abstimmung offener Fragen.
+
+#### Sprint 2 Retrospektive
+
+Die eigene Rückschau zur Arbeitsweise und die Verbesserungen für Sprint 3 werden vor dem zweiten Review ergänzt.
+
+#### Sprint 2 Review mit den Experten
+
+**Termin:** Mittwoch, 18.11.2026, 15:00 Uhr, online, gemeinsam mit Kuno Vogt und Thanam Pangri.
+
+Die Ergebnisse und die Planung für Sprint 3 werden im zweiten Review besprochen. Rückmeldungen und Vereinbarungen werden anschliessend ergänzt.
+
+### 2.12 Sprint 3
+
+#### Sprint 3 Planung
+
+**Zeitraum:** 16.11. bis 18.12.2026.
+
+**Vorgeschlagenes Sprintziel:** Beide Plattformen vollständig prüfen, die Ergebnisse vergleichen, MCP bewerten und die Arbeit für die Abgabe abschliessen.
+
+Der bestehende Backlog enthält für Sprint 3 die folgenden 13 Stories mit 38 Story Points. Die Zuordnung, Reihenfolge und Zeitplanung werden im zweiten Review abgestimmt und können sich ändern. Die Plantermine stehen im [GitHub-Zeitplan](https://github.com/users/Cancani/projects/7/views/2).
+
+| User Story | Aufgabe | SP |
+| --- | --- | --- |
+| US25 | AWS-Adapter um Reset und Wiederaufnahme vervollständigen | 5 |
+| US26 | Readiness auf beiden Plattformen validieren | 2 |
+| US27 | Drei vollständige Durchläufe auf der lokalen Plattform | 2 |
+| US28 | Drei vollständige Durchläufe in der Public Cloud | 3 |
+| US29 | Nachweis des vollständigen Abbaus | 3 |
+| US30 | Vorher-Nachher-Vergleich | 3 |
+| US31 | Bewertung der MCP-Architektur gegen eine direkte API-Anbindung | 3 |
+| US32 | Wirtschaftlichkeitsbetrachtung | 3 |
+| US33 | Beurteilung der Übertragbarkeit in den Produktivbetrieb | 3 |
+| US34 | Runbook für Aufbau, Bedienung, Fehleranalyse und Abbau | 2 |
+| US35 | Schulungsunterlage und Einführung | 3 |
+| US36 | Dokumentation finalisieren, Management Summary, Ehrenwort | 3 |
+| US37 | Kolloquiumspräsentation und Demo-Skript | 3 |
+
+US35 bleibt eine ergänzende Aufgabe bei freier Kapazität. Der Scope-Freeze ist am 04.12.2026, die Abgabe am 18.12.2026. Änderungen an verbindlichen Ergebnissen werden mit beiden Experten abgestimmt.
+
+#### Sprint 3 Retrospektive
+
+Die eigene Rückschau zur Arbeitsweise und die daraus gewonnenen Erkenntnisse werden vor dem dritten Review ergänzt.
+
+#### Sprint 3 Review mit den Experten
+
+**Termin:** Mittwoch, 16.12.2026, 15:00 Uhr, online, gemeinsam mit Kuno Vogt und Thanam Pangri.
+
+Ergebnisse und offene Punkte bis zur Abgabe werden im dritten Review besprochen. Rückmeldungen und Vereinbarungen werden anschliessend ergänzt.
 
 ## 3 Analyse und Konzept
 
@@ -502,7 +781,7 @@ Aus dem vorgefundenen Zustand ergeben sich drei Entscheide, die vor der Umsetzun
 | | |
 | --- | --- |
 | Status | Entschieden |
-| Kontext | Zwei gleichwertig eingerichtete KubeVirt-Umgebungen stehen zur Verfügung |
+| Kontext | Auf dl380-01 und kvcontrol sind MicroK8s, KubeVirt und CDI vorhanden. Der vollständige Referenzlauf ist auf dl380-01 nachgewiesen; kvcontrol benötigt vor einem Einsatz einen eigenen Referenzlauf. |
 | Entscheid | Die Umsetzung erfolgt auf `dl380-01`, `kvcontrol` dient als Ausweichumgebung |
 
 Begründung: Auf dl380-01 steht die benötigte Plattform bereits bereit und der erste VM-Versuch wurde dort durchgeführt. Die vorhandenen Reserven sind ausreichend. Die sechs PoC-Läufe erfolgen nacheinander mit vollständigem Abbau; ihr Speicherbedarf summiert sich deshalb nicht über alle Läufe. Für die Auswahl ist kein Mehrmaschinenbetrieb erforderlich.
@@ -533,7 +812,7 @@ Geprüfte Alternativen:
 | Kontext | Zwei Speicherklassen stehen zur Verfügung |
 | Entscheid | Virtuelle Maschinen verwenden `microk8s-hostpath` |
 
-Begründung: `local-storage` verwendet den Provisioner `kubernetes.io/no-provisioner` und legt keine Datenträger selbst an. Jede virtuelle Maschine würde damit ein von Hand erstelltes PersistentVolume benötigen. Solche manuellen Schritte sollen durch diese Arbeit entfallen. `microk8s-hostpath` ist die Standardklasse des Clusters, legt Datenträger bei Bedarf an. Die beobachtete Speicherklasse hat die Reclaim Policy Delete; ob der zugehörige PV tatsächlich entfernt wird, muss nach jedem Lauf geprüft werden.
+Begründung: `local-storage` verwendet den Provisioner `kubernetes.io/no-provisioner` und legt keine Datenträger selbst an. Jede virtuelle Maschine würde damit ein von Hand erstelltes PersistentVolume benötigen. Solche manuellen Schritte sollen durch diese Arbeit entfallen. `microk8s-hostpath` ist die Standardklasse des Clusters und legt Datenträger bei Bedarf an. Die beobachtete Speicherklasse hat die Reclaim Policy Delete; ob der zugehörige PV tatsächlich entfernt wird, muss nach jedem Lauf geprüft werden.
 
 Einschränkung, die bewusst in Kauf genommen wird: `microk8s-hostpath` bindet Daten an einen einzelnen Knoten. Auch im Einzelknotenbetrieb bleiben Hostausfall und lokaler Datenverlust relevant. In einem Mehrknotenbetrieb wäre lokaler Storage weiterhin möglich, würde aber Platzierung und Ausfallsicherheit begrenzen. Ein verteilter Speicher wäre eine mögliche spätere Lösung.
 
@@ -622,10 +901,10 @@ Die Aufstellung stammt aus dem Lernlauf auf `cloud-au-30` in der Zone `10-1-45-0
 | 5 | Zone in der Oberfläche setzen | manuell |
 | 6 | Deploy-Dialog öffnen | manuell |
 | 7 | Betriebssystem wählen | manuell |
-| 8 | Erstkonfiguration in das Textfeld einfügen | manuell |
-| 9 | Bereitstellung bestätigen | manuell |
-| 10 | Bereitstellung abwarten | automatisch |
-| 11 | Adresse der Maschine ermitteln | manuell |
+| 9 | Erstkonfiguration in das Textfeld einfügen | manuell |
+| 10 | Bereitstellung bestätigen | manuell |
+| 11 | Bereitstellung abwarten | automatisch |
+| 12 | Adresse der Maschine ermitteln | manuell |
 | 12 | Testdienst prüfen | manuell |
 | 13 | Maschine freigeben | manuell |
 | 14 | Maschine löschen | manuell |
@@ -764,7 +1043,7 @@ Diese Protokolle enthalten keine vergleichbare Serie mit vollständigen Zeit- un
 
 Ich verwende AWS, weil der Zugang über das Academy Learner Lab vorhanden ist und ich die Plattform aus dem Lehrgang kenne. EC2 bietet die benötigten Aufrufe zum Erstellen, Abfragen und Beenden einer VM. Für den späteren Python-Adapter ist Boto3 vorgesehen.
 
-Der Smoke-Test hat diese Auswahl praktisch bestätigt: Die Referenz-VM konnte erstellt, über SSH und HTTP erreicht und mit ihren abhängigen Ressourcen entfernt werden. Damit steht für den PoC eine zweite ausführbare Zielplattform zur Verfügung. Ein zusätzlicher Anbieter würde den Umfang erhöhen, ohne den vorgesehenen Nachweis zu erweitern.
+Der Smoke-Test belegt die praktische Eignung für die Referenzkonfiguration: Die Referenz-VM konnte erstellt, über SSH und HTTP erreicht und mit ihren abhängigen Ressourcen entfernt werden. Damit steht für den PoC eine zweite ausführbare Zielplattform zur Verfügung. Ein zusätzlicher Anbieter würde den Umfang erhöhen, ohne den vorgesehenen Nachweis zu erweitern.
 
 Der bewilligte Antrag nennt einen Student-Account. Tatsächlich wird das AWS Academy Learner Lab als Ausbildungszugang mit temporären Zugangsdaten und eingeschränkten Diensten verwendet. Diese Konkretisierung des Zugangs und seine Bedingungen sind nachfolgend dokumentiert. Das private Kostenlimit von CHF 50 bleibt vom angezeigten Lab-Guthaben von USD 50 getrennt.
 
@@ -856,7 +1135,7 @@ flowchart TD
     System <-->|"VM-Lebenszyklus und Zustandsabfragen"| Cloud
 ```
 
-<small><em>Abbildung 2: Systemkontext der geplanten Bereitstellungslösung</em></small>
+<small id="abb-11"><em>Abbildung 11: Systemkontext der geplanten Bereitstellungslösung</em></small>
 
 Innerhalb der Systemgrenze liegen die selbst entwickelten Bestandteile: Kommandozeilenschnittstelle, Agent, Zustandsspeicher und Adapter. Kubernetes mit KubeVirt sowie AWS liegen ausserhalb dieser Grenze. Pro Lernumgebung wird eine der beiden Zielplattformen verwendet. Die YAML-Definition beschreibt die fachlichen Anforderungen; die Zuordnung zu konkreten Plattformressourcen übernimmt die Lösung.
 
@@ -872,7 +1151,7 @@ flowchart TD
     AWSAdapter --> AWS["AWS EC2"]
 ```
 
-<small><em>Abbildung 3: Geplanter Aufbau von CLI, Agent und Adaptern</em></small>
+<small id="abb-12"><em>Abbildung 12: Geplanter Aufbau von CLI, Agent und Adaptern</em></small>
 
 Die Kommandozeilenschnittstelle nimmt Definition und Zielplattform entgegen. Der Agent validiert die Eingabe und steuert den Auftrag. Mit Agent ist hier ein Programm mit festen Regeln gemeint: Es entscheidet anhand der Operation und des gespeicherten Zustands über den nächsten Schritt. Eine Sprachmodellentscheidung ist dafür nicht vorgesehen.
 
@@ -915,6 +1194,19 @@ Der spätere Vergleich verwendet denselben Provider-Code direkt und über MCP. B
 | Erweiterbarkeit | Welche Änderungen wären für einen weiteren Adapter erforderlich? |
 
 Skala und Gewichtung werden vor der eigentlichen Bewertung festgelegt. Ein Vorteil der sauberen Adaptertrennung wird nicht automatisch MCP zugeschrieben. Für den kleinen PoC kann der zusätzliche Protokollaufwand auch gegen MCP sprechen.
+
+### 3.9 Entscheidungsübersicht der ADRs
+
+Die Architekturentscheide wurden von mir als Diplomand im Rahmen der bewilligten technischen Entscheidungsbefugnisse getroffen. Die Übersicht verbindet die Auswahl mit ihrer Begründung und den Folgen für den PoC. Die ausführlichen Herleitungen stehen in den verlinkten Fachabschnitten.
+
+| ADR | Technischer Entscheid | Begründung und Auswirkung | Herleitung |
+| --- | --- | --- | --- |
+| ADR-001 | dl380-01 als Zielplattform, kvcontrol als möglicher Ersatz | Die benötigte Plattform und der erfolgreiche Referenzlauf liegen auf dl380-01 vor. Ein Mehrknoten-Cluster ist für den PoC nicht vorgesehen. Vor einem Ersatzbetrieb muss kvcontrol separat geprüft werden. | [Lokale Zielplattform](#316-architekturentscheide-aus-der-erhebung) |
+| ADR-002 | NodePort für den Testdienst | HTTP und SSH sind aus dem Verwaltungsnetz erreichbar. Zusätzliche Netzwerktechnik ist für den Referenzversuch nicht erforderlich; eine produktive Netzwerkanbindung bleibt ausserhalb des PoC. | [Erreichbarkeit des Gasts](#316-architekturentscheide-aus-der-erhebung) |
+| ADR-003 | microk8s-hostpath als Speicherklasse | Die vorhandene Klasse stellt Speicher dynamisch bereit. Die Bindung an den einzelnen Host wird akzeptiert; zum Abbau gehört die Kontrolle von PV und Datenverzeichnis. | [Speicherklasse und Grenzen](#316-architekturentscheide-aus-der-erhebung) |
+| ADR-004 | AWS als zweite Zielplattform | Learner-Lab-Zugang und Vorkenntnisse sind vorhanden; der Smoke-Test belegt die Eignung der Referenzkonfiguration. Lab-Beschränkungen, unbekanntes Ablaufdatum und Kostenkontrolle bleiben zu beachten. | [AWS-Auswahl und Kontobedingungen](#36-auswahl-der-public-cloud-plattform) |
+
+Die gemeinsame Besprechung der Entscheide ist für das erste Review vorgesehen. Rückmeldungen und daraus folgende Anpassungen werden bei der betroffenen ADR und im zugehörigen Issue festgehalten. Die Zuständigkeit und Form der fachlichen Abnahme werden gemäss Kapitel 2.2 im Review geklärt.
 
 ## 4 Umsetzung
 
@@ -1298,9 +1590,18 @@ Die Bestätigung des aktiven Budgetempfängers ist kein Test einer tatsächlich 
 
 | Nr. | Abbildung | Stand |
 | --- | --- | --- |
-| 1 | Projektorganisation und Berichtswege | Vorhanden |
-| 2 | Systemkontext der geplanten Bereitstellungslösung | Entwurf |
-| 3 | Geplanter Aufbau von CLI, Agent und Adaptern | Entwurf, noch keine implementierte Architektur |
+| 1 | [Projektorganisation und Berichtswege](#abb-01) | Vorhanden |
+| 2 | [Milestone-Übersicht der drei Sprints](#abb-02) | Sprintgliederung |
+| 3 | [Project Board mit Aufgaben im Backlog](#abb-03) | Aufgabenübersicht |
+| 4 | [Sprint 1 mit allen User Stories offen](#abb-04) | Planungsansicht |
+| 5 | [Zeitplan der User Stories für Sprint 1 mit anschliessendem Review](#abb-05) | Planung |
+| 6 | [Project Board mit Bearbeitungsstand und US16 in Bearbeitung](#abb-06) | Bearbeitungsstand vor dem Review |
+| 7 | [Milestone Sprint 1 mit offener US16](#abb-07) | Reviewabschluss offen |
+| 8 | [Starfish-Retrospektive zu Sprint 1](#abb-08) | Eigene Rückschau und Verbesserungen |
+| 9 | [Milestone Sprint 2 mit offenen und vorgezogenen Stories](#abb-09) | Grundlage für die Sprintplanung |
+| 10 | [Zeitplan der offenen User Stories für Sprint 2 mit anschliessendem Review](#abb-10) | Planungsvorschlag, Prioritäten im ersten Review abzustimmen |
+| 11 | [Systemkontext der geplanten Bereitstellungslösung](#abb-11) | Entwurf |
+| 12 | [Geplanter Aufbau von CLI, Agent und Adaptern](#abb-12) | Entwurf, noch keine implementierte Architektur |
 
 ## Kontakt
 
