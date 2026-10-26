@@ -1311,6 +1311,18 @@ python -m mkdocs build --strict
 
 Der Dokumentationsbuild benötigt zusätzlich `requirements-docs.txt`. Die Tests laufen ohne bereitgestellte VM. Infrastrukturversuche werden separat protokolliert.
 
+### 4.3 Agent-Grundgerüst, erster Umsetzungsschritt
+
+Der Einstieg `python -m agent` bietet create, status, reset und delete mit Hilfeausgaben. Alle Befehle benötigen `--run-id`. create benötigt zusätzlich eine YAML-Datei und `--platform kubevirt` oder `--platform aws` und verwendet die bestehende Modellvalidierung.
+
+Die Hilfe liefert Exitcode 0, Argumentfehler liefern 2. Modellfehler liefern 1. Gültige Aufträge liefern derzeit ebenfalls 1 mit dem ausdrücklichen Hinweis auf die noch fehlende Lebenszyklussteuerung. Zustandsspeicher, externe Konfiguration und MCP-Anbindung sind offen. US19 ist noch nicht abgeschlossen.
+
+Fünf CLI-Tests prüfen Hilfe, Argumentfehler, Modellprüfung und die Fehlermeldungen für die noch nicht implementierten Operationen. Sie starten den Agenten aus einem temporären Arbeitsverzeichnis mit vorgegebenem `PYTHONIOENCODING=cp1252` und erwarten UTF-8-Ausgaben.
+
+Auch das Modellprüfprogramm legt Standardausgabe und Fehlerausgabe auf UTF-8 fest. Sein bestehender CLI-Test prüft die Ausgabe ebenfalls mit vorgegebenem `cp1252`.
+
+Am 26.10.2026 wurde eine Obergrenze von 30 durch den Agenten verwalteten VMs als zusätzliche Anforderung festgelegt. Vorhandene und gerade entstehende VMs müssen berücksichtigt werden. Das bisherige Modell beschreibt genau eine VM. Erweiterung, Bestandsprüfung und Tests dieser Grenze sind noch offen. Die Grenze ist keine bestätigte Plattformkapazität.
+
 ## 5 Tests und Messungen
 
 Die bisherigen Prüfungen haben unterschiedliche Zwecke. Die lokalen Tests sichern Modell und Hilfswerkzeuge ab. Lern- und Referenzversuche klären den praktischen Ablauf. Die drei LernMAAS-Basisläufe liefern die Ausgangswerte. Die formalen PoC-Serien folgen nach der Implementierung des vollständigen Lebenszyklus.
