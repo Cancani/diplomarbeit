@@ -1,5 +1,6 @@
 from copy import deepcopy
 import json
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -125,7 +126,8 @@ class ModelTests(unittest.TestCase):
                 with self.subTest(file=file):
                     result = subprocess.run([sys.executable, str(ROOT/'scripts/modell-pruefen.py'),
                                              str(ROOT/'modell/beispiele'/file)], cwd=folder,
-                                            text=True, encoding='utf-8', capture_output=True)
+                                            text=True, encoding='utf-8', capture_output=True,
+                                            env=dict(os.environ, PYTHONIOENCODING='cp1252'))
                     self.assertEqual(result.returncode, code)
                     self.assertIn(message, result.stdout if code == 0 else result.stderr)
                     self.assertNotIn('Traceback', result.stderr)
