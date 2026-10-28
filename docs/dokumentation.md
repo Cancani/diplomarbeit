@@ -1,7 +1,7 @@
 # Diplomarbeit: Agentenbasierte Hybrid-Cloud-Bereitstellung von Lernumgebungen mit Kubernetes, KubeVirt und MCP
 
 !!! info "Arbeitsstand: Umsetzung Sprint 2"
-    Die Grundlagen aus Sprint 1 sind erarbeitet. Das erste Review ist durchgeführt; die Rückmeldungen und vereinbarten Prioritäten stehen in Kapitel 2.10. Erste Priorität in Sprint 2 hat der vollständige lokale Lebenszyklus auf KubeVirt mit Agent, Zustandsführung und MCP-Anbindung. Modell und Modellprüfung sind bereits umgesetzt. Agent und Adapter sind noch zu entwickeln.
+    Die Grundlagen aus Sprint 1 sind erarbeitet. Das erste Review ist durchgeführt; die Rückmeldungen und vereinbarten Prioritäten stehen in Kapitel 2.10. Erste Priorität in Sprint 2 hat der vollständige lokale Lebenszyklus auf KubeVirt mit Agent, Zustandsführung und MCP-Anbindung. Modell und Modellprüfung sind bereits umgesetzt. Das CLI-Grundgerüst mit externer Konfiguration liegt vor. Zustandsführung, Lebenszyklussteuerung und Adapter sind noch offen.
 
 | | |
 | --- | --- |
@@ -11,7 +11,7 @@
 | Schulexperte | Thanam Pangri, HF-Lehrgangsleitung |
 | Bewilligter Zeitraum | 11.09.2026 bis 18.12.2026 |
 | Arbeitsplanung | 14.09.2026 bis 18.12.2026 |
-| Version | 0.17, Arbeitsstand nach dem ersten Review |
+| Version | 0.18, CLI-Grundgerüst und externe Agent-Konfiguration |
 | Grundlage | Bewilligte Projektbeschreibung vom 10.09.2026; schulische Vorgaben gemäss gültigem Merkblatt |
 
 ---
@@ -20,7 +20,7 @@
 
 Die Grundlagen für den Proof of Concept sind erarbeitet. Die bestehende LernMAAS-Bereitstellung wurde untersucht und mit drei Basisläufen als Vergleichsgrundlage dokumentiert. Die lokale KubeVirt-Plattform ist verifiziert. Auf KubeVirt und AWS wurde jeweils eine reduzierte Referenz-VM manuell erstellt, über HTTP und SSH geprüft und wieder abgebaut. Die Messwerte und die Grenzen ihrer Aussagekraft stehen bei den jeweiligen Versuchen.
 
-Systemkontext, Komponentensicht und vier Architekturentscheide liegen vor. Das plattformneutrale YAML-Modell mit JSON-Schema und automatisierter Validierung ist bereits umgesetzt. Diese Ergebnisse gehören zu den vorgezogenen Stories US17 und US18 aus Sprint 2. Der gemeinsame Agent mit Zustandsführung und die MCP-Adapter sind noch nicht implementiert. Die bisherigen Einzelversuche belegen deshalb die praktische Machbarkeit, aber noch keinen vollständig automatisierten Lebenszyklus und keine gemessene Verbesserung gegenüber LernMAAS.
+Systemkontext, Komponentensicht und vier Architekturentscheide liegen vor. Das plattformneutrale YAML-Modell mit JSON-Schema und automatisierter Validierung ist bereits umgesetzt. Diese Ergebnisse gehören zu den vorgezogenen Stories US17 und US18 aus Sprint 2. Das CLI-Grundgerüst mit externer Konfiguration ist umgesetzt. Zustandsführung, Lebenszyklussteuerung und MCP-Adapter sind noch nicht implementiert. Die bisherigen Einzelversuche belegen deshalb die praktische Machbarkeit, aber noch keinen vollständig automatisierten Lebenszyklus und keine gemessene Verbesserung gegenüber LernMAAS.
 
 Vor dem ersten Review waren aus der ursprünglichen Sprint-1-Planung 14 fachliche Stories mit 34 Story Points abgeschlossen. US05 ist entfallen; die Abschlussprüfung von US16 mit drei Punkten steht nach der Reviewnachbereitung noch aus. Das erste Review fand am 23.10.2026 statt. Die Experten gaben eine positive Rückmeldung zum bisherigen Arbeitsstand und zur Präsentation. Die eigene Retrospektive und die Vereinbarungen stehen in Kapitel 2.10. Bis zum Ende von Sprint 2 soll der Agent den vollständigen lokalen Lebenszyklus über MCP ausführen können. Dieser Ablauf hat Vorrang vor dem AWS-Durchstich und bildet die Grundlage für die Messserien in Sprint 3. Die Planung steht in Kapitel 2.11. Später folgen je drei vollständige PoC-Läufe auf KubeVirt und AWS, der Vergleich und die abschliessende Bewertung.
 
@@ -1299,7 +1299,7 @@ Neben den Schemaregeln prüft der YAML-Lader mehrdeutige Eingaben: doppelte Feld
 
 Modell und Validierung sind seit Commit [`8b96ab1`](https://github.com/Cancani/diplomarbeit/commit/8b96ab108b46b0a8c1b67799cebf7e4ec93a8bf3) versioniert. Die Pipeline berücksichtigt Modellpfade und Abhängigkeiten. Der [erfolgreiche CI-Lauf](https://github.com/Cancani/diplomarbeit/actions/runs/38720709849) enthält die automatisierten Prüfungen dieses Stands.
 
-Alle 35 Tests bestanden unter Python 3.12, darunter zehn Testmethoden zum Modell. Sie prüfen Pflichtfelder, Mindestkapazitäten, Datentypen, Versionen, Plattformfelder, öffentliche Schlüssel und fehlerhafte YAML-Eingaben. Die Befehlsaufrufe werden zusätzlich aus einem anderen Arbeitsverzeichnis ausgeführt; dabei werden Erfolg, Fehlerausgabe und Exitcodes geprüft.
+Bei der ursprünglichen Modellimplementierung bestanden 35 Tests unter Python 3.12, darunter zehn Testmethoden zum Modell. Sie prüfen Pflichtfelder, Mindestkapazitäten, Datentypen, Versionen, Plattformfelder, öffentliche Schlüssel und fehlerhafte YAML-Eingaben. Die Befehlsaufrufe werden zusätzlich aus einem anderen Arbeitsverzeichnis ausgeführt; dabei werden Erfolg, Fehlerausgabe und Exitcodes geprüft.
 
 Für die lokale Prüfung aus dem Repository-Verzeichnis:
 
@@ -1311,15 +1311,33 @@ python -m mkdocs build --strict
 
 Der Dokumentationsbuild benötigt zusätzlich `requirements-docs.txt`. Die Tests laufen ohne bereitgestellte VM. Infrastrukturversuche werden separat protokolliert.
 
-### 4.3 Agent-Grundgerüst, erster Umsetzungsschritt
+### 4.3 Agent-Grundgerüst mit externer Konfiguration
 
-Der Einstieg `python -m agent` bietet create, status, reset und delete mit Hilfeausgaben. Alle Befehle benötigen `--run-id`. create benötigt zusätzlich eine YAML-Datei und `--platform kubevirt` oder `--platform aws` und verwendet die bestehende Modellvalidierung.
+Der Einstieg `python -m agent` bietet create, status, reset und delete mit Hilfeausgaben. Operationen benötigen eine externe YAML-Konfiguration über `--config` vor dem Befehlsnamen und eine Laufkennung über `--run-id`. create benötigt zusätzlich die fachliche YAML-Definition und `--platform kubevirt` oder `--platform aws`.
 
-Die Hilfe liefert Exitcode 0, Argumentfehler liefern 2. Modellfehler liefern 1. Gültige Aufträge liefern derzeit ebenfalls 1 mit dem ausdrücklichen Hinweis auf die noch fehlende Lebenszyklussteuerung. Zustandsspeicher, externe Konfiguration und MCP-Anbindung sind offen. US19 ist noch nicht abgeschlossen.
+```bash
+python -m agent --help
+python -m agent --config agent/beispiele/konfiguration.yaml create modell/beispiele/referenz.yaml --platform kubevirt --run-id lokal-01
+python -m agent --config agent/beispiele/konfiguration.yaml status --run-id lokal-01
+```
 
-Fünf CLI-Tests prüfen Hilfe, Argumentfehler, Modellprüfung und die Fehlermeldungen für die noch nicht implementierten Operationen. Sie starten den Agenten aus einem temporären Arbeitsverzeichnis mit vorgegebenem `PYTHONIOENCODING=cp1252` und erwarten UTF-8-Ausgaben.
+Die Beispieldatei `agent/beispiele/konfiguration.yaml` enthält `stateFile` sowie je Adapter `command`, `args` und `timeoutSeconds`. Das Fachmodell bleibt davon getrennt. Das Beispiel benennt den geplanten, noch nicht implementierten Adapter `adapter.kubevirt`; beim Einlesen wird kein Prozess gestartet.
 
-Auch das Modellprüfprogramm legt Standardausgabe und Fehlerausgabe auf UTF-8 fest. Sein bestehender CLI-Test prüft die Ausgabe ebenfalls mit vorgegebenem `cp1252`.
+Der Leser verwendet den bestehenden strikten YAML-Lader und prüft Pflichtfelder, bekannte Feldnamen, Datentypen und eine positive ganzzahlige Zeitgrenze. Relative Zustandspfade werden vom Ordner der Konfigurationsdatei aus aufgelöst; `~` bezeichnet das Benutzerverzeichnis. Einlesen und Validieren legen keine SQLite-Datei an. Die Anwendung der Zeitgrenze auf echte Aufrufe folgt mit der MCP-Anbindung.
+
+Für eigene Einstellungen kann die Vorlage nach `agent.local.yaml` kopiert und über `--config agent.local.yaml` übergeben werden. Diese lokale Datei sowie SQLite-Dateien mit der Endung `.sqlite3` und ihre üblichen Journal-, WAL- und SHM-Dateien sind in `.gitignore` ausgeschlossen. Zugangsdaten und private Schlüssel werden separat ausserhalb des Repositorys verwaltet.
+
+Die Hilfe funktioniert ohne Konfigurationsdatei und liefert Exitcode 0. Argumentfehler liefern 2; Konfigurations- und Modellfehler liefern 1. Für create muss die gewählte Plattform in der Konfiguration enthalten sein. Fehlerausgaben enthalten keine eingegebenen Konfigurationswerte. Auch gültige Aufträge liefern derzeit 1 mit dem ausdrücklichen Hinweis auf die noch fehlende Lebenszyklussteuerung. Zustandsspeicher und MCP-Anbindung sind noch offen. US19 wird nach Abschluss der Prüfungen und Nachweise beurteilt.
+
+Neun CLI-Tests prüfen unter anderem Hilfe ohne Konfiguration, Argumentfehler, Konfigurations- und Modellfehler sowie nicht konfigurierte Plattformen. Acht Konfigurationstests prüfen Pfadauflösung, ungültige Dateien, Pflichtfelder, Adapterwerte und das versionierte Beispiel. Die CLI-Tests laufen aus einem temporären Arbeitsverzeichnis mit vorgegebenem `PYTHONIOENCODING=cp1252` und erwarten UTF-8-Ausgaben. Auch der Modell-CLI-Test prüft diese Kodierungsgrenze.
+
+Die Prüfungen erfolgen aus dem Repository-Verzeichnis im aktivierten Python-Umfeld:
+
+```bash
+python -m unittest discover -s tests -v
+python scripts/check-repository.py
+python -m mkdocs build --strict
+```
 
 Am 26.10.2026 wurde eine Obergrenze von 30 durch den Agenten verwalteten VMs als zusätzliche Anforderung festgelegt. Vorhandene und gerade entstehende VMs müssen berücksichtigt werden. Das bisherige Modell beschreibt genau eine VM. Erweiterung, Bestandsprüfung und Tests dieser Grenze sind noch offen. Die Grenze ist keine bestätigte Plattformkapazität.
 
@@ -1329,7 +1347,7 @@ Die bisherigen Prüfungen haben unterschiedliche Zwecke. Die lokalen Tests siche
 
 | Prüfung | Stand |
 | --- | --- |
-| Modell und Hilfswerkzeuge | 35 automatisierte Tests erfolgreich, darunter zehn Testmethoden zum Modell |
+| Modell, Agent-Grundgerüst und Hilfswerkzeuge | Testumfang: 52 Testmethoden, darunter neun CLI-Tests und acht Konfigurationstests; Ausführung mit den dokumentierten Prüfbefehlen |
 | KubeVirt-Referenzlauf | Manuelle Erstellung, HTTP, SSH und Ressourcenabschluss erfolgreich |
 | LernMAAS-Basisserie | Drei technische Abläufe abgeschlossen; abweichende Erfassung der Bedienzeit bei den Ergebnissen ausgewiesen |
 | AWS-Smoke-Test | Erstellung, HTTP, SSH und Abbau erfolgreich |

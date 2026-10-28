@@ -1,0 +1,6 @@
+stateFile: zustand.sqlite3
+adapters:
+  kubevirt:
+    command: python
+    args: ["-m", "adapter.kubevirt"]
+    timeoutSeconds: 30

@@ -4,11 +4,14 @@ from pathlib import Path
 import sys
 
 from modell.validierung import load_model, ModelValidationError
+from agent.konfiguration import ConfigurationError, load_config
 
 
 def build_parser():
     parser = argparse.ArgumentParser(
         description='Lernumgebungen erstellen, prüfen, zurücksetzen und löschen.')
+    parser.add_argument('--config', type=Path, required=True,
+                        help='YAML-Datei der Agent-Konfiguration')
     commands = parser.add_subparsers(dest='operation', required=True)
     descriptions = {
         'create': 'Lernumgebung aus einer YAML-Definition erstellen',
@@ -30,7 +33,16 @@ def main(argv=None):
     sys.stdout.reconfigure(encoding='utf-8')
     sys.stderr.reconfigure(encoding='utf-8')
     args = build_parser().parse_args(argv)
+    try:
+        config = load_config(args.config)
+    except ConfigurationError as error:
+        print(f'Konfigurationsfehler: {error}', file=sys.stderr)
+        return 1
     if args.operation == 'create':
+        if args.platform not in config['adapters']:
+            print(f'Für die Zielplattform {args.platform} ist kein Adapter konfiguriert.',
+                  file=sys.stderr)
+            return 1
         try:
             load_model(args.definition)
         except ModelValidationError as error:
