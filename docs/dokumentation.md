@@ -1339,6 +1339,8 @@ python scripts/check-repository.py
 python -m mkdocs build --strict
 ```
 
+**Prüfstand vom 28.10.2026:** Für [Commit d293644](https://github.com/Cancani/diplomarbeit/commit/d2936449a9278240dd1028bc6dbce565ec37a42b) bestanden alle 52 Tests unter Python 3.12. Der [zugehörige GitHub-Actions-Lauf](https://github.com/Cancani/diplomarbeit/actions/runs/40743560062) bestätigt die automatisierten Prüfungen, den strikten Dokumentationsbuild und die Veröffentlichung. Der lokale Windows-Lauf unter Python 3.14.6 auf demselben Commit bestand ebenfalls mit 52 Tests. Dabei erschien beim bestehenden HTTP-Probe-Test weiterhin eine `ResourceWarning` zu einer HTTP-302-Antwort; der Lauf endete mit `OK`. Die Prüfung bestätigt das CLI-Grundgerüst mit externer Konfiguration. Die Lebenszyklussteuerung bleibt Gegenstand der folgenden Stories.
+
 Am 26.10.2026 wurde eine Obergrenze von 30 durch den Agenten verwalteten VMs als zusätzliche Anforderung festgelegt. Vorhandene und gerade entstehende VMs müssen berücksichtigt werden. Das bisherige Modell beschreibt genau eine VM. Erweiterung, Bestandsprüfung und Tests dieser Grenze sind noch offen. Die Grenze ist keine bestätigte Plattformkapazität.
 
 ## 5 Tests und Messungen
