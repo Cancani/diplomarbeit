@@ -1,0 +1,148 @@
+"""Erstellung steuern, Inventar sichern und tatsächliche Bereitschaft prüfen."""
+from datetime import datetime, timezone
+import asyncio
+import json
+import time
+
+import anyio
+import httpx2
+
+from adapter.kubevirt_manifest import validate_id
+from adapter.vertrag import AdapterError, CREATE_SCHEMA, RUN_STATUS_SCHEMA
+from agent.mcp_client import call_tool
+from agent.zustand import StateError, StateStore
+from modell.snapshot import encode_snapshot
+
+
+def emit(event, run_id, operation_id, **values):
+    print(json.dumps({'timeUtc': datetime.now(timezone.utc).isoformat(), 'event': event,
+                      'runId': run_id, 'operationId': operation_id, **values}, ensure_ascii=False), flush=True)
+
+
+async def _service_ready(url, model, timeout):
+    if not url:
+        return False
+    expected = model['vm']['testService']
+    try:
+        with anyio.fail_after(timeout):
+            async with httpx2.AsyncClient(trust_env=False, follow_redirects=False, timeout=timeout) as client:
+                async with client.stream('GET', url, headers={'Cache-Control': 'no-cache',
+                                                              'Accept-Encoding': 'identity'}) as response:
+                    if response.status_code != expected['expectedStatus']:
+                        return False
+                    payload = b''
+                    async for chunk in response.aiter_bytes(chunk_size=4097):
+                        payload += chunk
+                        if len(payload) > 4096:
+                            return False
+                    return payload.decode('utf-8').rstrip('\r\n') == expected['expectedBody']
+    except (httpx2.HTTPError, OSError, UnicodeError, TimeoutError):
+        return False
+
+
+def service_ready(url, model, timeout=2):
+    return asyncio.run(_service_ready(url, model, timeout))
+
+
+def _adapter(config, platform):
+    if platform != 'kubevirt' or platform not in config['adapters']:
+        raise StateError('Für diese Plattform ist die Lebenszyklussteuerung noch nicht verfügbar.')
+    return config['adapters'][platform]
+
+
+def _read(store, adapter, record, timeout=None):
+    settings = dict(adapter)
+    if timeout is not None:
+        if timeout <= 0:
+            raise AdapterError('timeout')
+        settings['timeoutSeconds'] = min(settings['timeoutSeconds'], timeout)
+    actual = call_tool(settings, 'status', {'run_id': record['run_id']}, RUN_STATUS_SCHEMA)
+    if actual['modelHash'] is not None and actual['modelHash'] != record['model_hash']:
+        raise AdapterError('resource_conflict')
+    store.observe_resources(record['run_id'], record['operation']['operation_id'], actual['resources'])
+    return actual
+
+
+def status(config, run_id):
+    validate_id(run_id)
+    if not config['stateFile'].is_file():
+        raise StateError('Für diese Laufkennung ist keine Umgebung gespeichert.')
+    store = StateStore(config['stateFile'])
+    record = store.get(run_id)
+    actual = _read(store, _adapter(config, record['platform']), record)
+    ready = (actual['vmReady'] and actual['vmiPhase'] == 'Running'
+             and service_ready(actual['httpUrl'], record['model_snapshot']))
+    emit('status', run_id, record['operation']['operation_id'], storedPhase=record['phase'],
+         serviceReady=ready, **actual)
+    return actual, ready
+
+
+def create(config, run_id, operation_id, platform, model, timeout_seconds=900):
+    validate_id(run_id)
+    validate_id(operation_id)
+    snapshot, _ = encode_snapshot(model)
+    adapter = _adapter(config, platform)
+    store = StateStore(config['stateFile'])
+    try:
+        previous = store.get(run_id)
+    except StateError:
+        previous = None
+    if previous and previous['phase'] == 'ready':
+        old_snapshot, _ = encode_snapshot(previous['model_snapshot'])
+        if old_snapshot != snapshot or previous['platform'] != platform:
+            raise StateError('Plattform und Modell-Snapshot eines Laufs dürfen nicht verändert werden.')
+        result = status(config, run_id)
+        if not result[1]:
+            raise AdapterError('platform_error')
+        return result
+    store.start_create(run_id, operation_id, platform, model)
+    emit('create_started', run_id, operation_id)
+    record = store.get(run_id)
+    deadline = time.monotonic() + timeout_seconds
+    try:
+        while True:
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise AdapterError('timeout')
+            settings = {**adapter, 'timeoutSeconds': min(adapter['timeoutSeconds'], remaining)}
+            step = call_tool(settings, 'create', {
+                'run_id': run_id, 'operation_id': operation_id, 'model': model}, CREATE_SCHEMA)
+            store.observe_resources(run_id, operation_id, step['resources'])
+            if step['resources']:
+                emit('resources_recorded', run_id, operation_id, resources=step['resources'])
+            if step['complete']:
+                break
+            time.sleep(min(1, max(0, deadline - time.monotonic())))
+        emit('waiting_for_readiness', run_id, operation_id)
+        last_state = None
+        last_report = time.monotonic()
+        while True:
+            actual = _read(store, adapter, record, deadline - time.monotonic())
+            remaining = deadline - time.monotonic()
+            ready = (remaining > 0 and actual['vmReady'] and actual['vmiPhase'] == 'Running'
+                     and service_ready(actual['httpUrl'], model, min(2, remaining)))
+            if ready and time.monotonic() <= deadline:
+                store.advance(run_id, operation_id, 'ready')
+                emit('ready', run_id, operation_id, serviceReady=True, **actual)
+                return actual, True
+            current_state = (actual['vmState'], actual['vmiPhase'], actual['vmReady'])
+            if current_state != last_state or time.monotonic() - last_report >= 30:
+                emit('waiting', run_id, operation_id, vmState=actual['vmState'], vmiPhase=actual['vmiPhase'],
+                     vmReady=actual['vmReady'], remainingSeconds=max(0, int(deadline - time.monotonic())))
+                last_state, last_report = current_state, time.monotonic()
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise AdapterError('timeout')
+            time.sleep(min(2, remaining))
+    except (AdapterError, KeyboardInterrupt) as error:
+        # Ein API-Aufruf kann trotz verlorener Antwort erfolgreich gewesen sein.
+        # Nur lesend abgleichen; bei Fehlern bleiben alle bereits bekannten IDs erhalten.
+        try:
+            _read(store, adapter, record)
+        except (AdapterError, StateError):
+            pass
+        code = 'interrupted' if isinstance(error, KeyboardInterrupt) else (
+            'timeout' if error.code == 'timeout' else 'platform_error')
+        store.fail(run_id, operation_id, code)
+        emit('error', run_id, operation_id, code=code, resources=store.get(run_id)['resources'])
+        raise

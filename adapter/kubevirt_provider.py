@@ -11,14 +11,15 @@ class KubeVirtProvider:
         self.command = list(command)
         self.timeout_seconds = timeout_seconds
 
-    def _get(self, arguments, deadline):
+    def _request(self, verb, arguments, deadline, document=None, allow_empty=False):
         remaining = deadline - time.monotonic()
         if remaining <= 0:
             raise AdapterError('timeout')
         try:
             result = subprocess.run(
-                [*self.command, 'get', *arguments, '-o', 'json',
+                [*self.command, verb, *arguments, '-o', 'json',
                  f'--request-timeout={max(1, int(remaining))}s'],
+                input=json.dumps(document) if document is not None else None,
                 capture_output=True, text=True, encoding='utf-8',
                 timeout=remaining, check=False)
         except subprocess.TimeoutExpired as error:
@@ -32,12 +33,20 @@ class KubeVirtProvider:
         if result.returncode != 0:
             raise AdapterError('platform_error')
         try:
+            if allow_empty and not result.stdout.strip():
+                return None
             document = json.loads(result.stdout)
-            if not isinstance(document, dict) or not isinstance(document.get('items'), list):
-                raise ValueError('Eine Kubernetes-Liste wird erwartet.')
-            return document['items']
+            if not isinstance(document, dict):
+                raise ValueError('Ein Kubernetes-Objekt wird erwartet.')
+            return document
         except (ValueError, UnicodeError) as error:
             raise AdapterError('invalid_response') from error
+
+    def _get(self, arguments, deadline):
+        document = self._request('get', arguments, deadline)
+        if not isinstance(document.get('items'), list):
+            raise AdapterError('invalid_response')
+        return document['items']
 
     def platform_status(self):
         deadline = time.monotonic() + self.timeout_seconds

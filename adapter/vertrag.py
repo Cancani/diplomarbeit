@@ -12,6 +12,9 @@ ERRORS = {
     'timeout': 'Die Zeitgrenze für die Abfrage wurde überschritten.',
     'invalid_response': 'Die Adapterantwort entspricht nicht dem vereinbarten Format.',
     'transport_error': 'Der MCP-Adapter konnte nicht gestartet oder erreicht werden.',
+    'invalid_request': 'Modell oder Auftragskennungen sind ungültig.',
+    'resource_conflict': 'Vorhandene Ressourcen oder ihre Kennzeichnungen widersprechen dem Auftrag.',
+    'capacity_limit': 'Die Obergrenze von 30 verwalteten VMs ist erreicht.',
 }
 
 MACHINE_SCHEMA = {
@@ -56,3 +59,38 @@ def read_status_response(response):
     if not response['ok']:
         raise AdapterError(response['error'])
     return response['status']
+
+
+RESOURCE_SCHEMA = {
+    'type': 'object', 'additionalProperties': False,
+    'required': ['kind', 'name', 'resource_id', 'scope'],
+    'properties': {key: {'type': 'string', **({'minLength': 1} if key != 'scope' else {})}
+                   for key in ['kind', 'name', 'resource_id', 'scope']},
+}
+CREATE_SCHEMA = {
+    'type': 'object', 'additionalProperties': False, 'required': ['complete', 'resources'],
+    'properties': {'complete': {'type': 'boolean'},
+                   'resources': {'type': 'array', 'items': RESOURCE_SCHEMA}},
+}
+RUN_STATUS_SCHEMA = {
+    'type': 'object', 'additionalProperties': False,
+    'required': ['resources', 'vmState', 'vmiPhase', 'vmReady', 'modelHash', 'httpUrl', 'sshHost', 'sshPort'],
+    'properties': {
+        'resources': {'type': 'array', 'items': RESOURCE_SCHEMA},
+        'vmState': {'type': 'string'}, 'vmiPhase': {'type': 'string'}, 'vmReady': {'type': 'boolean'},
+        'modelHash': {'type': ['string', 'null']}, 'httpUrl': {'type': ['string', 'null']},
+        'sshHost': {'type': ['string', 'null']}, 'sshPort': {'type': ['integer', 'null']},
+    },
+}
+
+
+def read_result(response, schema):
+    if not isinstance(response, dict) or type(response.get('ok')) is not bool:
+        raise AdapterError('invalid_response')
+    if not response['ok']:
+        if set(response) != {'ok', 'error'} or not isinstance(response['error'], str) or response['error'] not in ERRORS:
+            raise AdapterError('invalid_response')
+        raise AdapterError(response['error'])
+    if set(response) != {'ok', 'data'} or not Draft202012Validator(schema).is_valid(response['data']):
+        raise AdapterError('invalid_response')
+    return response['data']

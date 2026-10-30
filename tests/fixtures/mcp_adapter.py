@@ -32,6 +32,14 @@ class FakeProvider:
             'kubevirtPhase': 'Deployed', 'virtualMachines': [], 'virtualMachineInstances': [],
         }
 
+    def create(self, run_id, operation_id, model):
+        return {'complete': True, 'resources': [
+            {'kind': 'VirtualMachine', 'name': 'test-vm', 'scope': 'test', 'resource_id': 'test-uid'}]}
+
+    def status(self, run_id):
+        return {'resources': [], 'vmState': 'Absent', 'vmiPhase': 'Absent', 'vmReady': False,
+                'modelHash': None, 'httpUrl': None, 'sshHost': None, 'sshPort': None}
+
 
 if mode == 'invalid':
     server = MCPServer('test-invalid-adapter', log_level='WARNING')

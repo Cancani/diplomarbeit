@@ -4,6 +4,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+import yaml
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -48,19 +49,27 @@ class AgentCliTests(unittest.TestCase):
                 self.assertIn(message, result.stderr)
                 self.assertNotIn('noch nicht implementiert', result.stderr)
 
-    def test_valid_create_reports_missing_lifecycle(self):
-        result = self.invoke(['create', str(ROOT/'modell/beispiele/referenz.yaml'),
-                              '--platform', 'kubevirt', '--run-id', 'lokal-01'])
+    def test_valid_create_reports_adapter_start_failure(self):
+        with tempfile.TemporaryDirectory() as folder:
+            config = Path(folder)/'config.yaml'
+            config.write_text(yaml.safe_dump({
+                'stateFile': 'zustand.sqlite3', 'adapters': {'kubevirt': {
+                    'command': str(Path(folder)/'missing-adapter'), 'args': [], 'timeoutSeconds': 1}},
+            }), encoding='utf-8')
+            result = self.invoke(['create', str(ROOT/'modell/beispiele/referenz.yaml'),
+                                  '--platform', 'kubevirt', '--run-id', 'lokal-01'], config=config)
         self.assertEqual(result.returncode, 1)
-        self.assertIn('Lebenszyklussteuerung ist noch nicht implementiert', result.stderr)
-        self.assertEqual(result.stdout, '')
+        self.assertIn('MCP-Adapter', result.stderr)
+        self.assertIn('create_started', result.stdout)
 
     def test_existing_run_operations_report_missing_lifecycle(self):
         for operation in ['status', 'reset', 'delete']:
             with self.subTest(operation=operation):
                 result = self.invoke([operation, '--run-id', 'lokal-01'])
                 self.assertEqual(result.returncode, 1)
-                self.assertIn('Lebenszyklussteuerung ist noch nicht implementiert', result.stderr)
+                expected = ('keine Umgebung gespeichert' if operation == 'status'
+                            else 'Lebenszyklussteuerung ist noch nicht implementiert')
+                self.assertIn(expected, result.stderr)
                 self.assertEqual(result.stdout, '')
 
     def test_config_option_is_required(self):

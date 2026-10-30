@@ -1,11 +1,19 @@
-"""Aufträge einlesen und prüfen; Lebenszyklussteuerung folgt separat."""
+"""Lernumgebungen mit persistentem Zustand und Plattformadaptern steuern."""
 import argparse
 import json
 from pathlib import Path
 import sys
+import uuid
 
 from modell.validierung import load_model, ModelValidationError
 from agent.konfiguration import ConfigurationError, load_config
+
+
+def positive_seconds(value):
+    number = int(value)
+    if number < 1:
+        raise argparse.ArgumentTypeError('Die Zeitgrenze muss positiv sein.')
+    return number
 
 
 def build_parser():
@@ -29,6 +37,9 @@ def build_parser():
             command.add_argument('definition', type=Path, help='YAML-Datei der Lernumgebung')
             command.add_argument('--platform', required=True, choices=('kubevirt', 'aws'),
                                  help='Zielplattform')
+            command.add_argument('--operation-id', help='Kennung des Erstellungsauftrags')
+            command.add_argument('--timeout-seconds', type=positive_seconds, default=900,
+                                 help='Gesamte Zeitgrenze bis zur HTTP-Bereitschaft (Standard: 900)')
     return parser
 
 
@@ -64,11 +75,29 @@ def main(argv=None):
                   file=sys.stderr)
             return 1
         try:
-            load_model(args.definition)
+            model = load_model(args.definition)
         except ModelValidationError as error:
             for message in error.errors:
                 print(f'Ungültig: {message}', file=sys.stderr)
             return 1
+    if args.operation in ('create', 'status'):
+        from adapter.vertrag import AdapterError
+        from agent.lebenszyklus import create, status
+        from agent.zustand import StateError
+
+        try:
+            if args.operation == 'create':
+                create(config, args.run_id, args.operation_id or uuid.uuid4().hex,
+                       args.platform, model, args.timeout_seconds)
+            else:
+                status(config, args.run_id)
+        except (AdapterError, StateError) as error:
+            print(f'Fehler: {error}', file=sys.stderr)
+            return 1
+        except KeyboardInterrupt:
+            print('Operation unterbrochen; gespeicherten Zustand prüfen.', file=sys.stderr)
+            return 130
+        return 0
     print(f'{args.operation}: Die Lebenszyklussteuerung ist noch nicht implementiert.',
           file=sys.stderr)
     return 1

@@ -4,8 +4,9 @@ import argparse
 from mcp.server import MCPServer
 from mcp.types import CallToolResult, ToolAnnotations
 
-from adapter.kubevirt_provider import KubeVirtProvider
+from adapter.kubevirt_lifecycle import KubeVirtLifecycle
 from adapter.vertrag import AdapterError, read_status_response
+from modell.validierung import ModelValidationError
 
 
 def create_server(provider):
@@ -22,6 +23,25 @@ def create_server(provider):
             response = {'ok': False, 'error': error.code}
         return CallToolResult(content=[], structured_content=response)
 
+    def result(action):
+        try:
+            response = {'ok': True, 'data': action()}
+        except AdapterError as error:
+            response = {'ok': False, 'error': error.code}
+        except ModelValidationError:
+            response = {'ok': False, 'error': 'invalid_request'}
+        return CallToolResult(content=[], structured_content=response)
+
+    @server.tool(annotations=ToolAnnotations(readOnlyHint=False, destructiveHint=False, idempotentHint=True))
+    def create(run_id: str, operation_id: str, model: dict) -> CallToolResult:
+        """Einen Erstellungsschritt bestätigen; complete meldet VM und Service als angelegt."""
+        return result(lambda: provider.create(run_id, operation_id, model))
+
+    @server.tool(annotations=ToolAnnotations(readOnlyHint=True, destructiveHint=False, idempotentHint=True))
+    def status(run_id: str) -> CallToolResult:
+        """Ressourcen und VM-Zustand lesen; HTTP-Prüfung erfolgt durch den Agenten."""
+        return result(lambda: provider.status(run_id))
+
     return server
 
 
@@ -34,7 +54,7 @@ def main():
     args = parser.parse_args()
     if args.timeout_seconds < 1:
         parser.error('--timeout-seconds muss positiv sein')
-    create_server(KubeVirtProvider(args.kubectl_command, args.timeout_seconds)).run(transport='stdio')
+    create_server(KubeVirtLifecycle(args.kubectl_command, args.timeout_seconds)).run(transport='stdio')
 
 
 if __name__ == '__main__':

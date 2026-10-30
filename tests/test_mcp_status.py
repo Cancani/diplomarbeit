@@ -14,8 +14,9 @@ import yaml
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from adapter.kubevirt_provider import KubeVirtProvider
-from adapter.vertrag import AdapterError, read_status_response
-from agent.mcp_client import platform_status
+from adapter.vertrag import AdapterError, read_status_response, CREATE_SCHEMA, RUN_STATUS_SCHEMA
+from agent.mcp_client import platform_status, call_tool
+from modell.validierung import load_model
 
 
 class McpStatusTests(unittest.TestCase):
@@ -42,6 +43,14 @@ class McpStatusTests(unittest.TestCase):
             self.assertTrue(data['protocolVersion'])
             self.assertEqual(data['status']['nodes'], [{'name': 'test-node', 'ready': True}])
             self.assertEqual(set(root.iterdir()), {config})
+            created = call_tool(self.config('success'), 'create', {
+                'run_id': 'test-run', 'operation_id': 'test-operation',
+                'model': load_model(ROOT/'modell/beispiele/referenz.yaml')}, CREATE_SCHEMA)
+            self.assertTrue(created['complete'])
+            self.assertEqual(created['resources'][0]['resource_id'], 'test-uid')
+            actual = call_tool(self.config('success'), 'status', {'run_id': 'test-run'}, RUN_STATUS_SCHEMA)
+            self.assertFalse(actual['vmReady'])
+            self.assertIsNone(actual['httpUrl'])
 
     def test_adapter_errors_and_invalid_responses_are_not_reported_as_success(self):
         for mode, code in [('invalid', 'invalid_response'), ('error', 'platform_error')]:
