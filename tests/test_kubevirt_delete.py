@@ -177,6 +177,8 @@ class KubeVirtDeleteTests(unittest.TestCase):
 
     def test_agent_saves_storage_details_and_repeated_delete_only_checks_absence(self):
         store = self.prepared_store()
+        store.start_operation('run-01', 'delete-operation', 'delete')
+        store.fail('run-01', 'delete-operation', 'platform_error')
         state = {'deleted': False, 'delete_calls': 0}
 
         def call(adapter, tool, arguments, schema):
@@ -198,6 +200,100 @@ class KubeVirtDeleteTests(unittest.TestCase):
         self.assertEqual(state['delete_calls'], 1)
         self.assertEqual(store.get('run-01')['phase'], 'absent')
         self.assertEqual(store.get('run-01')['resources'], [])
+
+    def test_legacy_scratch_pv_metadata_is_recovered_before_any_deletion(self):
+        cluster = self.cluster()
+        name = resource_name('run-01')
+        root = self.root/'provisioner'
+        root.mkdir()
+        main_path = root/f'{NAMESPACE}-{name}-disk-pvc-pvc-id'
+        main_path.mkdir()
+        cluster.objects[('persistentvolume', None, 'pvc-pvc-id')]['spec']['hostPath']['path'] = str(main_path)
+        cluster.put({'kind': 'CDIConfig', 'metadata': {'name': 'config'},
+                     'status': {'scratchSpaceStorageClass': 'microk8s-hostpath'}})
+        resources = cluster.status('run-01')['resources']
+        resources += [
+            {'kind': 'PersistentVolumeClaim', 'name': name + '-disk-scratch',
+             'resource_id': 'scratch-claim-id', 'scope': NAMESPACE},
+            {'kind': 'PersistentVolume', 'name': 'pvc-scratch-claim-id',
+             'resource_id': 'scratch-pv-id', 'scope': ''},
+            {'kind': 'Pod', 'name': 'importer-' + name + '-disk',
+             'resource_id': 'importer-old-1', 'scope': NAMESPACE},
+            {'kind': 'Pod', 'name': 'importer-' + name + '-disk',
+             'resource_id': 'importer-old-2', 'scope': NAMESPACE},
+        ]
+        step = cluster.delete('run-01', 'delete-operation', resources)
+        self.assertEqual(cluster.deletes, [])
+        self.assertFalse(step['complete'])
+        recovered = next(r for r in step['resources'] if r['resource_id'] == 'scratch-pv-id')
+        self.assertEqual(recovered['details'], {
+            'claimUid': 'scratch-claim-id', 'claimName': name + '-disk-scratch',
+            'hostPath': str(root/f'{NAMESPACE}-{name}-disk-scratch-pvc-scratch-claim-id'),
+            'nodeName': socket.gethostname(),
+            'pathSource': 'provisioner-name',
+        })
+        # Nach dem Speichern dürfen die bereits fehlenden Scratch-Objekte bestätigt werden.
+        merged = {r['resource_id']: r for r in [*resources, *step['resources']]}
+        self.assertIn('scratch-pv-id', merged)
+        self.assertTrue(cluster._local_storage_gone(merged['scratch-pv-id']))
+        for _ in range(10):
+            result = cluster.delete('run-01', 'delete-operation', list(merged.values()))
+            for resource in result['resources']:
+                merged[resource['resource_id']] = resource
+            for resource in result['removed']:
+                merged.pop(resource['resource_id'])
+            if all(r['kind'] == 'PersistentVolume' for r in merged.values()):
+                break
+        self.assertEqual(cluster.deletes[0], 'VirtualMachine')
+        self.assertNotIn('PersistentVolume', cluster.deletes)
+        self.assertNotIn('importer-old-1', merged)
+        self.assertNotIn('importer-old-2', merged)
+        cluster.objects.pop(('persistentvolume', None, 'pvc-pvc-id'))
+        main_path.rmdir()
+        self.assertTrue(cluster.delete('run-01', 'delete-operation', list(merged.values()))['complete'])
+
+    def test_historical_pod_uid_does_not_delete_a_foreign_replacement(self):
+        for own in [True, False]:
+            with self.subTest(own=own):
+                cluster = DeletingCluster()
+                for control in infrastructure():
+                    cluster.put(control)
+                name = resource_name('run-01')
+                pod = {'kind': 'Pod', 'metadata': {
+                    'name': 'importer-' + name + '-disk', 'namespace': NAMESPACE, 'uid': 'pod-current',
+                    'labels': labels('run-01') if own else {}}}
+                cluster.put(pod)
+                references = [
+                    {'kind': 'VirtualMachine', 'name': name, 'scope': NAMESPACE, 'resource_id': 'vm-old'},
+                    {'kind': 'Pod', 'name': pod['metadata']['name'], 'scope': NAMESPACE, 'resource_id': 'pod-old'},
+                ]
+                if own:
+                    references.append({**references[1], 'resource_id': 'pod-current'})
+                    result = cluster.delete('run-01', 'delete-operation', references)
+                    self.assertEqual({r['resource_id'] for r in result['removed']}, {'vm-old', 'pod-old'})
+                    self.assertEqual(cluster.deletes, ['Pod'])
+                else:
+                    with self.assertRaises(AdapterError) as caught:
+                        cluster.delete('run-01', 'delete-operation', references)
+                    self.assertEqual(caught.exception.code, 'resource_conflict')
+                    self.assertEqual(cluster.deletes, [])
+
+    def test_unknown_legacy_storage_is_not_discarded(self):
+        cluster = DeletingCluster()
+        for control in infrastructure():
+            cluster.put(control)
+        cluster.put({'kind': 'CDIConfig', 'metadata': {'name': 'config'},
+                     'status': {'scratchSpaceStorageClass': 'microk8s-hostpath'}})
+        resources = [
+            {'kind': 'PersistentVolumeClaim', 'name': resource_name('run-01') + '-disk-scratch',
+             'resource_id': 'scratch-claim-id', 'scope': NAMESPACE},
+            {'kind': 'PersistentVolume', 'name': 'pvc-scratch-claim-id',
+             'resource_id': 'scratch-pv-id', 'scope': ''},
+        ]
+        with self.assertRaises(AdapterError) as caught:
+            cluster.delete('run-01', 'delete-operation', resources)
+        self.assertEqual(caught.exception.code, 'storage_unverified')
+        self.assertEqual(cluster.deletes, [])
 
     def test_timeout_preserves_known_storage_for_cleanup(self):
         store = self.prepared_store()

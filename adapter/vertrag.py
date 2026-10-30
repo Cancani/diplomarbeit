@@ -71,8 +71,9 @@ RESOURCE_SCHEMA = {
 RESOURCE_SCHEMA['properties']['details'] = {
     'type': 'object', 'additionalProperties': False,
     'properties': {key: {'type': 'string', 'minLength': 1}
-                   for key in ['claimUid', 'hostPath', 'nodeName']},
+                   for key in ['claimUid', 'claimName', 'hostPath', 'nodeName']},
 }
+RESOURCE_SCHEMA['properties']['details']['properties']['pathSource'] = {'enum': ['api', 'provisioner-name']}
 CREATE_SCHEMA = {
     'type': 'object', 'additionalProperties': False, 'required': ['complete', 'resources'],
     'properties': {'complete': {'type': 'boolean'},

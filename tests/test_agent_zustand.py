@@ -201,6 +201,31 @@ os._exit(23)
         with closing(sqlite3.connect(self.path)) as connection:
             self.assertEqual(connection.execute('SELECT COUNT(*) FROM runs').fetchone()[0], 30)
 
+    def test_failed_delete_can_resume_once_with_the_same_operation_id(self):
+        self.ready()
+        self.store.start_operation('lokal-01', 'delete-01', 'delete')
+        started = self.store.get('lokal-01')['operation']['started_at']
+        self.store.fail('lokal-01', 'delete-01', 'platform_error')
+        barrier = Barrier(2)
+
+        def resume(_):
+            barrier.wait(timeout=5)
+            try:
+                self.store.start_operation('lokal-01', 'delete-01', 'delete')
+                return 'started'
+            except StateError:
+                return 'blocked'
+
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            self.assertCountEqual(list(pool.map(resume, range(2))), ['started', 'blocked'])
+        record = self.store.get('lokal-01')
+        self.assertEqual(record['phase'], 'deleting')
+        self.assertEqual(record['operation']['operation_id'], 'delete-01')
+        self.assertEqual(record['operation']['started_at'], started)
+        self.assertEqual(record['operation']['status'], 'running')
+        self.assertIsNone(record['operation']['error_code'])
+        self.assertEqual(len(record['resources']), 1)
+
 
 if __name__ == '__main__':
     unittest.main()

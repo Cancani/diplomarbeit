@@ -123,8 +123,17 @@ class StateStore:
         if kind == 'create' and connection.execute(
                 "SELECT COUNT(*) FROM runs WHERE phase <> 'absent'").fetchone()[0] >= 30:
             raise StateError('Die Obergrenze von 30 reservierten oder vorhandenen VMs ist erreicht.')
-        if connection.execute('SELECT 1 FROM operations WHERE operation_id = ?',
-                              (operation_id,)).fetchone():
+        previous = connection.execute('SELECT * FROM operations WHERE operation_id = ?',
+                                      (operation_id,)).fetchone()
+        if previous:
+            if (kind == 'delete' and run['phase'] == 'error' and run['operation_id'] == operation_id
+                    and previous['run_id'] == run_id and previous['kind'] == 'delete'
+                    and previous['status'] == 'failed'):
+                now = timestamp()
+                connection.execute("UPDATE operations SET status = 'running', error_code = NULL, updated_at = ? WHERE operation_id = ?",
+                                   (now, operation_id))
+                connection.execute("UPDATE runs SET phase = 'deleting', updated_at = ? WHERE run_id = ?", (now, run_id))
+                return
             raise StateError('Die Operationskennung wurde bereits verwendet.')
         phase = 'creating' if kind == 'create' else 'deleting'
         status = 'running'
