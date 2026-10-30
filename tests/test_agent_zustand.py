@@ -1,4 +1,5 @@
 from concurrent.futures import ThreadPoolExecutor
+from contextlib import closing
 from copy import deepcopy
 import hashlib
 import json
@@ -159,11 +160,11 @@ os._exit(23)
         with self.assertRaises(StateError):
             self.store.fail('lokal-01', 'create-01', 'PRIVATE-CONTENT')
         self.assertEqual(self.store.get('lokal-01')['phase'], 'creating')
-        with sqlite3.connect(self.path) as connection:
+        with closing(sqlite3.connect(self.path)) as connection:
             connection.execute('PRAGMA user_version = 99')
         with self.assertRaises(StateError):
             StateStore(self.path)
-        with sqlite3.connect(self.path) as connection:
+        with closing(sqlite3.connect(self.path)) as connection:
             self.assertEqual(connection.execute('PRAGMA user_version').fetchone()[0], 99)
 
 
