@@ -76,7 +76,7 @@ class KubeVirtLifecycle(KubeVirtProvider):
         else:
             self._owned(namespace, infrastructure()[0], allow_deleting=True)
             items = self._get([
-                'virtualmachines,virtualmachineinstances,datavolumes,persistentvolumeclaims,services,pods',
+                'virtualmachines,virtualmachineinstances,datavolumes,persistentvolumeclaims,services,pods,endpointslices',
                 '-n', NAMESPACE], deadline)
         owned = {}
         for item in items:

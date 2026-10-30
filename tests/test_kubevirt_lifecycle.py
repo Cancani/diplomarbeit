@@ -41,9 +41,12 @@ class MemoryCluster(KubeVirtLifecycle):
         return self.objects.get((kind.lower(), namespace, name))
 
     def _get(self, arguments, deadline):
-        if arguments[0] == 'virtualmachines':
-            return [v for v in self.objects.values() if v['kind'] == 'VirtualMachine']
-        return [v for v in self.objects.values() if v['metadata'].get('namespace') == NAMESPACE]
+        types = {'virtualmachines': 'VirtualMachine', 'virtualmachineinstances': 'VirtualMachineInstance',
+                 'datavolumes': 'DataVolume', 'persistentvolumeclaims': 'PersistentVolumeClaim',
+                 'services': 'Service', 'pods': 'Pod', 'endpointslices': 'EndpointSlice'}
+        requested = {types[name] for name in arguments[0].split(',')}
+        return [v for v in self.objects.values()
+                if v['kind'] in requested and v['metadata'].get('namespace') == NAMESPACE]
 
     def _request(self, verb, arguments, deadline, document=None, allow_empty=False):
         if verb != 'create':
@@ -155,9 +158,13 @@ class KubeVirtLifecycleTests(unittest.TestCase):
         vm['metadata']['uid'] = 'vm-id'
         vm['status'] = {'ready': True, 'printableStatus': 'Running'}
         cluster.put(vm)
+        service['metadata']['uid'] = 'service-id'
         service['spec']['ports'][0]['nodePort'] = 30022
         service['spec']['ports'][1]['nodePort'] = 30080
         cluster.put(service)
+        cluster.put({'kind': 'EndpointSlice', 'metadata': {
+            'name': 'service-endpoints', 'namespace': NAMESPACE, 'uid': 'endpoints-id',
+            'ownerReferences': [{'uid': 'service-id'}]}})
         for kind, uid, parent in [('VirtualMachineInstance', 'vmi-id', 'vm-id'),
                                   ('DataVolume', 'dv-id', 'vm-id'),
                                   ('PersistentVolumeClaim', 'pvc-id', 'dv-id'),
@@ -177,7 +184,7 @@ class KubeVirtLifecycleTests(unittest.TestCase):
                      'status': {'addresses': [{'type': 'InternalIP', 'address': '10.0.21.197'}]}})
         actual = cluster.status('run-01')
         self.assertEqual({r['resource_id'] for r in actual['resources']},
-                         {'vm-id', service['metadata'].get('uid', 'uid-2'), 'vmi-id', 'dv-id', 'pvc-id', 'pod-id', 'pv-id'})
+                         {'vm-id', 'service-id', 'endpoints-id', 'vmi-id', 'dv-id', 'pvc-id', 'pod-id', 'pv-id'})
         self.assertEqual(actual['httpUrl'], 'http://10.0.21.197:30080/')
         self.assertEqual(actual['sshPort'], 30022)
         self.assertTrue(actual['vmReady'])
