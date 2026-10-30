@@ -1,5 +1,6 @@
 """Aufträge einlesen und prüfen; Lebenszyklussteuerung folgt separat."""
 import argparse
+import json
 from pathlib import Path
 import sys
 
@@ -13,6 +14,8 @@ def build_parser():
     parser.add_argument('--config', type=Path, required=True,
                         help='YAML-Datei der Agent-Konfiguration')
     commands = parser.add_subparsers(dest='operation', required=True)
+    probe = commands.add_parser('platform-status', help='Plattform über MCP lesend prüfen')
+    probe.add_argument('--platform', required=True, choices=('kubevirt', 'aws'))
     descriptions = {
         'create': 'Lernumgebung aus einer YAML-Definition erstellen',
         'status': 'Zustand einer Lernumgebung abfragen',
@@ -38,6 +41,23 @@ def main(argv=None):
     except ConfigurationError as error:
         print(f'Konfigurationsfehler: {error}', file=sys.stderr)
         return 1
+    if args.operation == 'platform-status':
+        from adapter.vertrag import AdapterError
+        from agent.mcp_client import platform_status
+
+        if args.platform not in config['adapters']:
+            print(f'Für die Zielplattform {args.platform} ist kein Adapter konfiguriert.',
+                  file=sys.stderr)
+            return 1
+        try:
+            result = platform_status(config['adapters'][args.platform])
+            if result['status']['platform'] != args.platform:
+                raise AdapterError('invalid_response')
+        except AdapterError as error:
+            print(f'Adapterfehler ({error.code}): {error}', file=sys.stderr)
+            return 1
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return 0
     if args.operation == 'create':
         if args.platform not in config['adapters']:
             print(f'Für die Zielplattform {args.platform} ist kein Adapter konfiguriert.',

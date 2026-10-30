@@ -22,7 +22,7 @@ class AgentCliTests(unittest.TestCase):
         return result
 
     def test_help_for_all_commands(self):
-        for command in [[], ['create'], ['status'], ['reset'], ['delete']]:
+        for command in [[], ['create'], ['status'], ['reset'], ['delete'], ['platform-status']]:
             with self.subTest(command=command):
                 result = self.invoke([*command, '--help'], config=None)
                 self.assertEqual(result.returncode, 0)
@@ -30,7 +30,7 @@ class AgentCliTests(unittest.TestCase):
                 self.assertEqual(result.stderr, '')
 
     def test_missing_and_unknown_arguments(self):
-        for arguments in [[], ['unknown'], ['status'],
+        for arguments in [[], ['unknown'], ['status'], ['platform-status'],
                           ['create', 'definition.yaml', '--run-id', 'lokal-01',
                            '--platform', 'unknown']]:
             with self.subTest(arguments=arguments):

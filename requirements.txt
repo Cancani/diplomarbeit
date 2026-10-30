@@ -1,2 +1,4 @@
 PyYAML==6.0.3
 jsonschema==4.26.0
+mcp==2.3.0
+anyio==4.15.1
