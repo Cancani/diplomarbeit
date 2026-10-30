@@ -32,6 +32,7 @@ class AgentCliTests(unittest.TestCase):
 
     def test_missing_and_unknown_arguments(self):
         for arguments in [[], ['unknown'], ['status'], ['platform-status'],
+                          ['reset', '--run-id', 'lokal-01', '--timeout-seconds', '0'],
                           ['create', 'definition.yaml', '--run-id', 'lokal-01',
                            '--platform', 'unknown']]:
             with self.subTest(arguments=arguments):
@@ -62,14 +63,15 @@ class AgentCliTests(unittest.TestCase):
         self.assertIn('MCP-Adapter', result.stderr)
         self.assertIn('create_started', result.stdout)
 
-    def test_existing_run_operations_report_missing_lifecycle(self):
+    def test_existing_run_operations_require_a_stored_environment(self):
         for operation in ['status', 'reset', 'delete']:
             with self.subTest(operation=operation):
-                result = self.invoke([operation, '--run-id', 'lokal-01'])
+                arguments = [operation, '--run-id', 'lokal-01']
+                if operation == 'reset':
+                    arguments += ['--operation-id', 'reset-01', '--timeout-seconds', '1200']
+                result = self.invoke(arguments)
                 self.assertEqual(result.returncode, 1)
-                expected = ('keine Umgebung gespeichert' if operation in ('status', 'delete')
-                            else 'Lebenszyklussteuerung ist noch nicht implementiert')
-                self.assertIn(expected, result.stderr)
+                self.assertIn('keine Umgebung gespeichert', result.stderr)
                 self.assertEqual(result.stdout, '')
 
     def test_config_option_is_required(self):

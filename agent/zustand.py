@@ -25,7 +25,8 @@ SCHEMA = (
         status TEXT NOT NULL CHECK (status IN ('running', 'succeeded', 'failed')),
         error_code TEXT,
         started_at TEXT NOT NULL,
-        updated_at TEXT NOT NULL
+        updated_at TEXT NOT NULL,
+        stage TEXT CHECK (stage IN ('creating', 'deleting'))
     )""",
     """CREATE UNIQUE INDEX IF NOT EXISTS one_running_operation
         ON operations(run_id) WHERE status = 'running'""",
@@ -70,7 +71,7 @@ class StateStore:
             raise StateError('Zustandsordner konnte nicht angelegt werden.') from error
         with self.connection(write=True) as connection:
             version = connection.execute('PRAGMA user_version').fetchone()[0]
-            if version not in (0, 1, 2, 3):
+            if version not in (0, 1, 2, 3, 4):
                 raise StateError('Die Version des Zustandsspeichers wird nicht unterstützt.')
             for statement in SCHEMA:
                 connection.execute(statement)
@@ -79,7 +80,13 @@ class StateStore:
                 connection.execute("ALTER TABLE resources ADD COLUMN name TEXT NOT NULL DEFAULT ''")
             if 'details' not in columns:
                 connection.execute("ALTER TABLE resources ADD COLUMN details TEXT NOT NULL DEFAULT '{}'")
-            connection.execute('PRAGMA user_version = 3')
+            columns = {row[1] for row in connection.execute('PRAGMA table_info(operations)')}
+            if 'stage' not in columns:
+                connection.execute("ALTER TABLE operations ADD COLUMN stage TEXT CHECK (stage IN ('creating', 'deleting'))")
+                connection.execute("UPDATE operations SET stage = CASE kind WHEN 'create' THEN 'creating' "
+                                   "WHEN 'delete' THEN 'deleting' ELSE (SELECT phase FROM runs "
+                                   "WHERE runs.operation_id = operations.operation_id AND phase IN ('creating', 'deleting')) END")
+            connection.execute('PRAGMA user_version = 4')
 
     @contextmanager
     def connection(self, write=False):
@@ -117,31 +124,34 @@ class StateStore:
         if connection.execute("SELECT 1 FROM operations WHERE run_id = ? AND status = 'running'",
                               (run_id,)).fetchone():
             raise StateError('Für diesen Lauf ist bereits eine schreibende Operation aktiv; zuerst ist ein Plattformabgleich nötig.')
+        previous = connection.execute('SELECT * FROM operations WHERE operation_id = ?',
+                                      (operation_id,)).fetchone()
+        if previous:
+            if (kind in ('delete', 'reset') and run['phase'] == 'error' and run['operation_id'] == operation_id
+                    and previous['run_id'] == run_id and previous['kind'] == kind
+                    and previous['status'] == 'failed' and previous['stage'] in ('creating', 'deleting')):
+                now = timestamp()
+                connection.execute("UPDATE operations SET status = 'running', error_code = NULL, updated_at = ? WHERE operation_id = ?",
+                                   (now, operation_id))
+                connection.execute('UPDATE runs SET phase = ?, updated_at = ? WHERE run_id = ?',
+                                   (previous['stage'], now, run_id))
+                return
+            raise StateError('Die Operationskennung wurde bereits verwendet.')
         allowed = {'create': {'absent'}, 'reset': {'ready'}, 'delete': {'ready', 'error', 'absent'}}
         if run['phase'] not in allowed[kind]:
             raise StateError('Die Operation ist in der gespeicherten Phase nicht zulässig.')
         if kind == 'create' and connection.execute(
                 "SELECT COUNT(*) FROM runs WHERE phase <> 'absent'").fetchone()[0] >= 30:
             raise StateError('Die Obergrenze von 30 reservierten oder vorhandenen VMs ist erreicht.')
-        previous = connection.execute('SELECT * FROM operations WHERE operation_id = ?',
-                                      (operation_id,)).fetchone()
-        if previous:
-            if (kind == 'delete' and run['phase'] == 'error' and run['operation_id'] == operation_id
-                    and previous['run_id'] == run_id and previous['kind'] == 'delete'
-                    and previous['status'] == 'failed'):
-                now = timestamp()
-                connection.execute("UPDATE operations SET status = 'running', error_code = NULL, updated_at = ? WHERE operation_id = ?",
-                                   (now, operation_id))
-                connection.execute("UPDATE runs SET phase = 'deleting', updated_at = ? WHERE run_id = ?", (now, run_id))
-                return
-            raise StateError('Die Operationskennung wurde bereits verwendet.')
         phase = 'creating' if kind == 'create' else 'deleting'
         status = 'running'
         if kind == 'delete' and run['phase'] == 'absent':
             phase, status = 'absent', 'succeeded'
         now = timestamp()
-        connection.execute('INSERT INTO operations VALUES (?, ?, ?, ?, NULL, ?, ?)',
-                           (operation_id, run_id, kind, status, now, now))
+        stage = 'creating' if kind == 'create' else 'deleting'
+        connection.execute('INSERT INTO operations (operation_id, run_id, kind, status, error_code, started_at, updated_at, stage) '
+                           'VALUES (?, ?, ?, ?, NULL, ?, ?, ?)',
+                           (operation_id, run_id, kind, status, now, now, stage))
         connection.execute('UPDATE runs SET phase = ?, operation_id = ?, updated_at = ? WHERE run_id = ?',
                            (phase, operation_id, now, run_id))
 
@@ -223,6 +233,9 @@ class StateStore:
             now = timestamp()
             connection.execute('UPDATE runs SET phase = ?, updated_at = ? WHERE run_id = ?',
                                (phase, now, run_id))
+            if phase in ('creating', 'deleting'):
+                connection.execute('UPDATE operations SET stage = ?, updated_at = ? WHERE operation_id = ?',
+                                   (phase, now, operation_id))
             if phase in ('ready', 'absent'):
                 connection.execute("UPDATE operations SET status = 'succeeded', updated_at = ? WHERE operation_id = ?",
                                    (now, operation_id))

@@ -1,4 +1,4 @@
-"""Erstellung steuern, Inventar sichern und tatsächliche Bereitschaft prüfen."""
+"""Lebenszyklus steuern, Inventar sichern und Endzustände prüfen."""
 from datetime import datetime, timezone
 import asyncio
 import json
@@ -77,6 +77,19 @@ def status(config, run_id):
     return actual, ready
 
 
+def _failed(store, adapter, record, error):
+    # Auch eine verlorene API-Antwort kann Ressourcen hinterlassen haben.
+    try:
+        _read(store, adapter, record)
+    except (AdapterError, StateError):
+        pass
+    code = 'interrupted' if isinstance(error, KeyboardInterrupt) else (
+        'timeout' if error.code == 'timeout' else 'platform_error')
+    run_id, operation_id = record['run_id'], record['operation']['operation_id']
+    store.fail(run_id, operation_id, code)
+    emit('error', run_id, operation_id, code=code, resources=store.get(run_id)['resources'])
+
+
 def create(config, run_id, operation_id, platform, model, timeout_seconds=900):
     validate_id(run_id)
     validate_id(operation_id)
@@ -98,64 +111,25 @@ def create(config, run_id, operation_id, platform, model, timeout_seconds=900):
     store.start_create(run_id, operation_id, platform, model)
     emit('create_started', run_id, operation_id)
     record = store.get(run_id)
-    deadline = time.monotonic() + timeout_seconds
     try:
-        while True:
-            remaining = deadline - time.monotonic()
-            if remaining <= 0:
-                raise AdapterError('timeout')
-            settings = {**adapter, 'timeoutSeconds': min(adapter['timeoutSeconds'], remaining)}
-            step = call_tool(settings, 'create', {
-                'run_id': run_id, 'operation_id': operation_id, 'model': model}, CREATE_SCHEMA)
-            store.observe_resources(run_id, operation_id, step['resources'])
-            if step['resources']:
-                emit('resources_recorded', run_id, operation_id, resources=step['resources'])
-            if step['complete']:
-                break
-            time.sleep(min(1, max(0, deadline - time.monotonic())))
-        emit('waiting_for_readiness', run_id, operation_id)
-        last_state = None
-        last_report = time.monotonic()
-        while True:
-            actual = _read(store, adapter, record, deadline - time.monotonic())
-            remaining = deadline - time.monotonic()
-            ready = (remaining > 0 and actual['vmReady'] and actual['vmiPhase'] == 'Running'
-                     and service_ready(actual['httpUrl'], model, min(2, remaining)))
-            if ready and time.monotonic() <= deadline:
-                store.advance(run_id, operation_id, 'ready')
-                emit('ready', run_id, operation_id, serviceReady=True, **actual)
-                return actual, True
-            current_state = (actual['vmState'], actual['vmiPhase'], actual['vmReady'])
-            if current_state != last_state or time.monotonic() - last_report >= 30:
-                emit('waiting', run_id, operation_id, vmState=actual['vmState'], vmiPhase=actual['vmiPhase'],
-                     vmReady=actual['vmReady'], remainingSeconds=max(0, int(deadline - time.monotonic())))
-                last_state, last_report = current_state, time.monotonic()
-            remaining = deadline - time.monotonic()
-            if remaining <= 0:
-                raise AdapterError('timeout')
-            time.sleep(min(2, remaining))
+        return _create(store, adapter, record, time.monotonic() + timeout_seconds)
     except (AdapterError, KeyboardInterrupt) as error:
-        # Ein API-Aufruf kann trotz verlorener Antwort erfolgreich gewesen sein.
-        # Nur lesend abgleichen; bei Fehlern bleiben alle bereits bekannten IDs erhalten.
-        try:
-            _read(store, adapter, record)
-        except (AdapterError, StateError):
-            pass
-        code = 'interrupted' if isinstance(error, KeyboardInterrupt) else (
-            'timeout' if error.code == 'timeout' else 'platform_error')
-        store.fail(run_id, operation_id, code)
-        emit('error', run_id, operation_id, code=code, resources=store.get(run_id)['resources'])
+        _failed(store, adapter, record, error)
         raise
+
+
+def _stored_run(config, run_id):
+    if not config['stateFile'].is_file():
+        raise StateError('Für diese Laufkennung ist keine Umgebung gespeichert.')
+    store = StateStore(config['stateFile'])
+    record = store.get(run_id)
+    return store, record, _adapter(config, record['platform'])
 
 
 def delete(config, run_id, operation_id, timeout_seconds=300):
     validate_id(run_id)
     validate_id(operation_id)
-    if not config['stateFile'].is_file():
-        raise StateError('Für diese Laufkennung ist keine Umgebung gespeichert.')
-    store = StateStore(config['stateFile'])
-    record = store.get(run_id)
-    adapter = _adapter(config, record['platform'])
+    store, record, adapter = _stored_run(config, run_id)
     if record['phase'] == 'absent':
         actual = call_tool(adapter, 'status', {'run_id': run_id}, RUN_STATUS_SCHEMA)
         if actual['resources']:
@@ -167,43 +141,107 @@ def delete(config, run_id, operation_id, timeout_seconds=300):
     store.start_operation(run_id, operation_id, 'delete')
     record = store.get(run_id)
     emit('delete_started', run_id, operation_id)
-    deadline = time.monotonic() + timeout_seconds
     try:
-        while True:
-            remaining = deadline - time.monotonic()
-            _read(store, adapter, record, remaining)
-            remaining = deadline - time.monotonic()
-            if remaining <= 0:
-                raise AdapterError('timeout')
-            known = store.get(run_id)['resources']
-            settings = {**adapter, 'timeoutSeconds': min(adapter['timeoutSeconds'], remaining)}
-            step = call_tool(settings, 'delete', {
-                'run_id': run_id, 'operation_id': operation_id, 'resources': known}, DELETE_SCHEMA)
-            store.observe_resources(run_id, operation_id, step['resources'])
-            for resource in step['removed']:
-                store.confirm_removed(run_id, operation_id, resource['kind'],
-                                      resource['resource_id'], resource['scope'])
-            if step['removed']:
-                emit('removal_confirmed', run_id, operation_id, resources=step['removed'])
-            if step['complete']:
-                final = _read(store, adapter, record, deadline - time.monotonic())
-                if not final['resources'] and not store.get(run_id)['resources']:
-                    store.advance(run_id, operation_id, 'absent')
-                    emit('deleted', run_id, operation_id, alreadyAbsent=False)
-                    return
-            emit('waiting_for_deletion', run_id, operation_id,
-                 knownResources=len(store.get(run_id)['resources']))
-            remaining = deadline - time.monotonic()
-            if remaining <= 0:
-                raise AdapterError('timeout')
-            time.sleep(min(2, remaining))
+        _delete(store, adapter, record, time.monotonic() + timeout_seconds)
+        store.advance(run_id, operation_id, 'absent')
+        emit('deleted', run_id, operation_id, alreadyAbsent=False)
     except (AdapterError, KeyboardInterrupt) as error:
-        try:
-            _read(store, adapter, record)
-        except (AdapterError, StateError):
-            pass
-        code = 'interrupted' if isinstance(error, KeyboardInterrupt) else (
-            'timeout' if error.code == 'timeout' else 'platform_error')
-        store.fail(run_id, operation_id, code)
-        emit('error', run_id, operation_id, code=code, resources=store.get(run_id)['resources'])
+        _failed(store, adapter, record, error)
         raise
+
+
+def reset(config, run_id, operation_id, timeout_seconds=1200):
+    validate_id(run_id)
+    validate_id(operation_id)
+    store, record, adapter = _stored_run(config, run_id)
+    previous = record['operation']
+    if (previous['operation_id'] == operation_id and previous['kind'] == 'reset'
+            and previous['status'] == 'succeeded' and record['phase'] == 'ready'):
+        result = status(config, run_id)
+        if not result[1]:
+            raise AdapterError('platform_error')
+        return result
+    store.start_operation(run_id, operation_id, 'reset')
+    record = store.get(run_id)
+    deadline = time.monotonic() + timeout_seconds
+    emit('reset_started', run_id, operation_id, stage=record['phase'])
+    try:
+        if record['phase'] == 'deleting':
+            _delete(store, adapter, record, deadline)
+            store.advance(run_id, operation_id, 'creating')
+            emit('reset_recreating', run_id, operation_id, modelHash=record['model_hash'])
+        result = _create(store, adapter, record, deadline)
+        emit('reset_completed', run_id, operation_id, modelHash=record['model_hash'])
+        return result
+    except (AdapterError, KeyboardInterrupt) as error:
+        _failed(store, adapter, record, error)
+        raise
+
+
+def _create(store, adapter, record, deadline):
+    run_id, operation_id = record['run_id'], record['operation']['operation_id']
+    model = record['model_snapshot']
+    while True:
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            raise AdapterError('timeout')
+        settings = {**adapter, 'timeoutSeconds': min(adapter['timeoutSeconds'], remaining)}
+        step = call_tool(settings, 'create', {
+            'run_id': run_id, 'operation_id': operation_id, 'model': model}, CREATE_SCHEMA)
+        store.observe_resources(run_id, operation_id, step['resources'])
+        if step['resources']:
+            emit('resources_recorded', run_id, operation_id, resources=step['resources'])
+        if step['complete']:
+            break
+        time.sleep(min(1, max(0, deadline - time.monotonic())))
+    emit('waiting_for_readiness', run_id, operation_id)
+    last_state = None
+    last_report = time.monotonic()
+    while True:
+        actual = _read(store, adapter, record, deadline - time.monotonic())
+        remaining = deadline - time.monotonic()
+        ready = (remaining > 0 and actual['vmReady'] and actual['vmiPhase'] == 'Running'
+                 and service_ready(actual['httpUrl'], model, min(2, remaining)))
+        if ready and time.monotonic() <= deadline:
+            store.advance(run_id, operation_id, 'ready')
+            emit('ready', run_id, operation_id, serviceReady=True, **actual)
+            return actual, True
+        current_state = (actual['vmState'], actual['vmiPhase'], actual['vmReady'])
+        if current_state != last_state or time.monotonic() - last_report >= 30:
+            emit('waiting', run_id, operation_id, vmState=actual['vmState'], vmiPhase=actual['vmiPhase'],
+                 vmReady=actual['vmReady'], remainingSeconds=max(0, int(deadline - time.monotonic())))
+            last_state, last_report = current_state, time.monotonic()
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            raise AdapterError('timeout')
+        time.sleep(min(2, remaining))
+
+
+def _delete(store, adapter, record, deadline):
+    run_id, operation_id = record['run_id'], record['operation']['operation_id']
+    while True:
+        remaining = deadline - time.monotonic()
+        _read(store, adapter, record, remaining)
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            raise AdapterError('timeout')
+        known = store.get(run_id)['resources']
+        settings = {**adapter, 'timeoutSeconds': min(adapter['timeoutSeconds'], remaining)}
+        step = call_tool(settings, 'delete', {
+            'run_id': run_id, 'operation_id': operation_id, 'resources': known}, DELETE_SCHEMA)
+        store.observe_resources(run_id, operation_id, step['resources'])
+        for resource in step['removed']:
+            store.confirm_removed(run_id, operation_id, resource['kind'],
+                                  resource['resource_id'], resource['scope'])
+        if step['removed']:
+            emit('removal_confirmed', run_id, operation_id, resources=step['removed'])
+        if step['complete']:
+            final = _read(store, adapter, record, deadline - time.monotonic())
+            if not final['resources'] and not store.get(run_id)['resources']:
+                return
+        emit('waiting_for_deletion', run_id, operation_id,
+             knownResources=len(store.get(run_id)['resources']))
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            raise AdapterError('timeout')
+        time.sleep(min(2, remaining))

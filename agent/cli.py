@@ -40,10 +40,11 @@ def build_parser():
             command.add_argument('--operation-id', help='Kennung des Erstellungsauftrags')
             command.add_argument('--timeout-seconds', type=positive_seconds, default=900,
                                  help='Gesamte Zeitgrenze bis zur HTTP-Bereitschaft (Standard: 900)')
-        if name == 'delete':
-            command.add_argument('--operation-id', help='Kennung des Löschauftrags')
-            command.add_argument('--timeout-seconds', type=positive_seconds, default=300,
-                                 help='Gesamte Zeitgrenze für den Abbau (Standard: 300)')
+        if name in ('reset', 'delete'):
+            command.add_argument('--operation-id', help='Kennung des Reset- oder Löschauftrags')
+            default_timeout = 1200 if name == 'reset' else 300
+            command.add_argument('--timeout-seconds', type=positive_seconds, default=default_timeout,
+                                 help=f'Gesamte Zeitgrenze der Operation (Standard: {default_timeout})')
     return parser
 
 
@@ -84,9 +85,9 @@ def main(argv=None):
             for message in error.errors:
                 print(f'Ungültig: {message}', file=sys.stderr)
             return 1
-    if args.operation in ('create', 'status', 'delete'):
+    if args.operation in ('create', 'status', 'reset', 'delete'):
         from adapter.vertrag import AdapterError
-        from agent.lebenszyklus import create, status, delete
+        from agent.lebenszyklus import create, status, reset, delete
         from agent.zustand import StateError
 
         try:
@@ -95,6 +96,8 @@ def main(argv=None):
                        args.platform, model, args.timeout_seconds)
             elif args.operation == 'delete':
                 delete(config, args.run_id, args.operation_id or uuid.uuid4().hex, args.timeout_seconds)
+            elif args.operation == 'reset':
+                reset(config, args.run_id, args.operation_id or uuid.uuid4().hex, args.timeout_seconds)
             else:
                 status(config, args.run_id)
         except (AdapterError, StateError) as error:
@@ -104,6 +107,3 @@ def main(argv=None):
             print('Operation unterbrochen; gespeicherten Zustand prüfen.', file=sys.stderr)
             return 130
         return 0
-    print(f'{args.operation}: Die Lebenszyklussteuerung ist noch nicht implementiert.',
-          file=sys.stderr)
-    return 1

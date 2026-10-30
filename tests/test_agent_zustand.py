@@ -179,6 +179,27 @@ os._exit(23)
         self.assertEqual(record['resources'][0]['resource_id'], 'vm-id')
         self.assertEqual(record['resources'][0]['name'], '')
 
+    def test_schema_three_migration_and_failed_reset_keep_the_operation_stage(self):
+        self.ready()
+        self.store.start_operation('lokal-01', 'reset-01', 'reset')
+        with closing(sqlite3.connect(self.path, isolation_level=None)) as connection:
+            connection.execute('ALTER TABLE operations DROP COLUMN stage')
+            connection.execute('PRAGMA user_version = 3')
+        store = StateStore(self.path)
+        self.assertEqual(store.get('lokal-01')['operation']['stage'], 'deleting')
+        for resource in store.get('lokal-01')['resources']:
+            store.confirm_removed('lokal-01', 'reset-01', resource['kind'], resource['resource_id'], resource['scope'])
+        store.advance('lokal-01', 'reset-01', 'creating')
+        started = store.get('lokal-01')['operation']['started_at']
+        store.fail('lokal-01', 'reset-01', 'interrupted')
+        reopened = StateStore(self.path)
+        reopened.start_operation('lokal-01', 'reset-01', 'reset')
+        record = reopened.get('lokal-01')
+        self.assertEqual(record['phase'], 'creating')
+        self.assertEqual(record['operation']['started_at'], started)
+        with self.assertRaises(StateError):
+            reopened.start_operation('lokal-01', 'reset-01', 'reset')
+
     def test_database_limit_includes_pending_and_failed_runs_and_serializes_admission(self):
         store = StateStore(self.path)
         for index in range(29):
