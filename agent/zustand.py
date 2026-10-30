@@ -1,12 +1,11 @@
 """SQLite-Zustand und Übergänge; Plattformabfragen erfolgen im Lebenszyklus."""
 from contextlib import contextmanager
 from datetime import datetime, timezone
-import hashlib
 import json
 from pathlib import Path
 import sqlite3
 
-from modell.validierung import validate_model
+from modell.snapshot import encode_snapshot
 
 
 SCHEMA = (
@@ -35,6 +34,7 @@ SCHEMA = (
         kind TEXT NOT NULL,
         resource_id TEXT NOT NULL,
         scope TEXT NOT NULL,
+        name TEXT NOT NULL DEFAULT '',
         PRIMARY KEY (run_id, kind, resource_id, scope)
     )""",
 )
@@ -69,11 +69,13 @@ class StateStore:
             raise StateError('Zustandsordner konnte nicht angelegt werden.') from error
         with self.connection(write=True) as connection:
             version = connection.execute('PRAGMA user_version').fetchone()[0]
-            if version not in (0, 1):
+            if version not in (0, 1, 2):
                 raise StateError('Die Version des Zustandsspeichers wird nicht unterstützt.')
             for statement in SCHEMA:
                 connection.execute(statement)
-            connection.execute('PRAGMA user_version = 1')
+            if version == 1:
+                connection.execute("ALTER TABLE resources ADD COLUMN name TEXT NOT NULL DEFAULT ''")
+            connection.execute('PRAGMA user_version = 2')
 
     @contextmanager
     def connection(self, write=False):
@@ -114,6 +116,9 @@ class StateStore:
         allowed = {'create': {'absent'}, 'reset': {'ready'}, 'delete': {'ready', 'error', 'absent'}}
         if run['phase'] not in allowed[kind]:
             raise StateError('Die Operation ist in der gespeicherten Phase nicht zulässig.')
+        if kind == 'create' and connection.execute(
+                "SELECT COUNT(*) FROM runs WHERE phase <> 'absent'").fetchone()[0] >= 30:
+            raise StateError('Die Obergrenze von 30 reservierten oder vorhandenen VMs ist erreicht.')
         if connection.execute('SELECT 1 FROM operations WHERE operation_id = ?',
                               (operation_id,)).fetchone():
             raise StateError('Die Operationskennung wurde bereits verwendet.')
@@ -132,10 +137,7 @@ class StateStore:
         require_text(run_id, operation_id)
         if platform not in ('kubevirt', 'aws'):
             raise StateError('Die Zielplattform wird nicht unterstützt.')
-        validate_model(model)
-        snapshot = json.dumps(model, ensure_ascii=False, sort_keys=True,
-                              separators=(',', ':'), allow_nan=False)
-        digest = hashlib.sha256(snapshot.encode('utf-8')).hexdigest()
+        snapshot, digest = encode_snapshot(model)
         with self.connection(write=True) as connection:
             connection.execute(
                 "INSERT OR IGNORE INTO runs VALUES (?, ?, ?, ?, 'absent', NULL, ?)",
@@ -152,15 +154,31 @@ class StateStore:
         with self.connection(write=True) as connection:
             self._start(connection, run_id, operation_id, kind)
 
-    def record_resource(self, run_id, operation_id, kind, resource_id, scope=''):
+    def record_resource(self, run_id, operation_id, kind, resource_id, scope='', name=''):
         """Eine erstellte oder beim Abgleich gefundene Ressource speichern."""
         require_text(kind, resource_id)
         if not isinstance(scope, str):
             raise StateError('Der Ressourcenbereich muss ein Text sein.')
         with self.connection(write=True) as connection:
             self._active(connection, run_id, operation_id)
-            connection.execute('INSERT OR IGNORE INTO resources VALUES (?, ?, ?, ?)',
-                               (run_id, kind, resource_id, scope))
+            self._record(connection, run_id, kind, resource_id, scope, name)
+
+    def _record(self, connection, run_id, kind, resource_id, scope, name):
+        connection.execute(
+            'INSERT INTO resources (run_id, kind, resource_id, scope, name) VALUES (?, ?, ?, ?, ?) '
+            "ON CONFLICT (run_id, kind, resource_id, scope) DO UPDATE SET name = CASE "
+            "WHEN excluded.name <> '' THEN excluded.name ELSE resources.name END",
+            (run_id, kind, resource_id, scope, name))
+
+    def observe_resources(self, run_id, operation_id, resources):
+        """Inventar ergänzen; ein zwischenzeitlich neuer Auftrag weist alte Antworten ab."""
+        with self.connection(write=True) as connection:
+            run = self._run(connection, run_id)
+            if run['operation_id'] != operation_id or (run['phase'] == 'absent' and resources):
+                raise StateError('Der Laufzustand hat sich geändert; Status erneut abfragen.')
+            for resource in resources:
+                self._record(connection, run_id, resource['kind'], resource['resource_id'],
+                             resource['scope'], resource['name'])
 
     def confirm_removed(self, run_id, operation_id, kind, resource_id, scope=''):
         """Erst nach bestätigter Abwesenheit auf der Plattform aufrufen."""
@@ -211,6 +229,6 @@ class StateStore:
             run['operation'] = dict(connection.execute(
                 'SELECT * FROM operations WHERE operation_id = ?', (run.pop('operation_id'),)).fetchone())
             run['resources'] = [dict(row) for row in connection.execute(
-                'SELECT kind, resource_id, scope FROM resources WHERE run_id = ? ORDER BY kind, resource_id, scope',
+                'SELECT kind, resource_id, scope, name FROM resources WHERE run_id = ? ORDER BY kind, resource_id, scope',
                 (run_id,))]
             return run

@@ -1,5 +1,5 @@
-from concurrent.futures import ThreadPoolExecutor
 from contextlib import closing
+from concurrent.futures import ThreadPoolExecutor
 from copy import deepcopy
 import hashlib
 import json
@@ -166,6 +166,40 @@ os._exit(23)
             StateStore(self.path)
         with closing(sqlite3.connect(self.path)) as connection:
             self.assertEqual(connection.execute('PRAGMA user_version').fetchone()[0], 99)
+
+    def test_schema_migration_keeps_existing_operation_and_resource_id(self):
+        store = StateStore(self.path)
+        store.start_create('run-01', 'operation-01', 'kubevirt', self.model)
+        store.record_resource('run-01', 'operation-01', 'VirtualMachine', 'vm-id', 'diplomarbeit-agent')
+        with closing(sqlite3.connect(self.path, isolation_level=None)) as connection:
+            connection.execute('ALTER TABLE resources DROP COLUMN name')
+            connection.execute('PRAGMA user_version = 1')
+        record = StateStore(self.path).get('run-01')
+        self.assertEqual(record['operation']['operation_id'], 'operation-01')
+        self.assertEqual(record['resources'][0]['resource_id'], 'vm-id')
+        self.assertEqual(record['resources'][0]['name'], '')
+
+    def test_database_limit_includes_pending_and_failed_runs_and_serializes_admission(self):
+        store = StateStore(self.path)
+        for index in range(29):
+            store.start_create(f'run-{index}', f'op-{index}',
+                               'aws' if index % 2 else 'kubevirt', self.model)
+            if index % 3 == 0:
+                store.fail(f'run-{index}', f'op-{index}', 'timeout')
+        barrier = Barrier(2)
+
+        def start(index):
+            barrier.wait(timeout=5)
+            try:
+                store.start_create(f'run-{index}', f'op-{index}', 'kubevirt', self.model)
+                return 'started'
+            except StateError:
+                return 'blocked'
+
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            self.assertCountEqual(list(pool.map(start, [29, 30])), ['started', 'blocked'])
+        with closing(sqlite3.connect(self.path)) as connection:
+            self.assertEqual(connection.execute('SELECT COUNT(*) FROM runs').fetchone()[0], 30)
 
 
 if __name__ == '__main__':
