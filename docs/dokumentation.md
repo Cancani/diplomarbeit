@@ -1,7 +1,7 @@
 # Diplomarbeit: Agentenbasierte Hybrid-Cloud-Bereitstellung von Lernumgebungen mit Kubernetes, KubeVirt und MCP
 
-!!! info "Arbeitsstand: Umsetzung Sprint 2"
-    Die Grundlagen aus Sprint 1 sind erarbeitet. Das erste Review ist durchgeführt; die Rückmeldungen und vereinbarten Prioritäten stehen in Kapitel 2.10. Erste Priorität in Sprint 2 hat der vollständige lokale Lebenszyklus auf KubeVirt mit Agent, Zustandsführung und MCP-Anbindung. Modell und Modellprüfung sind bereits umgesetzt. Das CLI-Grundgerüst mit externer Konfiguration liegt vor. Die SQLite-Grundlage für Zustände und Ressourcen ist ergänzt. Lebenszyklussteuerung, Plattformabgleich und Adapter sind noch offen.
+!!! info "Lokaler Lebenszyklus auf KubeVirt"
+    Modellprüfung, CLI, SQLite-Zustandsführung und MCP-Anbindung sind mit dem KubeVirt-Adapter verbunden. create, status, reset und delete funktionieren im lokalen Ablauf. Wiederholung, Fortsetzung nach Ctrl+C und ein Timeout bei der Abfrage vor dem Abbau sind geprüft. Die Absicherung harter Prozessabbrüche, Timeouts während Plattformänderungen und die AWS-Anbindung bleiben offen.
 
 | | |
 | --- | --- |
@@ -11,7 +11,7 @@
 | Schulexperte | Thanam Pangri, HF-Lehrgangsleitung |
 | Bewilligter Zeitraum | 11.09.2026 bis 18.12.2026 |
 | Arbeitsplanung | 14.09.2026 bis 18.12.2026 |
-| Version | 0.19, SQLite-Grundlage für die Zustandsführung |
+| Version | 0.20, Lokaler Agentenlebenszyklus auf KubeVirt |
 | Grundlage | Bewilligte Projektbeschreibung vom 10.09.2026; schulische Vorgaben gemäss gültigem Merkblatt |
 
 ---
@@ -20,7 +20,7 @@
 
 Die Grundlagen für den Proof of Concept sind erarbeitet. Die bestehende LernMAAS-Bereitstellung wurde untersucht und mit drei Basisläufen als Vergleichsgrundlage dokumentiert. Die lokale KubeVirt-Plattform ist verifiziert. Auf KubeVirt und AWS wurde jeweils eine reduzierte Referenz-VM manuell erstellt, über HTTP und SSH geprüft und wieder abgebaut. Die Messwerte und die Grenzen ihrer Aussagekraft stehen bei den jeweiligen Versuchen.
 
-Systemkontext, Komponentensicht und vier Architekturentscheide liegen vor. Das plattformneutrale YAML-Modell mit JSON-Schema und automatisierter Validierung ist bereits umgesetzt. Diese Ergebnisse gehören zu den vorgezogenen Stories US17 und US18 aus Sprint 2. Das CLI-Grundgerüst mit externer Konfiguration ist umgesetzt. Eine SQLite-Grundlage speichert Modell, Operationen und Ressourcen mit geprüften Zustandsübergängen. Ihre Anbindung an CLI und Plattformen sowie die Lebenszyklussteuerung und MCP-Adapter sind noch offen. Die bisherigen Einzelversuche belegen deshalb die praktische Machbarkeit, aber noch keinen vollständig automatisierten Lebenszyklus und keine gemessene Verbesserung gegenüber LernMAAS.
+Das plattformneutrale YAML-Modell mit JSON-Schema wird vom Python-Agenten eingelesen und geprüft. Der Agent speichert Modell-Snapshot, Aufträge und Ressourcen in SQLite und steuert den KubeVirt-Adapter über MCP. Der lokale Ablauf umfasst Erstellung, aktuelle Status- und HTTP-Prüfung, Reset aus dem gespeicherten Modell und vollständigen Abbau. Wiederholte Aufträge erzeugen im geprüften Ablauf keine Dubletten. Behandelte Abbrüche und der geprüfte Abfrage-Timeout erhalten das Inventar für die Fortsetzung. Diese Funktionsprüfungen ersetzen weder die vorgesehenen Messserien noch die Bewertung gegenüber LernMAAS.
 
 Vor dem ersten Review waren aus der ursprünglichen Sprint-1-Planung 14 fachliche Stories mit 34 Story Points abgeschlossen. US05 ist entfallen; die Abschlussprüfung von US16 mit drei Punkten steht nach der Reviewnachbereitung noch aus. Das erste Review fand am 23.10.2026 statt. Die Experten gaben eine positive Rückmeldung zum bisherigen Arbeitsstand und zur Präsentation. Die eigene Retrospektive und die Vereinbarungen stehen in Kapitel 2.10. Bis zum Ende von Sprint 2 soll der Agent den vollständigen lokalen Lebenszyklus über MCP ausführen können. Dieser Ablauf hat Vorrang vor dem AWS-Durchstich und bildet die Grundlage für die Messserien in Sprint 3. Die Planung steht in Kapitel 2.11. Später folgen je drei vollständige PoC-Läufe auf KubeVirt und AWS, der Vergleich und die abschliessende Bewertung.
 
@@ -53,12 +53,12 @@ Die fünf Teilziele aus der bewilligten Projektbeschreibung bestimmen den Umfang
 | ID | Ziel | Messkriterium | Zielwert | Nachweis | Status |
 | --- | --- | --- | --- | --- | --- |
 | Z1 | Plattformneutrales Modell für Lernumgebungen | Versioniertes YAML-Modell mit JSON-Schema, gültige Definition wird akzeptiert, ungültige abgewiesen | 1 Modell, 1 Schema, je 1 positiver und 1 negativer Testfall bestehen | Repository, Testprotokoll | Versioniert; lokale Tests und CI erfolgreich, siehe Kapitel 4.2 |
-| Z2 | Zentraler Agent mit Zustandsführung | create, status, reset und delete laufen über festgelegte Zustandsübergänge, Zustand ist persistent | 4 Operationen funktionsfähig, reset erzeugt aus derselben Definition neu | Quellcode, Zustandsdiagramm, Testprotokoll | Offen |
-| Z3 | On-Prem-Backend mit Kubernetes und KubeVirt | Test-Lernumgebung wird automatisiert bereitgestellt und vollständig entfernt | 3 vollständige Durchläufe ohne manuelle Korrektur | Laufprotokolle, Screenshots | Offen |
+| Z2 | Zentraler Agent mit Zustandsführung | create, status, reset und delete laufen über festgelegte Zustandsübergänge, Zustand ist persistent | 4 Operationen funktionsfähig, reset erzeugt aus derselben Definition neu | Quellcode, Zustandsdiagramm, Testprotokoll | Auf KubeVirt funktionsfähig; offene Fehlerfälle in Kapitel 4.7 |
+| Z3 | On-Prem-Backend mit Kubernetes und KubeVirt | Test-Lernumgebung wird automatisiert bereitgestellt und vollständig entfernt | 3 vollständige Durchläufe ohne manuelle Korrektur | Laufprotokolle, Screenshots | Lokaler Funktionsdurchstich erfolgreich; drei formale Durchläufe noch offen |
 | Z4 | Bewertung der MCP-basierten Adapterarchitektur | Dieselbe Definition läuft lokal und auf genau einer Public Cloud, Bewertung gegen direkte API-Anbindung | 3 vollständige Durchläufe in der Cloud, Bewertung nach 5 Kriterien dokumentiert | Laufprotokolle, Bewertungstabelle | Offen |
 | Z5 | Messbarer Vergleich mit dem heutigen Vorgehen | Bereitstellungszeit, manuelle Eingriffe, Reproduzierbarkeit, vollständiger Abbau | Vorher- und Nachher-Werte für denselben Testfall protokolliert | Messprotokoll, Vergleichstabelle | Offen |
 
-Die vorhandenen Machbarkeitsversuche erfüllen diese Ziele noch nicht vollständig.
+Modell und lokaler Funktionsablauf sind umgesetzt. Der vollständige Zielnachweis benötigt weiterhin die offenen Fehlerprüfungen, den AWS-Ablauf, die formalen Messserien und die abschliessende Bewertung.
 
 ### 1.5 Erfolgskriterien des Proof of Concept
 
@@ -302,10 +302,12 @@ Die fachliche Dokumentation steht in dieser Datei. Code, Testdaten und Originalp
 | `docs/dokumentation.md` | Planung, Entscheidungen, Umsetzung, Messungen und später das Runbook |
 | `docs/nachweise/`, `docs/messungen/` | Systemausgaben, Laufprotokolle und verwendete Manifeste |
 | `modell/` | JSON-Schema, YAML-Beispiele und Validierung |
+| `agent/` | CLI, Konfiguration, Lebenszyklus, SQLite und MCP-Client |
+| `adapter/` | MCP-Werkzeugvertrag, Server und KubeVirt-Aufrufe |
 | `scripts/` | Hilfswerkzeuge für Messungen, Issues und Repository-Prüfungen |
 | `tests/` | Automatisierte Tests des vorhandenen Codes |
 | `.github/`, `mkdocs.yml`, `requirements-docs.txt` | Vorlagen und Veröffentlichung der Dokumentation |
-| `requirements.txt` | Direkte Abhängigkeiten der Modellvalidierung |
+| `requirements.txt` | Festgeschriebene Abhängigkeiten von Modellprüfung, Agent und MCP |
 
 README und Einstiegsseite verweisen auf diese Dokumentation.
 
@@ -326,7 +328,7 @@ Der [Dokumentationsworkflow](https://github.com/Cancani/diplomarbeit/blob/main/.
 
 Den fachlichen Abschluss einer Story halte ich fest, wenn ihre Akzeptanzkriterien erfüllt und die Ergebnisse dokumentiert sind. Für Infrastrukturarbeiten gehören dazu Protokolle vom Zielsystem. Die lokalen Tests prüfen den Code ohne Bereitstellung einer VM. Die Expertenbeurteilung und die noch abzustimmende Form der Abnahme stehen in Kapitel 2.2.
 
-Die späteren Agententests sollen auch Timeouts, unterbrochene Operationen und verbleibende Ressourcen abdecken. Die sechs vollständigen PoC-Läufe werden anschliessend auf den Zielplattformen protokolliert. Für ein Review bereite ich die Präsentation der Ergebnisse und die passenden Nachweise vor. Rückmeldungen sowie daraus folgende Aufgaben werden nach dem Meeting festgehalten.
+Die Agententests decken unter anderem Timeouts, behandelte Abbrüche und verbleibende Ressourcen ab. Funktionsumfang und offene Nachweise stehen in Kapitel 5.5. Die sechs vollständigen PoC-Läufe werden anschliessend auf den Zielplattformen protokolliert. Für ein Review bereite ich die Präsentation der Ergebnisse und die passenden Nachweise vor; Rückmeldungen und daraus folgende Aufgaben werden nach dem Meeting festgehalten.
 
 ### 2.7 Projektstand und Berichte
 
@@ -1111,11 +1113,11 @@ Das Lab-Budget von USD 50 entspricht mit dieser Rechenbasis CHF 40,39. Das priva
 
 ### 3.7 Zielarchitektur
 
-Die Zielarchitektur trennt die fachliche Definition, die Steuerung des Lebenszyklus und die konkreten Plattformaufrufe. Das Modell ist bereits umgesetzt. Die folgenden Ansichten beschreiben den geplanten Ausbau mit Agent, Zustandsspeicher und Adaptern.
+Die Zielarchitektur trennt die fachliche Definition, die Steuerung des Lebenszyklus und die konkreten Plattformaufrufe. Die Verbindung aus Modell, Agent, SQLite und KubeVirt-Adapter ist umgesetzt. Die AWS-Anbindung bleibt Teil des Zielbilds; sie ist in der Komponentensicht als geplant gekennzeichnet.
 
 #### 3.7.1 Systemkontext
 
-Die geplante Lösung stellt eine definierte Lernumgebung auf einer gewählten Zielplattform bereit. Die Bedienperson übergibt eine plattformneutrale YAML-Definition und steuert den Lebenszyklus über die Kommandozeile. Die Lösung übernimmt die Kommunikation mit der lokalen KubeVirt-Plattform oder AWS.
+Die Lösung soll dieselbe fachliche Lernumgebung auf einer gewählten Zielplattform bereitstellen. Die Bedienperson übergibt eine YAML-Definition und steuert den Lebenszyklus über die Kommandozeile. Der KubeVirt-Weg ist implementiert; AWS ist die vorgesehene zweite Zielplattform.
 
 ```mermaid
 flowchart TD
@@ -1127,7 +1129,7 @@ flowchart TD
     end
 
     Lokal["Lokale Plattform: Kubernetes mit KubeVirt"]
-    Cloud["Public Cloud: AWS im Learner Lab"]
+    Cloud["Public Cloud: AWS im Learner Lab, geplant"]
 
     Person -->|"create, status, reset, delete"| System
     Definition -->|"Anforderungen an VM und Testdienst"| System
@@ -1136,7 +1138,7 @@ flowchart TD
     System <-->|"VM-Lebenszyklus und Zustandsabfragen"| Cloud
 ```
 
-<small id="abb-11"><em>Abbildung 11: Systemkontext der geplanten Bereitstellungslösung</em></small>
+<small id="abb-11"><em>Abbildung 11: Systemkontext der Bereitstellungslösung</em></small>
 
 Innerhalb der Systemgrenze liegen die selbst entwickelten Bestandteile: Kommandozeilenschnittstelle, Agent, Zustandsspeicher und Adapter. Kubernetes mit KubeVirt sowie AWS liegen ausserhalb dieser Grenze. Pro Lernumgebung wird eine der beiden Zielplattformen verwendet. Die YAML-Definition beschreibt die fachlichen Anforderungen; die Zuordnung zu konkreten Plattformressourcen übernimmt die Lösung.
 
@@ -1147,30 +1149,30 @@ flowchart TD
     Eingabe["CLI und YAML"] --> Agent["Agent: Validierung und Lebenszyklus"]
     Agent <--> Zustand["Zustandsspeicher: Modell und Ressourcen-IDs"]
     Agent -->|MCP / stdio| KubeVirtAdapter["KubeVirt-Adapter"]
-    Agent -->|MCP / stdio| AWSAdapter["AWS-Adapter"]
+    Agent -.->|"geplant: MCP / stdio"| AWSAdapter["AWS-Adapter"]
     KubeVirtAdapter --> KubeVirt["Kubernetes und KubeVirt"]
-    AWSAdapter --> AWS["AWS EC2"]
+    AWSAdapter -.->|"geplant"| AWS["AWS EC2"]
 ```
 
-<small id="abb-12"><em>Abbildung 12: Geplanter Aufbau von CLI, Agent und Adaptern</em></small>
+<small id="abb-12"><em>Abbildung 12: Aufbau von CLI, Agent und Adaptern</em></small>
 
 Die Kommandozeilenschnittstelle nimmt Definition und Zielplattform entgegen. Der Agent validiert die Eingabe und steuert den Auftrag. Mit Agent ist hier ein Programm mit festen Regeln gemeint: Es entscheidet anhand der Operation und des gespeicherten Zustands über den nächsten Schritt. Eine Sprachmodellentscheidung ist dafür nicht vorgesehen.
 
-Die SQLite-Grundlage speichert Modell-Snapshot, Laufkennung, Operationskennung, Phase und Ressourcen-IDs, siehe Kapitel 4.4. Der Snapshot bleibt für einen Lauf unverändert. Ein Hash dient der Zuordnung dieser Definition. Nach jedem erfolgreichen Plattformaufruf werden die erzeugten IDs gespeichert. Für einen Abbruch zwischen API-Erfolg und Speicherung muss der Adapter den Auftrag über eine zuvor festgelegte Kennung wiederfinden können.
+SQLite speichert Modell-Snapshot, Laufkennung, Operationskennung, Phase und Ressourcen-UIDs, siehe Kapitel 4.4. Der Snapshot bleibt für einen Lauf unverändert; sein Hash ordnet die Definition den Plattformressourcen zu. Nach jedem bestätigten Erstellungsschritt werden die UIDs gespeichert. Nach einer verlorenen Antwort versucht ein lesender Abgleich, bereits erzeugte Ressourcen über Kennzeichnungen und Zuordnungen wiederzufinden.
 
 | Zustand | Bedeutung | Zulässige nächste Aktion |
 | --- | --- | --- |
 | Nicht vorhanden | Keine laufbezogenen Ressourcen vorhanden | create |
-| Wird erstellt | Aufbau begonnen, Dienst noch nicht bereit | status, fortsetzen oder delete |
+| Wird erstellt | Aufbau begonnen, Dienst noch nicht bereit | status; laufenden Auftrag abwarten |
 | Bereit | VM läuft und Dienstprüfung ist erfolgreich | status, reset oder delete |
-| Wird gelöscht | Abbau begonnen, Endkontrolle läuft | status oder Abbau fortsetzen |
-| Fehler | Aufbau, Dienstprüfung oder Abbau fehlgeschlagen | Fehler und Ressourcen anzeigen, gezielt fortsetzen oder löschen |
+| Wird gelöscht | Abbau begonnen, Endkontrolle läuft | status; laufenden Auftrag abwarten |
+| Fehler | Aufbau, Dienstprüfung oder Abbau fehlgeschlagen | status; behandelten Reset oder Abbau fortsetzen beziehungsweise bereinigen |
 
 Nur eine schreibende Operation darf gleichzeitig auf derselben Umgebung laufen. Eine wiederholte Erstellung darf keine Dublette erzeugen. Die Operationskennung unterscheidet einen neuen Auftrag von der Wiederaufnahme nach einem Abbruch. Ein erneutes delete einer bereits entfernten Umgebung bleibt ohne zusätzliche Wirkung. Bei reset wird erst nach bestätigtem Abbau aus dem Snapshot neu erstellt.
 
 Die Adapter kapseln die Übersetzung in Kubernetes- beziehungsweise AWS-Aufrufe. Beispielsweise kann die Mindestanforderung an CPU und RAM auf AWS nur über einen passenden Instanztyp erfüllt werden; auf KubeVirt entstehen daraus VM-Ressourcen im Manifest. Die fachliche Definition enthält diese Unterschiede nicht.
 
-Für die Kommunikation zwischen Agent und lokal gestarteten MCP-Adaptern ist stdio vorgesehen. MCP-Nachrichten laufen über die Standardein- und -ausgabe, Diagnosemeldungen über stderr. Die gemeinsame Werkzeugbeschreibung soll Aufrufe und Fehlerantworten vereinheitlichen. Der konkrete SDK- und Protokollstand wird beim Durchstich festgeschrieben; Grundlage ist die [MCP-Transportspezifikation](https://modelcontextprotocol.io/specification/2025-06-18/basic/transports).
+Agent und lokal gestarteter MCP-Adapter kommunizieren über stdio. MCP-Nachrichten laufen über die Standardein- und -ausgabe, Diagnosemeldungen getrennt über stderr. Der Werkzeugvertrag beschreibt Aufrufe, Antworten und Fehler. SDK, Protokollaushandlung und Werkzeuge sind in Kapitel 4.5 festgehalten; Grundlage der Anbindung ist das MCP-Python-SDK.
 
 Diese zusätzliche Prozess- und Protokollgrenze verursacht Aufwand. Deshalb vergleicht die spätere Bewertung denselben Provider-Code einmal direkt und einmal über MCP. So wird der Nutzen der Adaptertrennung von einem möglichen zusätzlichen Nutzen des Protokolls unterschieden. Die Kriterien stehen in Kapitel 3.8.
 
@@ -1215,7 +1217,7 @@ Die Zielarchitektur wurde im ersten Review vorgestellt. Die Umsetzung mit MCP wi
 
 Als erste Umsetzung habe ich die Referenz-VM auf der vorhandenen KubeVirt-Plattform manuell bereitgestellt. Das [Referenzmanifest](messungen/laeufe/kv-ref-20260922-01/manifest.yaml) enthält einen eigenen Namespace, die VM mit DataVolume und einen NodePort-Service für SSH und HTTP. cloud-init hinterlegt den öffentlichen Schlüssel und startet den Testdienst.
 
-Damit waren die praktischen Voraussetzungen für den späteren Adapter geklärt: Abbildimport, nutzbarer Speicher, erreichbarer Gast und überprüfbarer Abbau. Besonders wichtig war die Speicherprüfung. Nach der Namespace-Löschung war der PV zunächst noch `Released`; seine Entfernung und das fehlende Datenverzeichnis wurden erst später bestätigt. Der spätere Adapter muss deshalb auf den tatsächlichen Endzustand warten.
+Damit waren Abbildimport, nutzbarer Speicher, erreichbarer Gast und überprüfbarer Abbau geklärt. Nach der Namespace-Löschung war der PV zunächst noch `Released`; seine Entfernung und das fehlende Datenverzeichnis wurden erst später bestätigt. Der automatisierte Abbau aus Kapitel 4.6 wartet deshalb auf den tatsächlichen Speicherabschluss.
 
 Aus dem Manifest wurden die fachlichen Felder für das gemeinsame Modell abgeleitet. Abbild-URL, Namespace, StorageClass, NodePorts und Ressourcen-IDs bleiben Plattformdetails. Konfiguration, Zeiten und Belege des erfolgreichen Versuchs stehen im [Referenzlauf](#kubevirt-referenzlauf).
 
@@ -1230,7 +1232,7 @@ Das Fachmodell trennt den gewünschten Testfall von seiner technischen Umsetzung
 | `modell/lernumgebung-v1.schema.json` | JSON-Schema nach Draft 2020-12 für Modellversion 1.0 |
 | `modell/beispiele/referenz.yaml` | Vollständige fachliche Definition der reduzierten Referenzumgebung |
 | `modell/beispiele/ungueltig-ram.yaml` | Bewusst ungültige Variante mit 1024 statt mindestens 2048 MiB RAM |
-| `modell/validierung.py` | YAML einlesen und gegen das lokale Schema prüfen; später vom Agenten wiederverwendbar |
+| `modell/validierung.py` | Gemeinsame YAML- und Schemaprüfung für Modellwerkzeug und Agent |
 | `scripts/modell-pruefen.py` | Eigenständiger Aufruf der Modellprüfung |
 | `tests/test_modell.py` | Automatisierte positive und negative Validierungsfälle |
 
@@ -1275,15 +1277,15 @@ Der öffentliche Schlüssel stammt aus dem Referenzmanifest. Für einen neuen In
 | `vm.ssh` | Benutzer `ubuntu` und mindestens ein öffentlicher Ed25519-Schlüssel im OpenSSH-Format |
 | `vm.testService` | HTTP auf Gastport 8080, Pfad `/`, Status 200 und Antwort `lernumgebung bereit` |
 
-Der Prüfendpunkt wird später vom Adapter ermittelt. In der Definition stehen der Gastport und der erwartete Inhalt. So bleibt dieselbe Eingabe sowohl für einen NodePort-Service als auch für einen AWS-Endpunkt verwendbar.
+Der Adapter ermittelt den tatsächlichen Prüfendpunkt. In der Definition stehen Gastport und erwarteter Inhalt. Dadurch bleibt dieselbe fachliche Eingabe für einen NodePort-Service und den vorgesehenen AWS-Endpunkt verwendbar.
 
-Höhere Kapazitäten als die Mindestwerte sind zulässig. Ob eine Plattform sie tatsächlich bereitstellen kann, muss der Adapter vor der Erstellung prüfen. Kontorechte, Quotas und verfügbare Instanztypen lassen sich durch das Schema allein nicht prüfen.
+Höhere Kapazitäten als die Mindestwerte sind zulässig. Die Modellprüfung bestätigt jedoch keine verfügbare Host- oder Cloud-Kapazität. Auf KubeVirt entscheidet die Plattform über die tatsächliche Bereitstellung; Kontorechte, Quotas und verfügbare Instanztypen lassen sich durch das Schema allein nicht prüfen.
 
 Das Schema weist unbekannte Felder auf jeder Ebene zurück. Dadurch werden sowohl Schreibfehler als auch Plattformfelder wie `amiId`, `storageClass` und `nodePort` erkannt. Weitere Betriebssysteme oder mehrere VMs erfordern eine neue Festlegung des Modells und passende Tests.
 
 #### Lokale Validierung
 
-Die direkten Abhängigkeiten sind in `requirements.txt` festgeschrieben: PyYAML 6.0.3 und jsonschema 4.26.0. Die Validierung verwendet ein lokales Schema und benötigt nach der Installation keinen Netzwerkzugriff. Die explizite Auswahl von `Draft202012Validator` und die zusätzliche Formatprüfung folgen der [jsonschema-Dokumentation](https://python-jsonschema.readthedocs.io/en/stable/validate/).
+Für die Modellprüfung sind PyYAML 6.0.3 und jsonschema 4.26.0 in `requirements.txt` festgeschrieben. Die Validierung verwendet ein lokales Schema und benötigt nach der Installation keinen Netzwerkzugriff. Die explizite Auswahl von `Draft202012Validator` und die zusätzliche Formatprüfung folgen der [jsonschema-Dokumentation](https://python-jsonschema.readthedocs.io/en/stable/validate/).
 
 Im aktivierten Python-Umfeld, aus dem Repository-Verzeichnis:
 
@@ -1297,71 +1299,66 @@ Die gültige Definition liefert Exitcode 0 und `Gültig: referenzumgebung (Model
 
 Neben den Schemaregeln prüft der YAML-Lader mehrdeutige Eingaben: doppelte Feldnamen, Alias-Verweise, mehrere Dokumente und nicht JSON-kompatible Werte werden abgewiesen. Die Ed25519-Prüfung kontrolliert auch den binären Aufbau des öffentlichen Schlüssels. Fehlermeldungen nennen den betroffenen Feldpfad, ohne eingegebene Werte oder YAML-Zeilen auszugeben. Das Werkzeug validiert Dateien und verändert keine Infrastruktur.
 
-Modell und Validierung sind seit Commit [`8b96ab1`](https://github.com/Cancani/diplomarbeit/commit/8b96ab108b46b0a8c1b67799cebf7e4ec93a8bf3) versioniert. Die Pipeline berücksichtigt Modellpfade und Abhängigkeiten. Der [erfolgreiche CI-Lauf](https://github.com/Cancani/diplomarbeit/actions/runs/38720709849) enthält die automatisierten Prüfungen dieses Stands.
+Automatisierte Modelltests prüfen Pflichtfelder, Mindestkapazitäten, Datentypen, Versionen, Plattformfelder, öffentliche Schlüssel und fehlerhafte YAML-Eingaben. Befehlsaufrufe aus einem anderen Arbeitsverzeichnis prüfen zusätzlich Ausgabe und Exitcodes. Die vollständigen Prüfbefehle und die Abgrenzung zu echten Infrastrukturtests stehen in Kapitel 5.5.
 
-Bei der ursprünglichen Modellimplementierung bestanden 35 Tests unter Python 3.12, darunter zehn Testmethoden zum Modell. Sie prüfen Pflichtfelder, Mindestkapazitäten, Datentypen, Versionen, Plattformfelder, öffentliche Schlüssel und fehlerhafte YAML-Eingaben. Die Befehlsaufrufe werden zusätzlich aus einem anderen Arbeitsverzeichnis ausgeführt; dabei werden Erfolg, Fehlerausgabe und Exitcodes geprüft.
+### 4.3 Agent und Kommandozeile
 
-Für die lokale Prüfung aus dem Repository-Verzeichnis:
+Der Agent verbindet die Modellprüfung mit der Zustandsführung und dem Plattformadapter. Der Einstieg erfolgt über `python -m agent`. Die Lebenszyklussteuerung liegt in `agent/lebenszyklus.py`; die CLI nimmt die Argumente entgegen und gibt Ergebnisse sowie Fehler zurück. Der lokale Ablauf unterstützt create, status, reset und delete. Die Auswahl `aws` ist in der CLI vorbereitet, für sie ist die Lebenszyklussteuerung noch nicht verfügbar.
 
-```bash
-python -m unittest discover -s tests -v
-python scripts/check-repository.py
-python -m mkdocs build --strict
-```
-
-Der Dokumentationsbuild benötigt zusätzlich `requirements-docs.txt`. Die Tests laufen ohne bereitgestellte VM. Infrastrukturversuche werden separat protokolliert.
-
-### 4.3 Agent-Grundgerüst mit externer Konfiguration
-
-Der Einstieg `python -m agent` bietet create, status, reset und delete mit Hilfeausgaben. Operationen benötigen eine externe YAML-Konfiguration über `--config` vor dem Befehlsnamen und eine Laufkennung über `--run-id`. create benötigt zusätzlich die fachliche YAML-Definition und `--platform kubevirt` oder `--platform aws`.
-
-```bash
-python -m agent --help
-python -m agent --config agent/beispiele/konfiguration.yaml create modell/beispiele/referenz.yaml --platform kubevirt --run-id lokal-01
-python -m agent --config agent/beispiele/konfiguration.yaml status --run-id lokal-01
-```
-
-Die Beispieldatei `agent/beispiele/konfiguration.yaml` enthält `stateFile` sowie je Adapter `command`, `args` und `timeoutSeconds`. Das Fachmodell bleibt davon getrennt. Das Beispiel benennt den geplanten, noch nicht implementierten Adapter `adapter.kubevirt`; beim Einlesen wird kein Prozess gestartet.
-
-Der Leser verwendet den bestehenden strikten YAML-Lader und prüft Pflichtfelder, bekannte Feldnamen, Datentypen und eine positive ganzzahlige Zeitgrenze. Relative Zustandspfade werden vom Ordner der Konfigurationsdatei aus aufgelöst; `~` bezeichnet das Benutzerverzeichnis. Einlesen und Validieren legen keine SQLite-Datei an. Die Anwendung der Zeitgrenze auf echte Aufrufe folgt mit der MCP-Anbindung.
-
-Für eigene Einstellungen kann die Vorlage nach `agent.local.yaml` kopiert und über `--config agent.local.yaml` übergeben werden. Diese lokale Datei sowie SQLite-Dateien mit der Endung `.sqlite3` und ihre üblichen Journal-, WAL- und SHM-Dateien sind in `.gitignore` ausgeschlossen. Zugangsdaten und private Schlüssel werden separat ausserhalb des Repositorys verwaltet.
-
-Die Hilfe funktioniert ohne Konfigurationsdatei und liefert Exitcode 0. Argumentfehler liefern 2; Konfigurations- und Modellfehler liefern 1. Für create muss die gewählte Plattform in der Konfiguration enthalten sein. Fehlerausgaben enthalten keine eingegebenen Konfigurationswerte. Auch gültige Aufträge liefern derzeit 1 mit dem ausdrücklichen Hinweis auf die noch fehlende Lebenszyklussteuerung. Die SQLite-Grundlage aus Kapitel 4.4 wird noch nicht von der CLI aufgerufen; MCP-Anbindung und Lebenszyklussteuerung sind offen. Die Abschlussprüfung von US19 steht im zugehörigen Issue.
-
-Neun CLI-Tests prüfen unter anderem Hilfe ohne Konfiguration, Argumentfehler, Konfigurations- und Modellfehler sowie nicht konfigurierte Plattformen. Acht Konfigurationstests prüfen Pfadauflösung, ungültige Dateien, Pflichtfelder, Adapterwerte und das versionierte Beispiel. Die CLI-Tests laufen aus einem temporären Arbeitsverzeichnis mit vorgegebenem `PYTHONIOENCODING=cp1252` und erwarten UTF-8-Ausgaben. Auch der Modell-CLI-Test prüft diese Kodierungsgrenze.
-
-Die Prüfungen erfolgen aus dem Repository-Verzeichnis im aktivierten Python-Umfeld:
-
-```bash
-python -m unittest discover -s tests -v
-python scripts/check-repository.py
-python -m mkdocs build --strict
-```
-
-**Prüfstand vom 28.10.2026:** Für [Commit d293644](https://github.com/Cancani/diplomarbeit/commit/d2936449a9278240dd1028bc6dbce565ec37a42b) bestanden alle 52 Tests unter Python 3.12. Der [zugehörige GitHub-Actions-Lauf](https://github.com/Cancani/diplomarbeit/actions/runs/40743560062) bestätigt die automatisierten Prüfungen, den strikten Dokumentationsbuild und die Veröffentlichung. Der lokale Windows-Lauf unter Python 3.14.6 auf demselben Commit bestand ebenfalls mit 52 Tests. Dabei erschien beim bestehenden HTTP-Probe-Test weiterhin eine `ResourceWarning` zu einer HTTP-302-Antwort; der Lauf endete mit `OK`. Die Prüfung bestätigt das CLI-Grundgerüst mit externer Konfiguration. Die Lebenszyklussteuerung bleibt Gegenstand der folgenden Stories.
-
-Am 26.10.2026 wurde eine Obergrenze von 30 durch den Agenten verwalteten VMs als zusätzliche Anforderung festgelegt. Vorhandene und gerade entstehende VMs müssen berücksichtigt werden. Das bisherige Modell beschreibt genau eine VM. Erweiterung, Bestandsprüfung und Tests dieser Grenze sind noch offen. Die Grenze ist keine bestätigte Plattformkapazität.
-
-### 4.4 SQLite-Grundlage für die Zustandsführung
-
-`agent/zustand.py` ergänzt die persistente Grundlage für [US20](https://github.com/Cancani/diplomarbeit/issues/21). Der Speicher verwendet das Python-Standardmodul `sqlite3`; zusätzliche Abhängigkeiten sind nicht erforderlich. Erst `StateStore(path)` legt bei Bedarf den Ordner und die Datenbank an. Das blosse Einlesen der Agent-Konfiguration bleibt ohne Schreibwirkung. Die CLI ist noch nicht mit diesem Speicher verbunden.
-
-#### Gespeicherte Daten und Schreibschutz
-
-| Tabelle | Inhalt |
+| Bestandteil | Aufgabe |
 | --- | --- |
-| `runs` | Laufkennung, Plattform, unveränderter Modell-Snapshot, SHA-256-Hash, aktuelle Phase, letzte Operationskennung und Änderungszeit |
-| `operations` | Eindeutige Operationskennung, zugehöriger Lauf, create/reset/delete, running/succeeded/failed, begrenzter Fehlercode und UTC-Zeitstempel |
-| `resources` | Laufkennung, Ressourcentyp, Plattformkennung und Bereich, beispielsweise Namespace; clusterweite Ressourcen können einen leeren Bereich verwenden |
+| `agent/cli.py` | Befehle, Argumente, Hilfe und Exitcodes |
+| `agent/konfiguration.py` | Externe Konfiguration einlesen und prüfen |
+| `agent/lebenszyklus.py` | Erstellung, Statusprüfung, Reset und Abbau steuern |
+| `agent/zustand.py` | Modell, Operationen und Ressourcen persistent speichern |
+| `agent/mcp_client.py` | Konfigurierten MCP-Prozess aufrufen und Antworten prüfen |
+| `adapter/` | Werkzeugvertrag und konkrete KubeVirt-Aufrufe |
 
-Vor einer Erstellung wird das Modell erneut validiert und zusammen mit dem Auftrag in einer Transaktion gespeichert. Der Snapshot ist JSON mit sortierten Schlüsseln und festgelegten Trennzeichen; der Hash wird aus dessen UTF-8-Bytes berechnet. YAML-Formatierung und die Reihenfolge von Objektschlüsseln ändern diesen Hash nicht. Modell und Plattform können unter derselben Laufkennung nicht ersetzt werden. Ein Reset verwendet den gespeicherten Snapshot.
+Die Konfiguration wird mit `--config` vor dem Befehlsnamen angegeben. Sie trennt technische Einstellungen vom fachlichen Modell. Die Vorlage in `agent/beispiele/konfiguration.yaml` lautet:
 
-Kurze SQLite-Transaktionen mit `BEGIN IMMEDIATE` schützen die Prüfung und Änderung des Zustands. Ein eindeutiger Index erlaubt nur eine laufende schreibende Operation je Lauf. Das Datenbank-Schreibrecht wird nach jeder Transaktion freigegeben; die fachliche Sperre bleibt über den gespeicherten Operationsstatus bestehen. Auch ein zweiter Aufruf mit derselben Operationskennung erhält keine weitere Schreibberechtigung. Andere Läufe dürfen eigene Operationen beginnen. Die Datenbank ist als lokale Datei für einen Agentenbetrieb vorgesehen, nicht als verteilter Speicher auf einer Netzwerkfreigabe.
+```yaml
+stateFile: zustand.sqlite3
+adapters:
+  kubevirt:
+    command: python
+    args: ["-m", "adapter.kubevirt"]
+    timeoutSeconds: 30
+```
 
-Die Schema-Version wird über `PRAGMA user_version` geführt. Unbekannte Versionen werden abgewiesen. Ein Fehler innerhalb einer Transaktion hinterlässt keinen teilweise angelegten Auftrag. Zugangsdaten und freie Plattformfehlermeldungen werden nicht gespeichert. Zulässige Fehlercodes sind `timeout`, `platform_error` und `interrupted`.
+`stateFile` bezeichnet die lokale SQLite-Datei. Relative Pfade beziehen sich auf den Ordner der Konfigurationsdatei, nicht auf das aktuelle Arbeitsverzeichnis. Bei dieser Vorlage liegt die Datenbank deshalb unter `agent/beispiele/zustand.sqlite3`. `~` wird als Benutzerverzeichnis aufgelöst. Das Einlesen der Konfiguration erzeugt weder eine Datenbank noch einen Adapterprozess.
 
-#### Zustände und nächste Schritte
+`command` und `args` bestimmen den Adapterprozess, `timeoutSeconds` begrenzt einen MCP-Aufruf einschliesslich Verbindungsaufbau. Der Adapter wird mit dem Repository als Arbeitsverzeichnis gestartet. Bei `command: python` muss das virtuelle Python-Umfeld aktiviert sein.
+
+Der Konfigurationsleser verwendet denselben strikten YAML-Lader wie die Modellprüfung. Er weist unbekannte Felder, fehlende Pflichtangaben, falsche Datentypen und nicht positive Zeitgrenzen zurück. Fehlerausgaben nennen den Feldpfad, ohne eingegebene Konfigurationswerte auszugeben. Eigene Einstellungen können in `agent.local.yaml` liegen. Diese Datei sowie SQLite-Dateien und ihre Journaldateien sind von Git ausgeschlossen. Zugangsdaten und private Schlüssel gehören ausserhalb des Repositorys.
+
+Die Hilfe funktioniert ohne Konfigurationsdatei. Die CLI verwendet folgende Exitcodes:
+
+| Code | Bedeutung |
+| --- | --- |
+| 0 | Befehl erfolgreich oder Hilfe ausgegeben |
+| 1 | Konfigurations-, Modell-, Zustands- oder Adapterfehler |
+| 2 | Ungültige oder fehlende Kommandozeilenargumente |
+| 130 | Operation mit Ctrl+C unterbrochen |
+
+Standardausgabe und Fehlerausgabe verwenden UTF-8. Ereignisse des Lebenszyklus erscheinen als JSON-Zeilen mit UTC-Zeitstempel, Ereignis, Laufkennung und Operationskennung. Je nach Ereignis kommen Zustandsangaben oder Ressourcen hinzu. Lesbare Fehlermeldungen gehen an stderr. Die Ausgaben unterscheiden insbesondere den gespeicherten Auftragszustand von der tatsächlich beobachteten VM- und Dienstbereitschaft.
+
+### 4.4 Persistenter Zustand und Kapazitätsgrenze
+
+Der Agent verwendet SQLite aus der Python-Standardbibliothek. Vor der ersten Plattformänderung speichert er die Definition und den Auftrag. So bleibt auch nach einem Fehler bekannt, welche Umgebung verwaltet wird und welche Ressourcen bereits beobachtet wurden.
+
+| Tabelle | Gespeicherte Daten |
+| --- | --- |
+| `runs` | Laufkennung, Plattform, unveränderter Modell-Snapshot, Modell-Hash, Phase und aktuelle Operationskennung |
+| `operations` | Operationskennung, Art create/reset/delete, Status running/succeeded/failed, letzte Ablaufphase, Fehlercode und Zeitstempel |
+| `resources` | Laufkennung, Ressourcentyp, Name, UID, Namespace beziehungsweise clusterweiter Bereich und zusätzliche Speichermetadaten |
+
+`modell/snapshot.py` validiert das Modell und serialisiert es als JSON mit sortierten Schlüsseln. Daraus entsteht ein SHA-256-Hash. YAML-Formatierung und die Reihenfolge von Objektschlüsseln verändern diesen Hash nicht. Plattform und Snapshot bleiben für eine Laufkennung unverändert. Reset liest diese gespeicherte Definition; eine spätere Änderung der ursprünglichen YAML-Datei verändert den Reset nicht. Eine andere Definition benötigt eine neue Laufkennung.
+
+Kurze Transaktionen mit `BEGIN IMMEDIATE` schützen Zustandsprüfung und Änderung. Ein eindeutiger Index erlaubt höchstens eine Operation mit Status `running` pro Lauf. Ein konkurrierender schreibender Start wird abgewiesen, auch unter derselben Operationskennung. Die Transaktion bleibt nicht während eines Plattformaufrufs offen; die fachliche Sperre besteht über den gespeicherten Operationsstatus. Die Datenbank ist für den lokalen Agentenbetrieb vorgesehen.
+
+`PRAGMA user_version` kennzeichnet das Schema. Version 4 ergänzt die gespeicherte Ablaufphase einer Operation. Unterstützte ältere Versionen werden migriert, wobei vorhandene Ressourcenkennungen und Speicherdetails erhalten bleiben. Unbekannte Versionen werden abgewiesen. Die Phase unterscheidet bei einem fehlgeschlagenen Reset zwischen Abbau und Neuerstellung.
+
+#### Zustandsübergänge
 
 ```mermaid
 stateDiagram-v2
@@ -1372,49 +1369,227 @@ stateDiagram-v2
     state "Fehler" as error
     [*] --> absent
     absent --> creating: create
-    creating --> ready: Readiness bestätigt
-    creating --> error: Fehler oder Timeout
+    creating --> ready: Dienstbereitschaft bestätigt
+    creating --> error: Fehler oder Ctrl+C
     ready --> deleting: reset oder delete
-    deleting --> creating: reset nach Abbaukontrolle
-    deleting --> absent: delete nach Abbaukontrolle
-    deleting --> error: Fehler oder Timeout
-    error --> deleting: Bereinigung beginnen
+    deleting --> creating: reset nach vollständigem Abbau
+    deleting --> absent: delete nach vollständigem Abbau
+    deleting --> error: Fehler oder Ctrl+C
+    error --> deleting: Abbau fortsetzen oder bereinigen
+    error --> creating: Reset-Neuerstellung fortsetzen
 ```
 
-Die API `start_create` speichert Modell und Erstellungsauftrag; `start_operation` beginnt reset oder delete. `record_resource` ergänzt das Inventar idempotent. `confirm_removed` darf ausschliesslich während des Abbaus aufgerufen werden, nachdem die Plattform die Abwesenheit der betreffenden Ressource bestätigt hat. `advance` weist unzulässige Übergänge ab. Solange bekannte Ressourcen vorhanden sind, kann ein Abbau weder als abgeschlossen gelten noch ein Reset neu erstellen. Für den Übergang nach `ready` muss mindestens eine Ressource gespeichert sein. Ein erneutes delete bei bereits bestätigtem Zustand `absent` wird als abgeschlossene Operation ohne Ressourcenänderung erfasst.
+Die Wiederaufnahme aus `error` ist an den gespeicherten Auftrag gebunden. Reset und delete können nach einem behandelten Fehler mit derselben Kennung fortgesetzt werden. Eine noch als `running` gespeicherte Operation wird nicht aufgrund ihres Alters freigegeben. Nach einem harten Prozessabbruch bleibt sie deshalb gesperrt; die kontrollierte Wiederaufnahme dieses Falls ist noch zu ergänzen.
 
-Diese Regeln prüfen den gespeicherten Zustand. Der spätere Lebenszyklus muss vor `ready` zusätzlich Plattformzustand und HTTP-Bereitschaft prüfen. Vor dem Abschluss des Abbaus muss er auch Ressourcen suchen, die zwischen einem erfolgreichen API-Aufruf und der Speicherung ihrer ID entstanden sein können. Ein leeres gespeichertes Inventar allein beweist deshalb keine Ressourcenabwesenheit auf der Plattform.
+Ein Übergang von `deleting` nach `creating` oder `absent` setzt ein leeres bestätigtes Ressourceninventar voraus. Vorher führt der Lebenszyklus zusätzlich einen Plattformabgleich aus. Der Zustandsspeicher allein kann keine Ressourcenabwesenheit auf Kubernetes beweisen. Für `ready` müssen Ressourcen gespeichert sein; VM- und HTTP-Bereitschaft prüft der Agent.
 
-#### Abbruch, Timeout und offener Nachweis
+Neue Beobachtungen ergänzen das Inventar. Eine fehlende Ressource wird durch eine reine Statusabfrage nicht ausgetragen. Erst der Abbau bestätigt ihre Entfernung. Dadurch bleiben auch früher beobachtete Importer-Pods oder temporäre Datenträger für die Abschlusskontrolle bekannt. Antworten eines inzwischen abgelösten Auftrags werden über die aktuelle Operationskennung abgewiesen.
 
-Nach einem Prozessabbruch bleibt die Operation `running`. Der Speicher löst ihre Sperre nicht aufgrund ihres Alters. Damit kann ein neuer Auftrag eine möglicherweise noch laufende Plattformaktion nicht einfach überholen. Die automatische Wiederaufnahme unter derselben Operationskennung ist noch offen. Sie benötigt einen kontrollierten Plattformabgleich und die Absicherung, dass der bisherige Schreiber nicht mehr aktiv ist.
+#### Obergrenze von 30 VMs
 
-`fail` speichert einen Fehlerzustand und erhält das bekannte Inventar für eine spätere Bereinigung. Eine echte Zeitgrenze wird hier noch nicht ausgeführt. Bei einem späteren Adapter-Timeout muss die Lebenszyklussteuerung zunächst die eigene laufende Ausführung beenden, den Fehler speichern und vor weiteren Änderungen den Plattformbestand abgleichen.
+Modellversion 1.0 beschreibt genau eine VM pro Lauf. Eine Schülerzahl oder eine frei wählbare Anzahl VMs ist kein Eingabefeld des Modells. Die Begrenzung erfolgt deshalb über den verwalteten Bestand:
 
-Sechs zusätzliche Speichertests prüfen Persistenz und Snapshot-Schutz, konkurrierende Startversuche, Transaktions-Rollback, Reset-Reihenfolge, Fehler mit erhaltenem Inventar, wiederholten Abbau und einen Prozessabbruch in einem Unterprozess. Die Modelle und Ressourcenkennungen in diesen Tests sind lokale Testdaten; es werden keine VMs bereitgestellt. Der gespeicherte Stand aus `get` ist keine echte Statusabfrage.
+- Innerhalb einer Zustandsdatenbank reservieren höchstens 30 nicht als `absent` bestätigte Läufe einen Platz. Begonnene, bereite, im Abbau befindliche und fehlgeschlagene Läufe zählen mit.
+- Prüfung und Reservierung erfolgen atomar beim Erstellungsauftrag. Zwei gleichzeitige Aufträge können denselben freien Platz nicht beide erhalten.
+- Auf KubeVirt begrenzt eine ResourceQuota im verwalteten Namespace zusätzlich die Anzahl der VM- und VMI-Objekte auf jeweils 30.
 
-Für die wiederholbare Prüfung aus dem Repository-Verzeichnis:
+Die Quota schützt den lokalen Namespace auch bei konkurrierenden API-Aufrufen. Der Adapter prüft ihren beobachteten Zustand, bevor er eine VM erstellt. Gemeinsame Basisressourcen ausserhalb des verwalteten Namespace gehören nicht zu dieser Quota. Ein Reset behält seine bestehende Reservierung und erstellt erst nach dem Abbau neu.
+
+Die Zahl 30 ist eine festgelegte Obergrenze, keine nachgewiesene Kapazität des Hosts. Es wurde kein Lastversuch mit 30 gleichzeitig nutzbaren VMs durchgeführt. Die Ressourcenanforderungen einer einzelnen VM werden weiterhin durch Modell und Plattform geprüft.
+
+### 4.5 MCP-Vertrag und Adapterkommunikation
+
+Der Agent startet den konfigurierten Adapter als lokalen Unterprozess und kommuniziert über MCP mit stdio. Für jeden Werkzeugaufruf werden Verbindung und Prozess im SDK-Kontext verwaltet. stdout ist dem Protokoll vorbehalten; Diagnosen werden davon getrennt ausgegeben. Der Provider führt die Kubernetes-Aufrufe aus und kennt den MCP-Transport nicht.
+
+Die direkten Abhängigkeiten stehen festgeschrieben in `requirements.txt`: PyYAML 6.0.3, jsonschema 4.26.0, MCP-Python-SDK 2.3.0, AnyIO 4.15.1 und httpx2 2.16.0. Grundlage der Client- und Server-Anbindung ist das [MCP-Python-SDK](https://github.com/modelcontextprotocol/python-sdk/tree/v2.3.0). Client und Server handeln beim Verbindungsaufbau die Protokollversion aus. Der lokale Durchstich verwendete `2026-07-28`; dies ist keine im eigenen Client fest eingetragene Protokollversion.
+
+`adapter/kubevirt.py` bietet folgende Werkzeuge an:
+
+| Werkzeug | Argumente | Ergebnis |
+| --- | --- | --- |
+| `platform_status()` | Keine | Plattform, Knotenbereitschaft, KubeVirt-Phase und VM-/VMI-Bestand |
+| `create(run_id, operation_id, model)` | Lauf, Auftrag und validierbares Modell | `complete` und die im Schritt bestätigten Ressourcen |
+| `status(run_id)` | Lauf | Tatsächlicher Ressourcenbestand, VM-/VMI-Zustand, Modell-Hash und ermittelte Zugangsangaben |
+| `delete(run_id, operation_id, resources)` | Lauf, Auftrag und bekanntes Inventar | `complete`, beobachtete Ressourcen und als entfernt bestätigte Ressourcen |
+
+Reset wird im Agenten aus delete und create zusammengesetzt. Damit gelten für Reset dieselben Regeln zur Inventarsicherung und Abbaukontrolle wie für die Einzeloperationen.
+
+Ein Lebenszykluswerkzeug antwortet mit `{ok: true, data: ...}` oder `{ok: false, error: ...}`. `platform_status` verwendet bei Erfolg das Feld `status`. Der Server liefert diese Objekte als strukturierte MCP-Inhalte. `adapter/vertrag.py` prüft die Antworten mit JSON-Schemas; unbekannte Felder oder unpassende Typen führen zu einem Fehler.
+
+Ein Ressourceneintrag enthält `kind`, `name`, `resource_id` und `scope`. `resource_id` ist bei Kubernetes die UID. `scope` enthält den Namespace und ist bei einem PV leer. Optionale `details` sichern die PVC-Zuordnung, den Hostpath und den Knotennamen für die Speicherprüfung. `pathSource` unterscheidet aus der API gelesene Angaben von kontrolliert abgeleiteten historischen Scratch-Pfaden.
+
+| Fehlercode | Bedeutung |
+| --- | --- |
+| `invalid_request` | Ungültiges Modell oder ungültige Auftragskennung |
+| `command_not_found`, `transport_error` | Kubernetes-Werkzeug oder MCP-Verbindung nicht verfügbar |
+| `platform_error` | Plattformaufruf fehlgeschlagen |
+| `timeout` | Zeitgrenze überschritten |
+| `invalid_response` | Antwort verletzt den Vertrag |
+| `resource_conflict` | Ressourcenbestand, Zuordnung oder Kennzeichnung widerspricht dem Auftrag |
+| `capacity_limit` | VM-Obergrenze erreicht |
+| `storage_unverified` | Datenträgerzuordnung oder Speicherabschluss nicht bestätigt |
+
+Der Agent gibt begrenzte Fehlermeldungen aus. Freie Kubernetes-Fehlertexte werden nicht als Ergebnis durchgereicht oder in SQLite gespeichert. Dort stehen die zusammengefassten Fehlercodes `timeout`, `platform_error` und `interrupted`. Die Werkzeuge sind entsprechend ihrer Wirkung als lesend oder schreibend gekennzeichnet; Löschung ist als destruktiv markiert.
+
+### 4.6 KubeVirt-Adapter und Ressourcenverwaltung
+
+Der Adapter verwendet die vorhandene MicroK8s-Installation über `microk8s kubectl`. Die Aufrufe erfolgen als Argumentliste ohne Shell-Auswertung. Schreibende Objekte werden als JSON über stdin übergeben. Der Kubernetes-Zugriff setzt die bereits berechtigte lokale Benutzerumgebung voraus; die Agent-Konfiguration enthält keine Clusterzugangsdaten.
+
+#### Umsetzung des Modells
+
+`adapter/kubevirt_manifest.py` übersetzt Modellversion 1.0 in eine VM mit DataVolume und einen NodePort-Service. Die wesentlichen Zuordnungen sind:
+
+| Fachliche Angabe | KubeVirt-Umsetzung |
+| --- | --- |
+| CPU, RAM und Datenträger | CPU-Kerne, Gastspeicher und Speicheranforderung des DataVolume |
+| Ubuntu 24.04, x86_64 | Festgelegtes Canonical-Cloud-Abbild für Noble auf amd64 |
+| Benutzer und öffentlicher SSH-Schlüssel | cloud-init mit gesperrter Passwortanmeldung |
+| HTTP-Testdienst | systemd-Dienst mit Python-HTTP-Server und erwartetem Inhalt auf Gastport 8080 |
+| HTTP und SSH | NodePort-Service mit dynamisch vergebenen Ports |
+
+Das verwendete Abbild ist der Canonical-Build `20260911` aus dem manuellen Referenzlauf. Die veröffentlichte Prüfsumme wird als Annotation festgehalten; dies ist keine zusätzliche Laufzeitprüfung des heruntergeladenen Abbilds durch den Agenten. cloud-init richtet den Testdienst ein, ohne ein Paketupdate oder Distributionsupgrade auszulösen.
+
+Der gemeinsame Namespace `diplomarbeit-agent` und die Quota `vm-limit` sind Agent-Infrastruktur. Sie bleiben beim Löschen eines einzelnen Laufs erhalten. Ressourcenname und Labels werden vor der Erstellung festgelegt. Der Name entsteht deterministisch aus der Laufkennung; Labels enthalten verwaltenden Agenten, Lauf und Erstellungsauftrag. Der Modell-Hash steht als Annotation auf VM und Service. Vorhandene Objekte werden auf passende Kennzeichnungen und Definition geprüft, statt ungeprüft überschrieben zu werden.
+
+#### Laufbezogenes Inventar
+
+Der Bestand umfasst VM, VMI, DataVolume, PVC, Service, Pods, EndpointSlices und zugehörige PVs. Die Zuordnung erfolgt über Labels, bekannte UIDs und OwnerReferences. Das schliesst Folgeobjekte ein, die Controller erzeugen. Der Provider prüft beim gebundenen PV die `claimRef`-Zuordnung zu PVC-UID, Name und Namespace.
+
+CDI kann während des Imports temporäre Scratch-PVCs, Scratch-PVs und Importer-Pods erzeugen. Diese Einträge bleiben im bekannten Inventar, auch wenn sie später bereits verschwunden sind. Wiederverwendete Namen mit anderen UIDs werden getrennt behandelt. Ein früherer Pod-Eintrag darf nicht zum Löschen eines fremden Ersatzobjekts führen.
+
+#### Abbau und Speicherabschluss
+
+Vor dem Löschen sichert der Agent die PV-/PVC-Zuordnung und die Angaben zum lokalen Datenverzeichnis. Neue Speichermetadaten werden zuerst zurückgegeben und persistent gespeichert, bevor der nächste destruktive Schritt folgt.
+
+Löschanfragen enthalten eine UID-Precondition und verwenden Foreground-Löschung. Dadurch bezieht sich ein Auftrag auf das beobachtete Objekt und nicht nur auf dessen wiederverwendbaren Namen. VM und Folgeobjekte werden schrittweise entfernt beziehungsweise als bereits abwesend bestätigt. Der Adapter erzwingt keine PV-Löschung: Der Storage-Provisioner muss den Datenträger und das PV-Objekt bereinigen.
+
+Bei `microk8s-hostpath` reicht ein fehlendes PVC- oder PV-Objekt als Speicherabschluss nicht aus. Geprüft werden auch Reclaim Policy `Delete`, die gesicherte Zuordnung, der lokale Knoten und das fehlende Datenverzeichnis. Deshalb wird dieser Adapter auf dem Clusterknoten ausgeführt. Ein fehlender Pfad wird über `lstat` festgestellt; fehlende Zugriffsrechte gelten nicht als bestätigte Entfernung.
+
+Für ältere Inventare mit einem bereits verschwundenen Scratch-PV kann der Pfad nur unter engen Voraussetzungen ergänzt werden: Die Scratch-PVC-UID muss bekannt sein, der PV-Name muss dazu passen und ein vorhandener, verifizierter PV desselben Laufs muss das lokale Speicherverzeichnis bestätigen. Die Scratch-Speicherklasse wird mit der CDI-Konfiguration beziehungsweise der Klasse des bekannten Ziel-PVC abgeglichen. Bei unvollständiger oder widersprüchlicher Zuordnung stoppt der Abbau mit `storage_unverified` oder `resource_conflict`. Die Pfadbildung und der Fallback auf die Ziel-PVC-Klasse folgen dem [MicroK8s-Hostpath-Provisioner](https://github.com/canonical/hostpath-provisioner/blob/master/hostpath-provisioner.go) und der [Scratch-Auswahl von CDI](https://github.com/kubevirt/containerized-data-importer/blob/main/pkg/controller/util.go).
+
+Der Abbau gilt erst als abgeschlossen, wenn das bekannte Inventar leer ist und eine abschliessende Plattformabfrage keine laufbezogenen Ressourcen mehr findet. Vorhandene Basis-PVCs und Basis-PVs werden nicht in diesen Lauf übernommen.
+
+### 4.7 Lebenszyklus und Fehlerbehandlung
+
+#### create und status
+
+create prüft Modell, Kennungen und Zielplattform. Danach speichert es Snapshot, Auftrag und Reservierung in SQLite. Der MCP-Adapter bestätigt pro Erstellungsschritt höchstens ein neu angelegtes Objekt. Der Agent sichert die zurückgemeldeten UIDs vor dem nächsten Schritt. Ist die Erstellung vollständig, beginnt die Bereitschaftsprüfung.
+
+Eine laufende VM genügt dafür nicht. Zusätzlich zu `vmReady` und einer VMI in Phase `Running` muss der HTTP-Test Status 200 und den erwarteten Inhalt liefern. Der HTTP-Client folgt keinen Weiterleitungen, verwendet keine Umgebungs-Proxys und begrenzt Zeit sowie Antwortgrösse. Eine Antwort über 4096 Byte oder mit falschem Inhalt wird nicht als bereit akzeptiert.
+
+status liest den gespeicherten Lauf und fragt die Plattform neu ab. Es zeigt `storedPhase`, `vmState`, `vmiPhase`, `vmReady` und `serviceReady` getrennt. Ein fehlgeschlagener Auftrag kann deshalb `storedPhase: error` haben, obwohl die bisherige VM weiterhin läuft und der Dienst antwortet. Umgekehrt beweist eine zuvor gespeicherte Phase `ready` keine aktuelle Nutzbarkeit. Die Statusprüfung ergänzt das Inventar, repariert den Ablauf aber nicht automatisch.
+
+Wird create für eine bereits als bereit gespeicherte Umgebung mit demselben Modell und derselben Plattform wiederholt, prüft der Agent nur den bestehenden Lauf. Er erstellt keine zweite VM. Ein abweichendes Modell unter derselben Laufkennung wird zurückgewiesen.
+
+#### reset und delete
+
+reset startet für eine bereite Umgebung einen Abbau. Erst nach bestätigter Entfernung des gesamten bekannten Bestands wechselt die gespeicherte Ablaufphase von `deleting` nach `creating`. Danach wird aus dem unveränderten Snapshot neu erstellt und erneut auf HTTP-Bereitschaft gewartet. Der Ressourcenname kann gleich bleiben; die UID bezeichnet die neu erzeugte VM.
+
+Eine bereits erfolgreich abgeschlossene Reset-Kennung löst nur eine Statusprüfung aus. Eine neue Reset-Kennung startet einen neuen Reset. Nach einem behandelten Reset-Fehler setzt dieselbe Kennung die gespeicherte Phase fort. Scheitert der Abbau, wird keine zweite Umgebung erstellt.
+
+delete verwendet dieselbe Abbaukontrolle und schliesst den Lauf mit `absent` ab. Bei einer Wiederholung prüft es die tatsächliche Abwesenheit und meldet `alreadyAbsent: true`. Gemeinsamer Namespace und Quota werden dabei nicht als laufbezogene Ressourcen entfernt.
+
+#### Zeitgrenzen und Wiederaufnahme
+
+| Grenze | Standardwert | Geltungsbereich |
+| --- | --- | --- |
+| create | 900 Sekunden | Erstellung bis zur HTTP-Bereitschaft |
+| reset | 1200 Sekunden | Abbau und erneute Erstellung bis zur HTTP-Bereitschaft |
+| delete | 300 Sekunden | Abbau und Abschlusskontrolle |
+| MCP-Aufruf | 30 Sekunden in der Beispielkonfiguration | Prozessstart, Verbindung und ein Werkzeugaufruf |
+| Provider-Aufruf | 15 Sekunden | Kubernetes-Aufrufe innerhalb eines Adapteraufrufs |
+| HTTP-Prüfung | Höchstens 2 Sekunden pro Versuch | Vollständige Antwort innerhalb der verbleibenden Operationszeit |
+
+Die CLI-Option `--timeout-seconds` verändert die Zeitgrenze von create, reset oder delete. Der Agent verwendet für einzelne Aufrufe die kleinere Grenze aus verbleibender Operationszeit und Adapterkonfiguration. Nach einem Fehler versucht er zusätzlich einen begrenzten lesenden Plattformabgleich und beendet den MCP-Kontext. Dieser Fehlerabgleich und die Prozessbereinigung können über die fachliche Zeitgrenze hinaus dauern. Eine Vorgabe von einer Sekunde bedeutet deshalb nicht, dass der gesamte Prozess nach genau einer Sekunde beendet ist.
+
+Bei einem behandelten Adapterfehler oder Ctrl+C speichert der Agent `error` und erhält das bekannte Inventar. Der lesende Abgleich versucht auch Ressourcen zu erfassen, deren API-Aufruf erfolgreich war, dessen Antwort aber verloren ging. Eine Ressource wird erst nach bestätigter Entfernung ausgetragen.
+
+| Situation | Vorgehen im vorhandenen Ablauf |
+| --- | --- |
+| Reset nach behandeltem Fehler | Dieselbe Reset-Kennung erneut verwenden; die gespeicherte Abbau- oder Erstellungsphase wird fortgesetzt |
+| delete nach behandeltem Fehler | Dieselbe Löschkennung erneut verwenden und den Restbestand abgleichen |
+| Fehlgeschlagenes create | Mit delete bereinigen; nach bestätigtem `absent` einen neuen Erstellungsauftrag mit demselben Snapshot beginnen |
+| Hart beendeter Prozess mit Status `running` | Automatische Wiederaufnahme noch offen; der gespeicherte Auftrag bleibt gesperrt |
+| Fremde UID, unpassende Kennzeichnung oder unklare Speicherzuordnung | Fehler prüfen; der Adapter übernimmt oder entfernt das widersprüchliche Objekt nicht ungeprüft |
+
+Die Freigabe nach hartem Prozessende benötigt den Nachweis, dass kein bisheriger Agent oder Adapter mehr Änderungen ausführt. Diese Absicherung ist noch nicht implementiert. Timeouts während schreibender Plattformaufrufe und deren anschliessende Bereinigung sind ebenfalls noch auf der echten Infrastruktur zu prüfen. Die vorhandenen Entwicklungsläufe belegen die in Kapitel 5.5 beschriebenen Fälle.
+
+### 4.8 Bedienung auf der lokalen Plattform
+
+Der erprobte Betriebsweg führt per SSH auf den lokalen Clusterknoten. Dort laufen Agent, MCP-Adapter und Speicherprüfung. Voraussetzung sind Python 3.12 mit venv-Unterstützung, Git, der berechtigte MicroK8s-Zugriff sowie KubeVirt, CDI und die Speicherklasse `microk8s-hostpath`.
+
+Für eine neue Arbeitskopie:
 
 ```bash
-python -m unittest discover -s tests -p 'test_agent_zustand.py' -v
-python -m unittest discover -s tests -v
-python scripts/check-repository.py
-python -m mkdocs build --strict
+git clone https://github.com/Cancani/diplomarbeit.git
+cd diplomarbeit
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
 ```
 
-**Prüfstand vom 30.10.2026:** Lokal bestanden alle 58 Tests unter Python 3.12 sowie Repository-Konsistenzprüfung, Shell-Syntaxprüfung und strikter MkDocs-Build. Commit und CI-Nachweis werden im Issue verlinkt. Der erste Windows-Lauf auf [Commit 8d341e9](https://github.com/Cancani/diplomarbeit/commit/8d341e90bf1a2fcb2ad4db8a2c0db4e17ef3f52d) führte 58 Tests aus und endete mit einem Fehler beim Löschen der temporären Datenbank (`WinError 32`). Im Test für unbekannte Schema-Versionen blieben zwei Verbindungen offen: Der SQLite-Kontextmanager beendet Transaktionen, schliesst aber die Verbindung nicht. Die beiden Testzugriffe verwenden nun `contextlib.closing`. Eine gezielte lokale Verbindungsnachverfolgung zeigte vor der Korrektur zwei offene Verbindungen und danach keine; auch alle 58 Tests bestanden erneut unter Python 3.12. Die erneute Prüfung unter Windows ist noch offen. Der kontrollierte Fehlerfall mit echtem Plattformabgleich, die automatische Wiederaufnahme und echte Adapter-Timeouts sind noch nicht nachgewiesen. US20 bleibt deshalb offen. Die Obergrenze von 30 VMs aus Kapitel 4.3 wird durch diesen Umsetzungsschritt noch nicht durchgesetzt.
+Fehlt unter Ubuntu das venv-Modul, wird zunächst das zur Python-Version passende Paket benötigt, auf dem verwendeten System `python3.12-venv`. Die Erstellung des virtuellen Umfelds wird danach erneut ausgeführt. Nach jeder neuen SSH-Anmeldung wird im vorhandenen Repository `source .venv/bin/activate` aufgerufen.
+
+Die technische Erreichbarkeit und die Hilfe lassen sich vor einer Erstellung prüfen:
+
+```bash
+python -m agent --help
+python -m agent reset --help
+python -m agent --config agent/beispiele/konfiguration.yaml platform-status \
+  --platform kubevirt
+```
+
+`platform-status` liest Knoten, KubeVirt und VM-/VMI-Bestand. Es erstellt keine Lernumgebung und bestätigt keine HTTP-Bereitschaft. Vor einem eigenen Lauf muss der öffentliche Schlüssel in der fachlichen Definition zu einem verfügbaren privaten Schlüssel passen, wenn auch SSH im Gast verwendet werden soll.
+
+Die folgenden Befehle verwenden für eine Beispielumgebung durchgehend die Laufkennung `demo-01`:
+
+```bash
+python -m agent --config agent/beispiele/konfiguration.yaml create \
+  modell/beispiele/referenz.yaml \
+  --platform kubevirt \
+  --run-id demo-01 \
+  --operation-id create-demo-01
+python -m agent --config agent/beispiele/konfiguration.yaml status \
+  --run-id demo-01
+python -m agent --config agent/beispiele/konfiguration.yaml reset \
+  --run-id demo-01 \
+  --operation-id reset-demo-01
+python -m agent --config agent/beispiele/konfiguration.yaml delete \
+  --run-id demo-01 \
+  --operation-id delete-demo-01
+```
+
+Jeder Befehl wird einzeln ausgeführt und sein Ergebnis geprüft. create endet bei erfolgreicher Erstellung mit `ready`. reset meldet den bestätigten Phasenwechsel über `reset_recreating` und schliesst mit `reset_completed`. delete meldet `deleted`. Zugangsadresse und vergebene Ports stehen in der jeweiligen Statusausgabe und können sich nach einem Reset ändern.
+
+Die Laufkennung bezeichnet die Umgebung, die Operationskennung einen einzelnen Auftrag. Beide bestehen aus Kleinbuchstaben, Ziffern und durch einzelne Bindestriche getrennten Teilen mit höchstens 63 Zeichen. Ohne `--operation-id` erzeugt die CLI eine neue Kennung. Für eine gezielte Wiederaufnahme wird die Kennung aus der Ausgabe erneut angegeben. Ein weiterer beabsichtigter Reset erhält beispielsweise `reset-demo-02`.
+
+Nach einem behandelten Fehler wird zuerst der Status gelesen. Ein unterbrochener Reset wird anschliessend mit derselben Kennung und einer passenden Zeitgrenze fortgesetzt:
+
+```bash
+python -m agent --config agent/beispiele/konfiguration.yaml status \
+  --run-id demo-01
+python -m agent --config agent/beispiele/konfiguration.yaml reset \
+  --run-id demo-01 \
+  --operation-id reset-demo-01 --timeout-seconds 1200
+```
+
+Für bestehende Läufe müssen Konfiguration und Zustandsdatenbank beibehalten werden. Beim Verschieben einer Konfiguration ist der Bezug relativer Zustandspfade zu beachten. Die Datenbank enthält auch Ressourcen früherer Fehlversuche und wird nicht durch einen neuen leeren Zustand ersetzt.
+
+Für eine unabhängige Abbaukontrolle werden vor delete die UIDs und Speichermetadaten aus dem Inventar gesichert. Danach werden der laufbezogene Bestand im Namespace, die bekannten PV-Namen clusterweit und die gesicherten lokalen Datenverzeichnisse geprüft. Andere Läufe sowie gemeinsame Basisressourcen können weiterhin bestehen. Ein leerer Namespace allein ersetzt die PV- und Verzeichniskontrolle nicht.
+
 
 ## 5 Tests und Messungen
 
-Die bisherigen Prüfungen haben unterschiedliche Zwecke. Die lokalen Tests sichern Modell und Hilfswerkzeuge ab. Lern- und Referenzversuche klären den praktischen Ablauf. Die drei LernMAAS-Basisläufe liefern die Ausgangswerte. Die formalen PoC-Serien folgen nach der Implementierung des vollständigen Lebenszyklus.
+Die Prüfungen haben unterschiedliche Zwecke. Automatisierte Tests sichern die Regeln und Schnittstellen im Code ab. Manuelle Referenzversuche klären die praktische Machbarkeit. Die lokale Agentenprüfung verbindet die Komponenten mit echter Infrastruktur. Die LernMAAS-Basisserie liefert die Ausgangswerte für den späteren Vergleich.
 
-| Prüfung | Stand |
+| Prüfung | Stand und Aussage |
 | --- | --- |
-| Modell, Agent-Grundgerüst und Hilfswerkzeuge | Testumfang: 58 Testmethoden, darunter neun CLI-Tests, acht Konfigurationstests und sechs Speichertests; Ausführung mit den dokumentierten Prüfbefehlen |
+| Modell, Agent, Adapter und Hilfswerkzeuge | Automatisierte Codeprüfung ohne bereitgestellte VM; Verfahren und Umfang in Kapitel 5.5 |
 | KubeVirt-Referenzlauf | Manuelle Erstellung, HTTP, SSH und Ressourcenabschluss erfolgreich |
+| Lokaler Agentenlebenszyklus | create, status, reset und delete sowie Wiederholung und behandelte Fehlerfälle geprüft; Grenzen in Kapitel 5.5 |
 | LernMAAS-Basisserie | Drei technische Abläufe abgeschlossen; abweichende Erfassung der Bedienzeit bei den Ergebnissen ausgewiesen |
-| AWS-Smoke-Test | Erstellung, HTTP, SSH und Abbau erfolgreich |
-| Formale PoC-Serien | Je drei vollständige Läufe auf KubeVirt und AWS nach der Umsetzung vorgesehen |
+| AWS-Smoke-Test | Manuelle Erstellung, HTTP, SSH und Abbau erfolgreich; noch kein AWS-Agentennachweis |
+| Formale PoC-Serien | Je drei vollständige Messläufe auf KubeVirt und AWS noch ausstehend |
 
 ### 5.1 Messplan
 
@@ -1615,6 +1790,53 @@ Die Streuung beim Aufbau fällt deutlich grösser aus als beim Abbau. Die Ereign
 
 Der manuelle KubeVirt-Lauf und der AWS-Smoke-Test bestätigen inzwischen, dass die Referenz auf beiden Zielplattformen funktioniert. Ihre einzelnen Zeiten werden wegen der unterschiedlichen Abläufe nicht mit den Basisläufen zu einer gemeinsamen Leistungsrangfolge verrechnet.
 
+### 5.5 Funktionsprüfung des lokalen Agenten
+
+Die Funktionsprüfung verbindet automatisierte Tests mit Aufrufen auf der lokalen KubeVirt-Plattform. Die automatisierten Tests prüfen Modell und Konfiguration, SQLite-Transaktionen, MCP-Transport, Manifestbildung, Bereitschaft und Abbau. Testbestände und Fake-Provider ersetzen dabei gezielt die Kubernetes-API; sie stellen keine laufende VM bereit. HTTP-Prüfungen verwenden zusätzlich einen lokalen Testserver.
+
+| Testbereich | Abgedecktes Verhalten |
+| --- | --- |
+| Modell und Konfiguration | Pflichtfelder, Datentypen, unbekannte Felder, YAML-Mehrdeutigkeiten, öffentliche Schlüssel, Pfadauflösung und verständliche Fehler |
+| CLI | Hilfe, Argumente, Exitcodes, UTF-8 und Aufruf aus einem anderen Arbeitsverzeichnis |
+| SQLite | Unveränderter Snapshot, Migrationen, konkurrierende Starts, zulässige Übergänge, Kapazitätsreservierung und Inventarerhalt |
+| MCP | Tatsächlicher stdio-Transport mit Test-Provider, strukturierte Antworten, Fehler und Handshake-Timeout mit Prozessbeendigung |
+| Erstellung und Bereitschaft | Einzelne Erstellungsschritte, Inventarsicherung, Wiederholung ohne Dubletten und HTTP-Prüfung auf Status, Inhalt, Weiterleitung, Grösse und Zeit |
+| Reset und Abbau | Bestätigter Abbau vor Neuerstellung, gleiche und neue Operationskennungen, verlorene Antworten, historische UIDs und Prüfung des Speicherabschlusses |
+| Bestehende Hilfswerkzeuge | Messproben, Issue-Verarbeitung und Repository-Konsistenz |
+
+Die vollständige automatisierte Prüfung läuft unter Python 3.12 ohne Clusterzugriff. Sie ist auch auf dem lokalen Zielsystem erfolgreich ausgeführt worden. Die [Tests im Repository](https://github.com/Cancani/diplomarbeit/tree/main/tests) und der [Dokumentationsworkflow](https://github.com/Cancani/diplomarbeit/actions/workflows/docs.yaml) machen die Codeprüfung wiederholbar. Ein erfolgreicher Testlauf allein belegt keinen Infrastrukturaufbau.
+
+Für die lokale Prüfung aus dem Repository-Verzeichnis:
+
+```bash
+python -m pip install -r requirements.txt -r requirements-docs.txt
+python -m unittest discover -s tests -v
+python scripts/check-repository.py
+bash -n scripts/create-issues.sh scripts/update-issues.sh
+python -m mkdocs build --strict
+```
+
+Auf der echten Plattform sind folgende Abläufe anhand der übermittelten Terminalausgaben geprüft:
+
+| Ablauf | Beobachtetes Ergebnis |
+| --- | --- |
+| Plattformstatus über MCP | Knoten bereit, KubeVirt verfügbar, VM-/VMI-Bestand lesbar |
+| create und anschliessendes status | VM und VMI laufen; der Agent wartet zusätzlich auf den erwarteten HTTP-Inhalt. Ein neuer CLI-Prozess bestätigt die Bereitschaft |
+| Wiederholtes create | Status der bestehenden Umgebung; die direkte Kubernetes-Abfrage zeigt eine VM mit unveränderter UID |
+| delete und Abschlusskontrolle | Agent meldet `absent`. Separate Kubernetes-Abfragen finden keine laufbezogenen Objekte oder bekannten PVs; beide gesicherten Datenverzeichnisse fehlen |
+| Wiederholtes delete | `alreadyAbsent: true`, ohne weitere Ressourcenänderung |
+| reset | Alte Ressourcen einschliesslich PVs werden vor der Neuerstellung als entfernt bestätigt. Neue VM-UID bei unverändertem Modell-Hash; anschliessend HTTP-Bereitschaft |
+| Wiederholung derselben abgeschlossenen Reset-Kennung | Nur eine Statusmeldung; die direkte Kubernetes-Abfrage bestätigt dieselbe VM-UID |
+| Neue Reset-Kennung und Ctrl+C während des Abbaus | Neuer Auftrag beginnt. Der Abbruch hinterlässt `error` mit `interrupted` und bekanntem Inventar. Derselbe Auftrag setzt bei `deleting` fort und schliesst erfolgreich ab |
+| Timeout bei der Abfrage vor dem Abbau | Die absichtlich kurze Zeitgrenze führt zu `timeout` und erhaltenem Inventar. Mit derselben Kennung und normaler Zeitgrenze gelingt der vollständige Reset |
+
+Die Statusausgabe nach dem Timeout zeigte zugleich einen fehlgeschlagenen Auftrag und eine weiterhin bereite bestehende VM. Damit ist auch die getrennte Darstellung von Auftragsphase und tatsächlicher Dienstbereitschaft im lokalen Ablauf geprüft.
+
+Diese Ergebnisse sind Funktionsprüfungen während der Entwicklung. Sie beruhen auf Konsolenausgaben vom Zielsystem; ein vollständiger versionierter Agenten-Laufdatensatz für eine formale Messserie liegt noch nicht vor. Die Entwicklungsläufe werden deshalb weder als die drei vorgesehenen PoC-Messläufe gezählt noch zur Berechnung einer Verbesserung gegenüber LernMAAS verwendet.
+
+Offen bleiben die Wiederaufnahme nach hartem Prozessende, echte Timeouts während schreibender Plattformaufrufe und deren Bereinigung sowie der automatisierte AWS-Ablauf. Die automatische Sperre eines nach Prozessabbruch noch als `running` gespeicherten Auftrags ist im Test abgedeckt; seine Freigabe und sichere Fortsetzung sind damit nicht nachgewiesen. Ein Lastnachweis für 30 VMs und eine automatisierte SSH-Anmeldung im Gast gehören ebenfalls nicht zu den hier bestätigten Ergebnissen.
+
+
 ## Verzeichnisse
 
 ### Glossar
@@ -1629,7 +1851,7 @@ Der manuelle KubeVirt-Lauf und der AWS-Smoke-Test bestätigen inzwischen, dass d
 | KubeVirt | Kubernetes-Erweiterung für den Betrieb virtueller Maschinen als Kubernetes-Ressourcen |
 | MAAS | Metal as a Service; Grundlage der heutigen Maschinenverwaltung und Bereitstellung |
 | LernMAAS | TBZ-Umsetzung von Lernumgebungen mit MAAS, Modulprofilen und Hilfsskripten |
-| MCP | Model Context Protocol; hier zur Kommunikation zwischen Agent und providerbezogenen Adaptern vorgesehen |
+| MCP | Model Context Protocol; verbindet den Agenten mit dem lokal gestarteten Plattformadapter |
 | Modell-Snapshot | Unveränderte Kopie der für einen Lauf verwendeten fachlichen Definition |
 | NodePort | Kubernetes-Service, der einen Dienst über einen Port auf dem Knoten erreichbar macht |
 | PV und PVC | PersistentVolume als clusterweite Speicherressource und PersistentVolumeClaim als Speicheranforderung im Namespace |
@@ -1649,7 +1871,10 @@ Der manuelle KubeVirt-Lauf und der AWS-Smoke-Test bestätigen inzwischen, dass d
 | [LernMAAS](https://github.com/mc-b/lernmaas) | Profilstruktur und Hilfsskripte; Repository-Commit, installiertes `createvms` und Konfigurationsdatei gesichert, siehe [Laufnachweis](#lernmaas-vorversuch) |
 | [Lerncloud](https://github.com/mc-b/lerncloud) | Bestehende Erstkonfiguration und Dienste |
 | [Kubernetes: Persistent Volumes](https://kubernetes.io/docs/concepts/storage/persistent-volumes/) | Clusterweiter PV und Reclaim-Verhalten |
-| [MCP: Transports, Version 2025-06-18](https://modelcontextprotocol.io/specification/2025-06-18/basic/transports) | stdio und Trennung von Protokoll und Diagnose |
+| [MCP: Transports, Version 2025-06-18](https://modelcontextprotocol.io/specification/2025-06-18/basic/transports) | Transportgrundlage des Architekturentwurfs |
+| [MCP-Python-SDK 2.3.0](https://github.com/modelcontextprotocol/python-sdk/tree/v2.3.0) | Implementierte Client-/Server-Anbindung, stdio und strukturierte Werkzeugantworten |
+| [MicroK8s-Hostpath-Provisioner](https://github.com/canonical/hostpath-provisioner/blob/master/hostpath-provisioner.go) | Bildung lokaler Datenpfade und Bereinigung durch den Provisioner |
+| [CDI: Scratch-Speicherklasse](https://github.com/kubevirt/containerized-data-importer/blob/main/pkg/controller/util.go) | Auswahl der Scratch-Klasse und Rückgriff auf die Klasse des Ziel-PVC |
 | [jsonschema: Schema Validation](https://python-jsonschema.readthedocs.io/en/stable/validate/) | Draft202012Validator und explizite Formatprüfung; verwendete Bibliotheksversion 4.26.0 |
 | [AWS Academy Learner Lab](https://awsacademy.instructure.com/courses/182558/modules/items/18005637), Readme Stand 24.06.2025 | Konkrete Lab-Bedingungen zu Regionen, Ressourcen, Sitzungen und Budget, siehe Kapitel 3.6 |
 | Eigene Board- und Milestone-Screenshots sowie Meetingübersicht | Statusspalten, Sprintzuordnung und Issue-Zahlen für Kapitel 2; Reviewtermine vom Diplomanden bereitgestellt |
@@ -1669,6 +1894,7 @@ Die Rohprotokolle und verwendeten Eingaben bleiben in den ursprünglichen Laufor
 | Nachweis | Inhalt und Verwendung |
 | --- | --- |
 | [KubeVirt-Referenzlauf](#kubevirt-referenzlauf) | Manifest, HTTP, SSH, Ressourceninventar und Storage-Nachkontrolle für die lokale Machbarkeit |
+| [Lokaler Agentenlebenszyklus](#55-funktionsprufung-des-lokalen-agenten) | Automatisierte Codeprüfungen und beobachtete Funktionsabläufe; noch keine formale Agenten-Messserie |
 | [LernMAAS-Vorversuch](#lernmaas-vorversuch) | Vorbereitung der gemeinsamen Referenz; abweichende Eingabe und Messgrenzen im Versuchskapitel beschrieben |
 | [LernMAAS-Basisserie](#lernmaas-basisserie) | Drei technische Läufe, Zeitstempel, Eingaben und MAAS-Ressourcenvergleich; Herkunft der Bedienzeiten dort ausgewiesen |
 | [AWS-Smoke-Test](#aws-smoke-test) | EC2-Aufbau, HTTP, SSH und API-Abbauprüfung; S3-Transfer-Bucket nach dem Download gelöscht |
@@ -1694,8 +1920,8 @@ Die Bestätigung des aktiven Budgetempfängers ist kein Test einer tatsächlich 
 | 8 | [Starfish-Retrospektive zu Sprint 1](#abb-08) | Eigene Rückschau und Verbesserungen |
 | 9 | [Milestone Sprint 2 mit offenen und vorgezogenen Stories](#abb-09) | Grundlage für die Sprintplanung |
 | 10 | [Zeitplan der offenen User Stories für Sprint 2 mit anschliessendem Review](#abb-10) | Terminplanung; lokaler Lebenszyklus gemäss Review priorisiert |
-| 11 | [Systemkontext der geplanten Bereitstellungslösung](#abb-11) | Entwurf |
-| 12 | [Geplanter Aufbau von CLI, Agent und Adaptern](#abb-12) | Entwurf, noch keine implementierte Architektur |
+| 11 | [Systemkontext der Bereitstellungslösung](#abb-11) | KubeVirt umgesetzt, AWS geplant |
+| 12 | [Aufbau von CLI, Agent und Adaptern](#abb-12) | Implementierte lokale Komponenten und geplanter AWS-Adapter |
 
 ## Kontakt
 
