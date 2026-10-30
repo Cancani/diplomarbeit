@@ -42,6 +42,11 @@ def create_server(provider):
         """Ressourcen und VM-Zustand lesen; HTTP-Prüfung erfolgt durch den Agenten."""
         return result(lambda: provider.status(run_id))
 
+    @server.tool(annotations=ToolAnnotations(readOnlyHint=False, destructiveHint=True, idempotentHint=True))
+    def delete(run_id: str, operation_id: str, resources: list[dict]) -> CallToolResult:
+        """Einen Abbauschritt ausführen und bestätigte Ressourcenabwesenheit zurückgeben."""
+        return result(lambda: provider.delete(run_id, operation_id, resources))
+
     return server
 
 

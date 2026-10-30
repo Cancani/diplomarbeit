@@ -35,6 +35,7 @@ SCHEMA = (
         resource_id TEXT NOT NULL,
         scope TEXT NOT NULL,
         name TEXT NOT NULL DEFAULT '',
+        details TEXT NOT NULL DEFAULT '{}',
         PRIMARY KEY (run_id, kind, resource_id, scope)
     )""",
 )
@@ -69,13 +70,16 @@ class StateStore:
             raise StateError('Zustandsordner konnte nicht angelegt werden.') from error
         with self.connection(write=True) as connection:
             version = connection.execute('PRAGMA user_version').fetchone()[0]
-            if version not in (0, 1, 2):
+            if version not in (0, 1, 2, 3):
                 raise StateError('Die Version des Zustandsspeichers wird nicht unterstützt.')
             for statement in SCHEMA:
                 connection.execute(statement)
-            if version == 1:
+            columns = {row[1] for row in connection.execute('PRAGMA table_info(resources)')}
+            if 'name' not in columns:
                 connection.execute("ALTER TABLE resources ADD COLUMN name TEXT NOT NULL DEFAULT ''")
-            connection.execute('PRAGMA user_version = 2')
+            if 'details' not in columns:
+                connection.execute("ALTER TABLE resources ADD COLUMN details TEXT NOT NULL DEFAULT '{}'")
+            connection.execute('PRAGMA user_version = 3')
 
     @contextmanager
     def connection(self, write=False):
@@ -163,12 +167,17 @@ class StateStore:
             self._active(connection, run_id, operation_id)
             self._record(connection, run_id, kind, resource_id, scope, name)
 
-    def _record(self, connection, run_id, kind, resource_id, scope, name):
+    def _record(self, connection, run_id, kind, resource_id, scope, name, details=None):
+        previous = connection.execute(
+            'SELECT details FROM resources WHERE run_id = ? AND kind = ? AND resource_id = ? AND scope = ?',
+            (run_id, kind, resource_id, scope)).fetchone()
+        merged = json.loads(previous['details']) if previous else {}
+        merged.update(details or {})
         connection.execute(
-            'INSERT INTO resources (run_id, kind, resource_id, scope, name) VALUES (?, ?, ?, ?, ?) '
+            'INSERT INTO resources (run_id, kind, resource_id, scope, name, details) VALUES (?, ?, ?, ?, ?, ?) '
             "ON CONFLICT (run_id, kind, resource_id, scope) DO UPDATE SET name = CASE "
-            "WHEN excluded.name <> '' THEN excluded.name ELSE resources.name END",
-            (run_id, kind, resource_id, scope, name))
+            "WHEN excluded.name <> '' THEN excluded.name ELSE resources.name END, details = excluded.details",
+            (run_id, kind, resource_id, scope, name, json.dumps(merged)))
 
     def observe_resources(self, run_id, operation_id, resources):
         """Inventar ergänzen; ein zwischenzeitlich neuer Auftrag weist alte Antworten ab."""
@@ -178,7 +187,7 @@ class StateStore:
                 raise StateError('Der Laufzustand hat sich geändert; Status erneut abfragen.')
             for resource in resources:
                 self._record(connection, run_id, resource['kind'], resource['resource_id'],
-                             resource['scope'], resource['name'])
+                             resource['scope'], resource['name'], resource.get('details'))
 
     def confirm_removed(self, run_id, operation_id, kind, resource_id, scope=''):
         """Erst nach bestätigter Abwesenheit auf der Plattform aufrufen."""
@@ -228,7 +237,13 @@ class StateStore:
             run['model_snapshot'] = json.loads(run['model_snapshot'])
             run['operation'] = dict(connection.execute(
                 'SELECT * FROM operations WHERE operation_id = ?', (run.pop('operation_id'),)).fetchone())
-            run['resources'] = [dict(row) for row in connection.execute(
-                'SELECT kind, resource_id, scope, name FROM resources WHERE run_id = ? ORDER BY kind, resource_id, scope',
-                (run_id,))]
+            run['resources'] = []
+            for row in connection.execute(
+                    'SELECT kind, resource_id, scope, name, details FROM resources WHERE run_id = ? ORDER BY kind, resource_id, scope',
+                    (run_id,)):
+                resource = dict(row)
+                details = json.loads(resource.pop('details'))
+                if details:
+                    resource['details'] = details
+                run['resources'].append(resource)
             return run

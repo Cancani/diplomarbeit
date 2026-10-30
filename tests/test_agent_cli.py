@@ -67,7 +67,7 @@ class AgentCliTests(unittest.TestCase):
             with self.subTest(operation=operation):
                 result = self.invoke([operation, '--run-id', 'lokal-01'])
                 self.assertEqual(result.returncode, 1)
-                expected = ('keine Umgebung gespeichert' if operation == 'status'
+                expected = ('keine Umgebung gespeichert' if operation in ('status', 'delete')
                             else 'Lebenszyklussteuerung ist noch nicht implementiert')
                 self.assertIn(expected, result.stderr)
                 self.assertEqual(result.stdout, '')

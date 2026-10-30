@@ -8,7 +8,7 @@ import anyio
 import httpx2
 
 from adapter.kubevirt_manifest import validate_id
-from adapter.vertrag import AdapterError, CREATE_SCHEMA, RUN_STATUS_SCHEMA
+from adapter.vertrag import AdapterError, CREATE_SCHEMA, RUN_STATUS_SCHEMA, DELETE_SCHEMA
 from agent.mcp_client import call_tool
 from agent.zustand import StateError, StateStore
 from modell.snapshot import encode_snapshot
@@ -137,6 +137,67 @@ def create(config, run_id, operation_id, platform, model, timeout_seconds=900):
     except (AdapterError, KeyboardInterrupt) as error:
         # Ein API-Aufruf kann trotz verlorener Antwort erfolgreich gewesen sein.
         # Nur lesend abgleichen; bei Fehlern bleiben alle bereits bekannten IDs erhalten.
+        try:
+            _read(store, adapter, record)
+        except (AdapterError, StateError):
+            pass
+        code = 'interrupted' if isinstance(error, KeyboardInterrupt) else (
+            'timeout' if error.code == 'timeout' else 'platform_error')
+        store.fail(run_id, operation_id, code)
+        emit('error', run_id, operation_id, code=code, resources=store.get(run_id)['resources'])
+        raise
+
+
+def delete(config, run_id, operation_id, timeout_seconds=300):
+    validate_id(run_id)
+    validate_id(operation_id)
+    if not config['stateFile'].is_file():
+        raise StateError('Für diese Laufkennung ist keine Umgebung gespeichert.')
+    store = StateStore(config['stateFile'])
+    record = store.get(run_id)
+    adapter = _adapter(config, record['platform'])
+    if record['phase'] == 'absent':
+        actual = call_tool(adapter, 'status', {'run_id': run_id}, RUN_STATUS_SCHEMA)
+        if actual['resources']:
+            raise AdapterError('resource_conflict')
+        if record['operation']['operation_id'] != operation_id:
+            store.start_operation(run_id, operation_id, 'delete')
+        emit('deleted', run_id, operation_id, alreadyAbsent=True)
+        return
+    store.start_operation(run_id, operation_id, 'delete')
+    record = store.get(run_id)
+    emit('delete_started', run_id, operation_id)
+    deadline = time.monotonic() + timeout_seconds
+    try:
+        while True:
+            remaining = deadline - time.monotonic()
+            _read(store, adapter, record, remaining)
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise AdapterError('timeout')
+            known = store.get(run_id)['resources']
+            settings = {**adapter, 'timeoutSeconds': min(adapter['timeoutSeconds'], remaining)}
+            step = call_tool(settings, 'delete', {
+                'run_id': run_id, 'operation_id': operation_id, 'resources': known}, DELETE_SCHEMA)
+            store.observe_resources(run_id, operation_id, step['resources'])
+            for resource in step['removed']:
+                store.confirm_removed(run_id, operation_id, resource['kind'],
+                                      resource['resource_id'], resource['scope'])
+            if step['removed']:
+                emit('removal_confirmed', run_id, operation_id, resources=step['removed'])
+            if step['complete']:
+                final = _read(store, adapter, record, deadline - time.monotonic())
+                if not final['resources'] and not store.get(run_id)['resources']:
+                    store.advance(run_id, operation_id, 'absent')
+                    emit('deleted', run_id, operation_id, alreadyAbsent=False)
+                    return
+            emit('waiting_for_deletion', run_id, operation_id,
+                 knownResources=len(store.get(run_id)['resources']))
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise AdapterError('timeout')
+            time.sleep(min(2, remaining))
+    except (AdapterError, KeyboardInterrupt) as error:
         try:
             _read(store, adapter, record)
         except (AdapterError, StateError):

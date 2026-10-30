@@ -11,13 +11,13 @@ class KubeVirtProvider:
         self.command = list(command)
         self.timeout_seconds = timeout_seconds
 
-    def _request(self, verb, arguments, deadline, document=None, allow_empty=False):
+    def _request(self, verb, arguments, deadline, document=None, allow_empty=False, output_json=True):
         remaining = deadline - time.monotonic()
         if remaining <= 0:
             raise AdapterError('timeout')
         try:
             result = subprocess.run(
-                [*self.command, verb, *arguments, '-o', 'json',
+                [*self.command, verb, *arguments, *(['-o', 'json'] if output_json else []),
                  f'--request-timeout={max(1, int(remaining))}s'],
                 input=json.dumps(document) if document is not None else None,
                 capture_output=True, text=True, encoding='utf-8',

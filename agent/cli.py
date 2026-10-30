@@ -40,6 +40,10 @@ def build_parser():
             command.add_argument('--operation-id', help='Kennung des Erstellungsauftrags')
             command.add_argument('--timeout-seconds', type=positive_seconds, default=900,
                                  help='Gesamte Zeitgrenze bis zur HTTP-Bereitschaft (Standard: 900)')
+        if name == 'delete':
+            command.add_argument('--operation-id', help='Kennung des Löschauftrags')
+            command.add_argument('--timeout-seconds', type=positive_seconds, default=300,
+                                 help='Gesamte Zeitgrenze für den Abbau (Standard: 300)')
     return parser
 
 
@@ -80,15 +84,17 @@ def main(argv=None):
             for message in error.errors:
                 print(f'Ungültig: {message}', file=sys.stderr)
             return 1
-    if args.operation in ('create', 'status'):
+    if args.operation in ('create', 'status', 'delete'):
         from adapter.vertrag import AdapterError
-        from agent.lebenszyklus import create, status
+        from agent.lebenszyklus import create, status, delete
         from agent.zustand import StateError
 
         try:
             if args.operation == 'create':
                 create(config, args.run_id, args.operation_id or uuid.uuid4().hex,
                        args.platform, model, args.timeout_seconds)
+            elif args.operation == 'delete':
+                delete(config, args.run_id, args.operation_id or uuid.uuid4().hex, args.timeout_seconds)
             else:
                 status(config, args.run_id)
         except (AdapterError, StateError) as error:

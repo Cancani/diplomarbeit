@@ -15,6 +15,7 @@ ERRORS = {
     'invalid_request': 'Modell oder Auftragskennungen sind ungültig.',
     'resource_conflict': 'Vorhandene Ressourcen oder ihre Kennzeichnungen widersprechen dem Auftrag.',
     'capacity_limit': 'Die Obergrenze von 30 verwalteten VMs ist erreicht.',
+    'storage_unverified': 'Die Zuordnung oder Entfernung des lokalen Datenträgers ist nicht bestätigt.',
 }
 
 MACHINE_SCHEMA = {
@@ -67,6 +68,11 @@ RESOURCE_SCHEMA = {
     'properties': {key: {'type': 'string', **({'minLength': 1} if key != 'scope' else {})}
                    for key in ['kind', 'name', 'resource_id', 'scope']},
 }
+RESOURCE_SCHEMA['properties']['details'] = {
+    'type': 'object', 'additionalProperties': False,
+    'properties': {key: {'type': 'string', 'minLength': 1}
+                   for key in ['claimUid', 'hostPath', 'nodeName']},
+}
 CREATE_SCHEMA = {
     'type': 'object', 'additionalProperties': False, 'required': ['complete', 'resources'],
     'properties': {'complete': {'type': 'boolean'},
@@ -81,6 +87,12 @@ RUN_STATUS_SCHEMA = {
         'modelHash': {'type': ['string', 'null']}, 'httpUrl': {'type': ['string', 'null']},
         'sshHost': {'type': ['string', 'null']}, 'sshPort': {'type': ['integer', 'null']},
     },
+}
+DELETE_SCHEMA = {
+    'type': 'object', 'additionalProperties': False, 'required': ['complete', 'resources', 'removed'],
+    'properties': {'complete': {'type': 'boolean'},
+                   'resources': {'type': 'array', 'items': RESOURCE_SCHEMA},
+                   'removed': {'type': 'array', 'items': RESOURCE_SCHEMA}},
 }
 
 

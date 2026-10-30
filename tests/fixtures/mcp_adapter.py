@@ -40,6 +40,9 @@ class FakeProvider:
         return {'resources': [], 'vmState': 'Absent', 'vmiPhase': 'Absent', 'vmReady': False,
                 'modelHash': None, 'httpUrl': None, 'sshHost': None, 'sshPort': None}
 
+    def delete(self, run_id, operation_id, resources):
+        return {'complete': True, 'resources': [], 'removed': resources}
+
 
 if mode == 'invalid':
     server = MCPServer('test-invalid-adapter', log_level='WARNING')

@@ -4,6 +4,7 @@ import time
 
 from adapter.kubevirt_manifest import NAMESPACE, MAX_VMS, labels, infrastructure, manifests, resource_name
 from adapter.kubevirt_provider import KubeVirtProvider
+from adapter.kubevirt_delete import KubeVirtDeletion, storage_details
 from adapter.vertrag import AdapterError
 
 
@@ -16,7 +17,7 @@ def reference(resource):
         raise AdapterError('invalid_response') from error
 
 
-class KubeVirtLifecycle(KubeVirtProvider):
+class KubeVirtLifecycle(KubeVirtDeletion, KubeVirtProvider):
     def _object(self, kind, name, deadline, namespace=None):
         arguments = [kind.lower(), name, '--ignore-not-found']
         if namespace:
@@ -66,7 +67,7 @@ class KubeVirtLifecycle(KubeVirtProvider):
             resources.append(reference(existing))
         return {'complete': True, 'resources': resources}
 
-    def status(self, run_id):
+    def status(self, run_id, known_resources=()):
         name = resource_name(run_id)
         deadline = time.monotonic() + self.timeout_seconds
         # Ein noch nicht erstellter Namespace ist ein leerer laufbezogener Bestand.
@@ -79,11 +80,13 @@ class KubeVirtLifecycle(KubeVirtProvider):
                 'virtualmachines,virtualmachineinstances,datavolumes,persistentvolumeclaims,services,pods,endpointslices',
                 '-n', NAMESPACE], deadline)
         owned = {}
+        known_ids = {r['resource_id'] for r in known_resources}
         for item in items:
             metadata = item.get('metadata', {})
             if item['kind'] in ('VirtualMachine', 'Service') and metadata.get('name') == name:
                 self._owned(item, {'metadata': {'labels': labels(run_id)}}, allow_deleting=True)
-            if all(metadata.get('labels', {}).get(k) == v for k, v in labels(run_id).items()):
+            if metadata.get('uid') in known_ids or all(
+                    metadata.get('labels', {}).get(k) == v for k, v in labels(run_id).items()):
                 owned[metadata['uid']] = item
         changed = True
         while changed:
@@ -91,7 +94,8 @@ class KubeVirtLifecycle(KubeVirtProvider):
             for item in items:
                 metadata = item.get('metadata', {})
                 if metadata['uid'] not in owned and any(
-                        owner.get('uid') in owned for owner in metadata.get('ownerReferences', [])):
+                        owner.get('uid') in owned or owner.get('uid') in known_ids
+                        for owner in metadata.get('ownerReferences', [])):
                     owned[metadata['uid']] = item
                     changed = True
         resources = [reference(item) for item in owned.values()]
@@ -108,7 +112,9 @@ class KubeVirtLifecycle(KubeVirtProvider):
             if (claim.get('uid'), claim.get('namespace'), claim.get('name')) != (
                     item['metadata']['uid'], NAMESPACE, item['metadata']['name']):
                 raise AdapterError('resource_conflict')
-            resources.append(reference(pv))
+            node_name = next((r.get('status', {}).get('nodeName') for r in owned.values()
+                              if r['kind'] == 'VirtualMachineInstance'), None)
+            resources.append({**reference(pv), 'details': storage_details(pv, item, node_name)})
         vm = next((r for r in owned.values() if r['kind'] == 'VirtualMachine' and r['metadata']['name'] == name), {})
         vmi = next((r for r in owned.values() if r['kind'] == 'VirtualMachineInstance' and r['metadata']['name'] == name), {})
         service = next((r for r in owned.values() if r['kind'] == 'Service' and r['metadata']['name'] == name), {})

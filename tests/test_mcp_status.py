@@ -14,7 +14,7 @@ import yaml
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from adapter.kubevirt_provider import KubeVirtProvider
-from adapter.vertrag import AdapterError, read_status_response, CREATE_SCHEMA, RUN_STATUS_SCHEMA
+from adapter.vertrag import AdapterError, read_status_response, CREATE_SCHEMA, RUN_STATUS_SCHEMA, DELETE_SCHEMA
 from agent.mcp_client import platform_status, call_tool
 from modell.validierung import load_model
 
@@ -51,6 +51,11 @@ class McpStatusTests(unittest.TestCase):
             actual = call_tool(self.config('success'), 'status', {'run_id': 'test-run'}, RUN_STATUS_SCHEMA)
             self.assertFalse(actual['vmReady'])
             self.assertIsNone(actual['httpUrl'])
+            removed = call_tool(self.config('success'), 'delete', {
+                'run_id': 'test-run', 'operation_id': 'delete-operation',
+                'resources': created['resources']}, DELETE_SCHEMA)
+            self.assertTrue(removed['complete'])
+            self.assertEqual(removed['removed'], created['resources'])
 
     def test_adapter_errors_and_invalid_responses_are_not_reported_as_success(self):
         for mode, code in [('invalid', 'invalid_response'), ('error', 'platform_error')]:
