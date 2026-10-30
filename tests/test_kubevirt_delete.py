@@ -72,7 +72,8 @@ class KubeVirtDeleteTests(unittest.TestCase):
         cluster.put({'kind': 'PersistentVolumeClaim', 'metadata': {
             'name': name + '-disk', 'namespace': NAMESPACE, 'uid': 'pvc-id',
             'ownerReferences': [{'uid': 'dv-id'}]},
-            'spec': {'volumeName': 'pvc-pvc-id'}, 'status': {'phase': 'Bound'}})
+            'spec': {'volumeName': 'pvc-pvc-id', 'storageClassName': 'microk8s-hostpath'},
+            'status': {'phase': 'Bound'}})
         cluster.put({'kind': 'EndpointSlice', 'metadata': {
             'name': name + '-endpoint', 'namespace': NAMESPACE, 'uid': 'endpoint-id',
             'ownerReferences': [{'uid': 'service-id'}]}})
@@ -251,6 +252,45 @@ class KubeVirtDeleteTests(unittest.TestCase):
         cluster.objects.pop(('persistentvolume', None, 'pvc-pvc-id'))
         main_path.rmdir()
         self.assertTrue(cluster.delete('run-01', 'delete-operation', list(merged.values()))['complete'])
+
+    def test_scratch_class_fallback_requires_the_known_target_claim(self):
+        name = resource_name('run-01')
+        root = self.root/'provisioner'
+        root.mkdir()
+        main_path = root/f'{NAMESPACE}-{name}-disk-pvc-pvc-id'
+        main_path.mkdir()
+        cases = [
+            ({}, 'microk8s-hostpath', 'pvc-id', True),
+            ({'status': {'scratchSpaceStorageClass': ''}}, 'microk8s-hostpath', 'pvc-id', True),
+            ({'status': {'scratchSpaceStorageClass': 'other'}}, 'microk8s-hostpath', 'pvc-id', False),
+            ({}, 'other', 'pvc-id', False),
+            ({}, 'microk8s-hostpath', 'replacement-id', False),
+            (None, 'microk8s-hostpath', 'pvc-id', False),
+        ]
+        for config, storage_class, uid, accepted in cases:
+            with self.subTest(config=config, storage_class=storage_class, uid=uid):
+                cluster = self.cluster()
+                cluster.objects[('persistentvolume', None, 'pvc-pvc-id')]['spec']['hostPath']['path'] = str(main_path)
+                resources = cluster.status('run-01')['resources'] + [
+                    {'kind': 'PersistentVolumeClaim', 'name': name + '-disk-scratch',
+                     'resource_id': 'scratch-claim-id', 'scope': NAMESPACE},
+                    {'kind': 'PersistentVolume', 'name': 'pvc-scratch-claim-id',
+                     'resource_id': 'scratch-pv-id', 'scope': ''},
+                ]
+                target = cluster.objects[('persistentvolumeclaim', NAMESPACE, name + '-disk')]
+                target['spec']['storageClassName'] = storage_class
+                target['metadata']['uid'] = uid
+                if config is not None:
+                    cluster.put({'kind': 'CDIConfig', 'metadata': {'name': 'config'}, **config})
+                if accepted:
+                    result = cluster.delete('run-01', 'delete-operation', resources)
+                    recovered = next(r for r in result['resources'] if r['resource_id'] == 'scratch-pv-id')
+                    self.assertEqual(recovered['details']['pathSource'], 'provisioner-name')
+                    self.assertTrue(cluster._local_storage_gone(recovered))
+                else:
+                    with self.assertRaises(AdapterError):
+                        cluster.delete('run-01', 'delete-operation', resources)
+                self.assertEqual(cluster.deletes, [])
 
     def test_historical_pod_uid_does_not_delete_a_foreign_replacement(self):
         for own in [True, False]:

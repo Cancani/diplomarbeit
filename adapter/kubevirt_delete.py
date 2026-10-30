@@ -91,9 +91,19 @@ class KubeVirtDeletion:
                 claim = next((r for r in claims.values()
                               if resource['name'] == 'pvc-' + r['resource_id']
                               and r['name'] == resource_name(run_id) + '-disk-scratch'), None)
-                config = self._object('cdiconfig', 'config', deadline) or {}
+                config = self._object('cdiconfig', 'config', deadline)
+                if config is None:
+                    raise AdapterError('storage_unverified')
                 scratch_class = (config.get('spec', {}).get('scratchSpaceStorageClass')
                                  or config.get('status', {}).get('scratchSpaceStorageClass'))
+                if not scratch_class:
+                    # CDI verwendet ohne Override die Speicherklasse des Ziel-PVC.
+                    target = self._object('persistentvolumeclaim', resource_name(run_id) + '-disk',
+                                          deadline, NAMESPACE)
+                    if (target is None or target['metadata']['uid'] not in claims
+                            or claims[target['metadata']['uid']]['name'] != resource_name(run_id) + '-disk'):
+                        raise AdapterError('storage_unverified')
+                    scratch_class = target.get('spec', {}).get('storageClassName')
                 if scratch_class != 'microk8s-hostpath':
                     raise AdapterError('storage_unverified')
                 roots = set()
