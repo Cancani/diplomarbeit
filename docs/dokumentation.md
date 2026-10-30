@@ -1,7 +1,7 @@
 # Diplomarbeit: Agentenbasierte Hybrid-Cloud-Bereitstellung von Lernumgebungen mit Kubernetes, KubeVirt und MCP
 
 !!! info "Arbeitsstand: Umsetzung Sprint 2"
-    Die Grundlagen aus Sprint 1 sind erarbeitet. Das erste Review ist durchgeführt; die Rückmeldungen und vereinbarten Prioritäten stehen in Kapitel 2.10. Erste Priorität in Sprint 2 hat der vollständige lokale Lebenszyklus auf KubeVirt mit Agent, Zustandsführung und MCP-Anbindung. Modell und Modellprüfung sind bereits umgesetzt. Das CLI-Grundgerüst mit externer Konfiguration liegt vor. Zustandsführung, Lebenszyklussteuerung und Adapter sind noch offen.
+    Die Grundlagen aus Sprint 1 sind erarbeitet. Das erste Review ist durchgeführt; die Rückmeldungen und vereinbarten Prioritäten stehen in Kapitel 2.10. Erste Priorität in Sprint 2 hat der vollständige lokale Lebenszyklus auf KubeVirt mit Agent, Zustandsführung und MCP-Anbindung. Modell und Modellprüfung sind bereits umgesetzt. Das CLI-Grundgerüst mit externer Konfiguration liegt vor. Die SQLite-Grundlage für Zustände und Ressourcen ist ergänzt. Lebenszyklussteuerung, Plattformabgleich und Adapter sind noch offen.
 
 | | |
 | --- | --- |
@@ -11,7 +11,7 @@
 | Schulexperte | Thanam Pangri, HF-Lehrgangsleitung |
 | Bewilligter Zeitraum | 11.09.2026 bis 18.12.2026 |
 | Arbeitsplanung | 14.09.2026 bis 18.12.2026 |
-| Version | 0.18, CLI-Grundgerüst und externe Agent-Konfiguration |
+| Version | 0.19, SQLite-Grundlage für die Zustandsführung |
 | Grundlage | Bewilligte Projektbeschreibung vom 10.09.2026; schulische Vorgaben gemäss gültigem Merkblatt |
 
 ---
@@ -20,7 +20,7 @@
 
 Die Grundlagen für den Proof of Concept sind erarbeitet. Die bestehende LernMAAS-Bereitstellung wurde untersucht und mit drei Basisläufen als Vergleichsgrundlage dokumentiert. Die lokale KubeVirt-Plattform ist verifiziert. Auf KubeVirt und AWS wurde jeweils eine reduzierte Referenz-VM manuell erstellt, über HTTP und SSH geprüft und wieder abgebaut. Die Messwerte und die Grenzen ihrer Aussagekraft stehen bei den jeweiligen Versuchen.
 
-Systemkontext, Komponentensicht und vier Architekturentscheide liegen vor. Das plattformneutrale YAML-Modell mit JSON-Schema und automatisierter Validierung ist bereits umgesetzt. Diese Ergebnisse gehören zu den vorgezogenen Stories US17 und US18 aus Sprint 2. Das CLI-Grundgerüst mit externer Konfiguration ist umgesetzt. Zustandsführung, Lebenszyklussteuerung und MCP-Adapter sind noch nicht implementiert. Die bisherigen Einzelversuche belegen deshalb die praktische Machbarkeit, aber noch keinen vollständig automatisierten Lebenszyklus und keine gemessene Verbesserung gegenüber LernMAAS.
+Systemkontext, Komponentensicht und vier Architekturentscheide liegen vor. Das plattformneutrale YAML-Modell mit JSON-Schema und automatisierter Validierung ist bereits umgesetzt. Diese Ergebnisse gehören zu den vorgezogenen Stories US17 und US18 aus Sprint 2. Das CLI-Grundgerüst mit externer Konfiguration ist umgesetzt. Eine SQLite-Grundlage speichert Modell, Operationen und Ressourcen mit geprüften Zustandsübergängen. Ihre Anbindung an CLI und Plattformen sowie die Lebenszyklussteuerung und MCP-Adapter sind noch offen. Die bisherigen Einzelversuche belegen deshalb die praktische Machbarkeit, aber noch keinen vollständig automatisierten Lebenszyklus und keine gemessene Verbesserung gegenüber LernMAAS.
 
 Vor dem ersten Review waren aus der ursprünglichen Sprint-1-Planung 14 fachliche Stories mit 34 Story Points abgeschlossen. US05 ist entfallen; die Abschlussprüfung von US16 mit drei Punkten steht nach der Reviewnachbereitung noch aus. Das erste Review fand am 23.10.2026 statt. Die Experten gaben eine positive Rückmeldung zum bisherigen Arbeitsstand und zur Präsentation. Die eigene Retrospektive und die Vereinbarungen stehen in Kapitel 2.10. Bis zum Ende von Sprint 2 soll der Agent den vollständigen lokalen Lebenszyklus über MCP ausführen können. Dieser Ablauf hat Vorrang vor dem AWS-Durchstich und bildet die Grundlage für die Messserien in Sprint 3. Die Planung steht in Kapitel 2.11. Später folgen je drei vollständige PoC-Läufe auf KubeVirt und AWS, der Vergleich und die abschliessende Bewertung.
 
@@ -1156,7 +1156,7 @@ flowchart TD
 
 Die Kommandozeilenschnittstelle nimmt Definition und Zielplattform entgegen. Der Agent validiert die Eingabe und steuert den Auftrag. Mit Agent ist hier ein Programm mit festen Regeln gemeint: Es entscheidet anhand der Operation und des gespeicherten Zustands über den nächsten Schritt. Eine Sprachmodellentscheidung ist dafür nicht vorgesehen.
 
-Der Zustandsspeicher soll als lokale SQLite-Datei Modell-Snapshot, Laufkennung, Operationskennung, Phase und Ressourcen-IDs halten. Der Snapshot bleibt für einen Lauf unverändert. Ein Hash dient der Zuordnung dieser Definition. Nach jedem erfolgreichen Plattformaufruf werden die erzeugten IDs gespeichert. Für einen Abbruch zwischen API-Erfolg und Speicherung muss der Adapter den Auftrag über eine zuvor festgelegte Kennung wiederfinden können.
+Die SQLite-Grundlage speichert Modell-Snapshot, Laufkennung, Operationskennung, Phase und Ressourcen-IDs, siehe Kapitel 4.4. Der Snapshot bleibt für einen Lauf unverändert. Ein Hash dient der Zuordnung dieser Definition. Nach jedem erfolgreichen Plattformaufruf werden die erzeugten IDs gespeichert. Für einen Abbruch zwischen API-Erfolg und Speicherung muss der Adapter den Auftrag über eine zuvor festgelegte Kennung wiederfinden können.
 
 | Zustand | Bedeutung | Zulässige nächste Aktion |
 | --- | --- | --- |
@@ -1327,7 +1327,7 @@ Der Leser verwendet den bestehenden strikten YAML-Lader und prüft Pflichtfelder
 
 Für eigene Einstellungen kann die Vorlage nach `agent.local.yaml` kopiert und über `--config agent.local.yaml` übergeben werden. Diese lokale Datei sowie SQLite-Dateien mit der Endung `.sqlite3` und ihre üblichen Journal-, WAL- und SHM-Dateien sind in `.gitignore` ausgeschlossen. Zugangsdaten und private Schlüssel werden separat ausserhalb des Repositorys verwaltet.
 
-Die Hilfe funktioniert ohne Konfigurationsdatei und liefert Exitcode 0. Argumentfehler liefern 2; Konfigurations- und Modellfehler liefern 1. Für create muss die gewählte Plattform in der Konfiguration enthalten sein. Fehlerausgaben enthalten keine eingegebenen Konfigurationswerte. Auch gültige Aufträge liefern derzeit 1 mit dem ausdrücklichen Hinweis auf die noch fehlende Lebenszyklussteuerung. Zustandsspeicher und MCP-Anbindung sind noch offen. US19 wird nach Abschluss der Prüfungen und Nachweise beurteilt.
+Die Hilfe funktioniert ohne Konfigurationsdatei und liefert Exitcode 0. Argumentfehler liefern 2; Konfigurations- und Modellfehler liefern 1. Für create muss die gewählte Plattform in der Konfiguration enthalten sein. Fehlerausgaben enthalten keine eingegebenen Konfigurationswerte. Auch gültige Aufträge liefern derzeit 1 mit dem ausdrücklichen Hinweis auf die noch fehlende Lebenszyklussteuerung. Die SQLite-Grundlage aus Kapitel 4.4 wird noch nicht von der CLI aufgerufen; MCP-Anbindung und Lebenszyklussteuerung sind offen. Die Abschlussprüfung von US19 steht im zugehörigen Issue.
 
 Neun CLI-Tests prüfen unter anderem Hilfe ohne Konfiguration, Argumentfehler, Konfigurations- und Modellfehler sowie nicht konfigurierte Plattformen. Acht Konfigurationstests prüfen Pfadauflösung, ungültige Dateien, Pflichtfelder, Adapterwerte und das versionierte Beispiel. Die CLI-Tests laufen aus einem temporären Arbeitsverzeichnis mit vorgegebenem `PYTHONIOENCODING=cp1252` und erwarten UTF-8-Ausgaben. Auch der Modell-CLI-Test prüft diese Kodierungsgrenze.
 
@@ -1343,13 +1343,74 @@ python -m mkdocs build --strict
 
 Am 26.10.2026 wurde eine Obergrenze von 30 durch den Agenten verwalteten VMs als zusätzliche Anforderung festgelegt. Vorhandene und gerade entstehende VMs müssen berücksichtigt werden. Das bisherige Modell beschreibt genau eine VM. Erweiterung, Bestandsprüfung und Tests dieser Grenze sind noch offen. Die Grenze ist keine bestätigte Plattformkapazität.
 
+### 4.4 SQLite-Grundlage für die Zustandsführung
+
+`agent/zustand.py` ergänzt die persistente Grundlage für [US20](https://github.com/Cancani/diplomarbeit/issues/21). Der Speicher verwendet das Python-Standardmodul `sqlite3`; zusätzliche Abhängigkeiten sind nicht erforderlich. Erst `StateStore(path)` legt bei Bedarf den Ordner und die Datenbank an. Das blosse Einlesen der Agent-Konfiguration bleibt ohne Schreibwirkung. Die CLI ist noch nicht mit diesem Speicher verbunden.
+
+#### Gespeicherte Daten und Schreibschutz
+
+| Tabelle | Inhalt |
+| --- | --- |
+| `runs` | Laufkennung, Plattform, unveränderter Modell-Snapshot, SHA-256-Hash, aktuelle Phase, letzte Operationskennung und Änderungszeit |
+| `operations` | Eindeutige Operationskennung, zugehöriger Lauf, create/reset/delete, running/succeeded/failed, begrenzter Fehlercode und UTC-Zeitstempel |
+| `resources` | Laufkennung, Ressourcentyp, Plattformkennung und Bereich, beispielsweise Namespace; clusterweite Ressourcen können einen leeren Bereich verwenden |
+
+Vor einer Erstellung wird das Modell erneut validiert und zusammen mit dem Auftrag in einer Transaktion gespeichert. Der Snapshot ist JSON mit sortierten Schlüsseln und festgelegten Trennzeichen; der Hash wird aus dessen UTF-8-Bytes berechnet. YAML-Formatierung und die Reihenfolge von Objektschlüsseln ändern diesen Hash nicht. Modell und Plattform können unter derselben Laufkennung nicht ersetzt werden. Ein Reset verwendet den gespeicherten Snapshot.
+
+Kurze SQLite-Transaktionen mit `BEGIN IMMEDIATE` schützen die Prüfung und Änderung des Zustands. Ein eindeutiger Index erlaubt nur eine laufende schreibende Operation je Lauf. Das Datenbank-Schreibrecht wird nach jeder Transaktion freigegeben; die fachliche Sperre bleibt über den gespeicherten Operationsstatus bestehen. Auch ein zweiter Aufruf mit derselben Operationskennung erhält keine weitere Schreibberechtigung. Andere Läufe dürfen eigene Operationen beginnen. Die Datenbank ist als lokale Datei für einen Agentenbetrieb vorgesehen, nicht als verteilter Speicher auf einer Netzwerkfreigabe.
+
+Die Schema-Version wird über `PRAGMA user_version` geführt. Unbekannte Versionen werden abgewiesen. Ein Fehler innerhalb einer Transaktion hinterlässt keinen teilweise angelegten Auftrag. Zugangsdaten und freie Plattformfehlermeldungen werden nicht gespeichert. Zulässige Fehlercodes sind `timeout`, `platform_error` und `interrupted`.
+
+#### Zustände und nächste Schritte
+
+```mermaid
+stateDiagram-v2
+    state "Nicht vorhanden" as absent
+    state "Wird erstellt" as creating
+    state "Bereit" as ready
+    state "Wird gelöscht" as deleting
+    state "Fehler" as error
+    [*] --> absent
+    absent --> creating: create
+    creating --> ready: Readiness bestätigt
+    creating --> error: Fehler oder Timeout
+    ready --> deleting: reset oder delete
+    deleting --> creating: reset nach Abbaukontrolle
+    deleting --> absent: delete nach Abbaukontrolle
+    deleting --> error: Fehler oder Timeout
+    error --> deleting: Bereinigung beginnen
+```
+
+Die API `start_create` speichert Modell und Erstellungsauftrag; `start_operation` beginnt reset oder delete. `record_resource` ergänzt das Inventar idempotent. `confirm_removed` darf ausschliesslich während des Abbaus aufgerufen werden, nachdem die Plattform die Abwesenheit der betreffenden Ressource bestätigt hat. `advance` weist unzulässige Übergänge ab. Solange bekannte Ressourcen vorhanden sind, kann ein Abbau weder als abgeschlossen gelten noch ein Reset neu erstellen. Für den Übergang nach `ready` muss mindestens eine Ressource gespeichert sein. Ein erneutes delete bei bereits bestätigtem Zustand `absent` wird als abgeschlossene Operation ohne Ressourcenänderung erfasst.
+
+Diese Regeln prüfen den gespeicherten Zustand. Der spätere Lebenszyklus muss vor `ready` zusätzlich Plattformzustand und HTTP-Bereitschaft prüfen. Vor dem Abschluss des Abbaus muss er auch Ressourcen suchen, die zwischen einem erfolgreichen API-Aufruf und der Speicherung ihrer ID entstanden sein können. Ein leeres gespeichertes Inventar allein beweist deshalb keine Ressourcenabwesenheit auf der Plattform.
+
+#### Abbruch, Timeout und offener Nachweis
+
+Nach einem Prozessabbruch bleibt die Operation `running`. Der Speicher löst ihre Sperre nicht aufgrund ihres Alters. Damit kann ein neuer Auftrag eine möglicherweise noch laufende Plattformaktion nicht einfach überholen. Die automatische Wiederaufnahme unter derselben Operationskennung ist noch offen. Sie benötigt einen kontrollierten Plattformabgleich und die Absicherung, dass der bisherige Schreiber nicht mehr aktiv ist.
+
+`fail` speichert einen Fehlerzustand und erhält das bekannte Inventar für eine spätere Bereinigung. Eine echte Zeitgrenze wird hier noch nicht ausgeführt. Bei einem späteren Adapter-Timeout muss die Lebenszyklussteuerung zunächst die eigene laufende Ausführung beenden, den Fehler speichern und vor weiteren Änderungen den Plattformbestand abgleichen.
+
+Sechs zusätzliche Speichertests prüfen Persistenz und Snapshot-Schutz, konkurrierende Startversuche, Transaktions-Rollback, Reset-Reihenfolge, Fehler mit erhaltenem Inventar, wiederholten Abbau und einen Prozessabbruch in einem Unterprozess. Die Modelle und Ressourcenkennungen in diesen Tests sind lokale Testdaten; es werden keine VMs bereitgestellt. Der gespeicherte Stand aus `get` ist keine echte Statusabfrage.
+
+Für die wiederholbare Prüfung aus dem Repository-Verzeichnis:
+
+```bash
+python -m unittest discover -s tests -p 'test_agent_zustand.py' -v
+python -m unittest discover -s tests -v
+python scripts/check-repository.py
+python -m mkdocs build --strict
+```
+
+**Prüfstand vom 30.10.2026:** Lokal bestanden alle 58 Tests unter Python 3.12 sowie Repository-Konsistenzprüfung, Shell-Syntaxprüfung und strikter MkDocs-Build. Commit und CI-Nachweis werden im Issue verlinkt. Ein Windows-Lauf dieses Umsetzungsschritts ist noch offen. Der kontrollierte Fehlerfall mit echtem Plattformabgleich, die automatische Wiederaufnahme und echte Adapter-Timeouts sind noch nicht nachgewiesen. US20 bleibt deshalb offen. Die Obergrenze von 30 VMs aus Kapitel 4.3 wird durch diesen Umsetzungsschritt noch nicht durchgesetzt.
+
 ## 5 Tests und Messungen
 
 Die bisherigen Prüfungen haben unterschiedliche Zwecke. Die lokalen Tests sichern Modell und Hilfswerkzeuge ab. Lern- und Referenzversuche klären den praktischen Ablauf. Die drei LernMAAS-Basisläufe liefern die Ausgangswerte. Die formalen PoC-Serien folgen nach der Implementierung des vollständigen Lebenszyklus.
 
 | Prüfung | Stand |
 | --- | --- |
-| Modell, Agent-Grundgerüst und Hilfswerkzeuge | Testumfang: 52 Testmethoden, darunter neun CLI-Tests und acht Konfigurationstests; Ausführung mit den dokumentierten Prüfbefehlen |
+| Modell, Agent-Grundgerüst und Hilfswerkzeuge | Testumfang: 58 Testmethoden, darunter neun CLI-Tests, acht Konfigurationstests und sechs Speichertests; Ausführung mit den dokumentierten Prüfbefehlen |
 | KubeVirt-Referenzlauf | Manuelle Erstellung, HTTP, SSH und Ressourcenabschluss erfolgreich |
 | LernMAAS-Basisserie | Drei technische Abläufe abgeschlossen; abweichende Erfassung der Bedienzeit bei den Ergebnissen ausgewiesen |
 | AWS-Smoke-Test | Erstellung, HTTP, SSH und Abbau erfolgreich |
