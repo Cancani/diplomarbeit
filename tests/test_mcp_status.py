@@ -36,7 +36,7 @@ class McpStatusTests(unittest.TestCase):
             }), encoding='utf-8')
             result = subprocess.run(
                 [sys.executable, '-m', 'agent', '--config', str(config),
-                 'platform-status', '--platform', 'kubevirt'],
+                 'platform-status', '--platform', 'kubevirt', '--json'],
                 cwd=root, env=dict(os.environ, PYTHONPATH=str(ROOT), PYTHONIOENCODING='cp1252'),
                 capture_output=True, text=True, encoding='utf-8', timeout=20)
             self.assertEqual(result.returncode, 0, result.stderr)

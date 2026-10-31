@@ -11,7 +11,7 @@
 | Schulexperte | Thanam Pangri, HF-Lehrgangsleitung |
 | Bewilligter Zeitraum | 11.09.2026 bis 18.12.2026 |
 | Arbeitsplanung | 14.09.2026 bis 18.12.2026 |
-| Version | 0.21, Prozessschutz und Wiederaufnahme auf KubeVirt |
+| Version | 0.22, Lesbare Agentenausgabe mit JSON-Option |
 | Grundlage | Bewilligte Projektbeschreibung vom 10.09.2026; schulische Vorgaben gemäss gültigem Merkblatt |
 
 ---
@@ -1308,6 +1308,7 @@ Der Agent verbindet die Modellprüfung mit der Zustandsführung und dem Plattfor
 | Bestandteil | Aufgabe |
 | --- | --- |
 | `agent/cli.py` | Befehle, Argumente, Hilfe und Exitcodes |
+| `agent/ausgabe.py` | Fortschritt, Ergebnisübersicht und vollständige JSON-Ausgabe |
 | `agent/konfiguration.py` | Externe Konfiguration einlesen und prüfen |
 | `agent/lebenszyklus.py` | Erstellung, Statusprüfung, Reset und Abbau steuern |
 | `agent/zustand.py` | Modell, Operationen und Ressourcen persistent speichern |
@@ -1340,7 +1341,11 @@ Die Hilfe funktioniert ohne Konfigurationsdatei. Die CLI verwendet folgende Exit
 | 2 | Ungültige oder fehlende Kommandozeilenargumente |
 | 130 | Operation mit Ctrl+C unterbrochen |
 
-Standardausgabe und Fehlerausgabe verwenden UTF-8. Ereignisse des Lebenszyklus erscheinen als JSON-Zeilen mit UTC-Zeitstempel, Ereignis, Laufkennung und Operationskennung. Je nach Ereignis kommen Zustandsangaben oder Ressourcen hinzu. Lesbare Fehlermeldungen gehen an stderr. Die Ausgaben unterscheiden insbesondere den gespeicherten Auftragszustand von der tatsächlich beobachteten VM- und Dienstbereitschaft.
+Standardausgabe und Fehlerausgabe verwenden UTF-8. Die CLI zeigt standardmässig lesbare Meldungen mit Lauf und Auftrag, aktuellem Fortschritt und einer Ergebnisübersicht. Bei Erstellung und Reset wird ausdrücklich zwischen laufender VM und bestätigtem HTTP-Dienst unterschieden. Die Statusansicht trennt gespeicherte Phase, VM-/VMI-Zustand, VM-Bereitschaft, HTTP-Bereitschaft und aktuell beobachteten Ressourcenbestand. Verfügbare HTTP- und SSH-Zugangsangaben erscheinen beim Ergebnis. Beim Abbau werden bestätigte Entfernungen und die verbleibende Anzahl bekannter Ressourcen angezeigt. Unveränderte Abbaumeldungen erscheinen höchstens alle 30 Sekunden.
+
+Mit `--json` bleibt die vollständige maschinenlesbare Ausgabe verfügbar. Lebenszyklusereignisse erscheinen dann wie bisher als JSON-Zeilen mit UTC-Zeitstempel, Ereignis, Laufkennung und Operationskennung. Zustandsangaben, Ressourcen-UIDs und Speichermetadaten bleiben enthalten. `platform-status` liefert in diesem Modus das strukturierte Plattformobjekt einschliesslich MCP-Protokollversion. Die Option kann vor oder nach dem Befehlsnamen stehen. Skripte, die CLI-Ausgaben als JSON lesen, müssen `--json` setzen. Direkte Python-Aufrufe der Lebenszyklusfunktionen behalten die JSON-Ereignisse als Voreinstellung.
+
+Fehlermeldungen gehen unabhängig vom Ausgabeformat lesbar an stderr. Ein behandelter Lebenszyklusfehler erscheint im JSON-Modus zusätzlich als strukturiertes Fehlerereignis auf stdout. Die Textansicht nennt den gespeicherten Fehlerzustand, die Zahl bekannter Ressourcen und das Vorgehen zur Wiederaufnahme. Eine Änderung des Ausgabeformats verändert weder Exitcodes noch Zustandsübergänge.
 
 ### 4.4 Persistenter Zustand und Kapazitätsgrenze
 
@@ -1571,6 +1576,15 @@ python -m agent --config agent/beispiele/konfiguration.yaml platform-status \
 ```
 
 `platform-status` liest Knoten, KubeVirt und VM-/VMI-Bestand. Es erstellt keine Lernumgebung und bestätigt keine HTTP-Bereitschaft. Vor einem eigenen Lauf muss der öffentliche Schlüssel in der fachlichen Definition zu einem verfügbaren privaten Schlüssel passen, wenn auch SSH im Gast verwendet werden soll.
+
+Für eine vollständige maschinenlesbare Statusausgabe wird `--json` ergänzt:
+
+```bash
+python -m agent --config agent/beispiele/konfiguration.yaml status \
+  --run-id demo-01 --json
+```
+
+Dieselbe Option steht bei create, reset, delete und platform-status zur Verfügung. Eine Umleitung von stdout speichert die JSON-Ausgabe; Fehlermeldungen bleiben auf stderr. Die Nachweisauszüge enthalten die Ausgabe des jeweils dort genannten Code-Stands.
 
 Die folgenden Befehle verwenden für eine Beispielumgebung durchgehend die Laufkennung `demo-01`:
 
@@ -1828,7 +1842,7 @@ Die Funktionsprüfung verbindet automatisierte Tests mit Aufrufen auf der lokale
 | Testbereich | Abgedecktes Verhalten |
 | --- | --- |
 | Modell und Konfiguration | Pflichtfelder, Datentypen, unbekannte Felder, YAML-Mehrdeutigkeiten, öffentliche Schlüssel, Pfadauflösung und verständliche Fehler |
-| CLI | Hilfe, Argumente, Exitcodes, UTF-8 und Aufruf aus einem anderen Arbeitsverzeichnis |
+| CLI und Ausgabe | Hilfe, Argumente, Exitcodes, UTF-8, Aufruf aus einem anderen Arbeitsverzeichnis, lesbare Zustandsanzeige und explizite vollständige JSON-Ausgabe |
 | SQLite | Unveränderter Snapshot, Migrationen, konkurrierende Starts, zulässige Übergänge, Kapazitätsreservierung und Inventarerhalt |
 | MCP und Prozessschutz | Tatsächlicher stdio-Transport mit Test-Provider, strukturierte Antworten, Fehler, Handshake-Timeout, harter Agentenabbruch, verbliebener Adapter, veraltete Sitzung und erforderliche Sitzungsbestätigung |
 | Erstellung und Bereitschaft | Einzelne Erstellungsschritte, Inventarsicherung, Wiederholung ohne Dubletten und HTTP-Prüfung auf Status, Inhalt, Weiterleitung, Grösse und Zeit |

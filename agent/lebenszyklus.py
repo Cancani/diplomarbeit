@@ -1,8 +1,6 @@
 """Lebenszyklus steuern, Inventar sichern und Endzustände prüfen."""
-from datetime import datetime, timezone
 from functools import wraps
 import asyncio
-import json
 import time
 
 import anyio
@@ -11,14 +9,10 @@ import httpx2
 from adapter.kubevirt_manifest import validate_id
 from adapter.vertrag import AdapterError, CREATE_SCHEMA, RUN_STATUS_SCHEMA, DELETE_SCHEMA
 from agent.mcp_client import call_tool
+from agent.ausgabe import emit
 from agent.zustand import StateError, StateStore
 from modell.snapshot import encode_snapshot
 from gemeinsam.prozessschutz import ProcessGuardError, run_guard
-
-
-def emit(event, run_id, operation_id, **values):
-    print(json.dumps({'timeUtc': datetime.now(timezone.utc).isoformat(), 'event': event,
-                      'runId': run_id, 'operationId': operation_id, **values}, ensure_ascii=False), flush=True)
 
 
 async def _service_ready(url, model, timeout):

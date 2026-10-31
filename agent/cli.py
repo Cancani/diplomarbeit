@@ -1,12 +1,12 @@
 """Lernumgebungen mit persistentem Zustand und Plattformadaptern steuern."""
 import argparse
-import json
 from pathlib import Path
 import sys
 import uuid
 
 from modell.validierung import load_model, ModelValidationError
 from agent.konfiguration import ConfigurationError, load_config
+from agent.ausgabe import output_mode, platform_result
 
 
 def positive_seconds(value):
@@ -21,8 +21,11 @@ def build_parser():
         description='Lernumgebungen erstellen, prüfen, zurücksetzen und löschen.')
     parser.add_argument('--config', type=Path, required=True,
                         help='YAML-Datei der Agent-Konfiguration')
+    parser.add_argument('--json', action='store_true', help='Vollständige JSON-Ausgabe für Skripte und Protokolle')
     commands = parser.add_subparsers(dest='operation', required=True)
     probe = commands.add_parser('platform-status', help='Plattform über MCP lesend prüfen')
+    probe.add_argument('--json', action='store_true', default=argparse.SUPPRESS,
+                       help='Vollständige JSON-Ausgabe für Skripte und Protokolle')
     probe.add_argument('--platform', required=True, choices=('kubevirt', 'aws'))
     descriptions = {
         'create': 'Lernumgebung aus einer YAML-Definition erstellen',
@@ -32,6 +35,8 @@ def build_parser():
     }
     for name, description in descriptions.items():
         command = commands.add_parser(name, help=description, description=description)
+        command.add_argument('--json', action='store_true', default=argparse.SUPPRESS,
+                             help='Vollständige JSON-Ausgabe für Skripte und Protokolle')
         command.add_argument('--run-id', required=True, help='Kennung des Laufs')
         if name == 'create':
             command.add_argument('definition', type=Path, help='YAML-Datei der Lernumgebung')
@@ -52,6 +57,11 @@ def main(argv=None):
     sys.stdout.reconfigure(encoding='utf-8')
     sys.stderr.reconfigure(encoding='utf-8')
     args = build_parser().parse_args(argv)
+    with output_mode(args.json):
+        return run(args)
+
+
+def run(args):
     try:
         config = load_config(args.config)
     except ConfigurationError as error:
@@ -72,7 +82,7 @@ def main(argv=None):
         except AdapterError as error:
             print(f'Adapterfehler ({error.code}): {error}', file=sys.stderr)
             return 1
-        print(json.dumps(result, ensure_ascii=False, indent=2))
+        platform_result(result, args.json)
         return 0
     if args.operation == 'create':
         if args.platform not in config['adapters']:
@@ -101,7 +111,8 @@ def main(argv=None):
             else:
                 status(config, args.run_id)
         except (AdapterError, StateError) as error:
-            print(f'Fehler: {error}', file=sys.stderr)
+            label = f'Fehler ({error.code})' if isinstance(error, AdapterError) else 'Fehler'
+            print(f'{label}: {error}', file=sys.stderr)
             return 1
         except KeyboardInterrupt:
             print('Operation unterbrochen; gespeicherten Zustand prüfen.', file=sys.stderr)
