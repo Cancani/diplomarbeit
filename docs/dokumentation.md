@@ -1358,30 +1358,54 @@ Kurze Transaktionen mit `BEGIN IMMEDIATE` schützen Zustandsprüfung und Änderu
 
 `PRAGMA user_version` kennzeichnet das Schema. Version 4 ergänzt die gespeicherte Ablaufphase einer Operation. Unterstützte ältere Versionen werden migriert, wobei vorhandene Ressourcenkennungen und Speicherdetails erhalten bleiben. Unbekannte Versionen werden abgewiesen. Die Phase unterscheidet bei einem fehlgeschlagenen Reset zwischen Abbau und Neuerstellung.
 
-#### Zustandsübergänge
+#### Zustandsübergänge im Normalablauf
 
 ```mermaid
 stateDiagram-v2
+    direction LR
+
     state "Nicht vorhanden" as absent
     state "Wird erstellt" as creating
     state "Bereit" as ready
     state "Wird gelöscht" as deleting
-    state "Fehler" as error
+
     [*] --> absent
     absent --> creating: create
-    creating --> ready: Dienstbereitschaft bestätigt
-    creating --> error: Fehler oder Ctrl+C
+    creating --> ready: VM und HTTP bereit
     ready --> deleting: reset oder delete
-    deleting --> creating: reset nach vollständigem Abbau
-    deleting --> absent: delete nach vollständigem Abbau
-    deleting --> error: Fehler oder Ctrl+C
-    error --> deleting: Abbau fortsetzen oder bereinigen
-    error --> creating: Reset-Neuerstellung fortsetzen
+    deleting --> absent: delete abgeschlossen
+    deleting --> creating: reset, Abbau bestätigt
 ```
 
-Die Wiederaufnahme aus `error` ist an den gespeicherten Auftrag gebunden. Reset und delete können nach einem behandelten Fehler mit derselben Kennung fortgesetzt werden. Eine noch als `running` gespeicherte Operation wird nicht aufgrund ihres Alters freigegeben. Nach einem harten Prozessabbruch bleibt sie deshalb gesperrt; die kontrollierte Wiederaufnahme dieses Falls ist noch zu ergänzen.
-
 Ein Übergang von `deleting` nach `creating` oder `absent` setzt ein leeres bestätigtes Ressourceninventar voraus. Vorher führt der Lebenszyklus zusätzlich einen Plattformabgleich aus. Der Zustandsspeicher allein kann keine Ressourcenabwesenheit auf Kubernetes beweisen. Für `ready` müssen Ressourcen gespeichert sein; VM- und HTTP-Bereitschaft prüft der Agent.
+
+status liest den Plattformzustand und prüft die Dienstbereitschaft. Es löst keinen Wechsel der gespeicherten Phase aus.
+
+#### Fehlerbehandlung und Wiederaufnahme
+
+```mermaid
+stateDiagram-v2
+    direction LR
+
+    state "Wird erstellt" as creating
+    state "Fehler" as error
+    state "Wird gelöscht" as deleting
+
+    creating --> error: Fehler oder Abbruch
+    deleting --> error: Fehler oder Abbruch
+    error --> creating: Reset-Erstellung fortsetzen
+    error --> deleting: Abbau fortsetzen oder bereinigen
+```
+
+Die Fehlerpfade beschreiben behandelte Adapterfehler, Timeouts und Ctrl+C. Dabei bleiben der Auftrag, seine letzte Ablaufphase und das bekannte Inventar gespeichert. Die Rückwege aus `error` sind an folgende Bedingungen gebunden:
+
+| Rückweg | Voraussetzung |
+| --- | --- |
+| Nach `creating` | Fehlgeschlagenen Reset mit derselben Operationskennung fortsetzen; seine gespeicherte Ablaufphase ist `creating` |
+| Nach `deleting` | Fehlgeschlagenen Reset oder delete mit derselben Operationskennung fortsetzen; die gespeicherte Ablaufphase ist `deleting` |
+| Zur Bereinigung nach `deleting` | Einen neuen delete-Auftrag für die fehlerhafte Umgebung beginnen, beispielsweise nach einem fehlgeschlagenen create |
+
+Eine noch als `running` gespeicherte Operation wird nicht aufgrund ihres Alters freigegeben. Ein harter Prozessabbruch führt deshalb nicht automatisch in die Phase `error`: Der bisherige Auftrag bleibt gesperrt. Die kontrollierte Wiederaufnahme dieses Falls ist noch zu ergänzen.
 
 Neue Beobachtungen ergänzen das Inventar. Eine fehlende Ressource wird durch eine reine Statusabfrage nicht ausgetragen. Erst der Abbau bestätigt ihre Entfernung. Dadurch bleiben auch früher beobachtete Importer-Pods oder temporäre Datenträger für die Abschlusskontrolle bekannt. Antworten eines inzwischen abgelösten Auftrags werden über die aktuelle Operationskennung abgewiesen.
 
