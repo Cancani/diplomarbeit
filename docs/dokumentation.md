@@ -1,7 +1,7 @@
 # Diplomarbeit: Agentenbasierte Hybrid-Cloud-Bereitstellung von Lernumgebungen mit Kubernetes, KubeVirt und MCP
 
 !!! info "Lokaler Lebenszyklus auf KubeVirt"
-    Modellprüfung, CLI, SQLite-Zustandsführung und MCP-Anbindung sind mit dem KubeVirt-Adapter verbunden. create, status, reset und delete funktionieren im lokalen Ablauf. Wiederholung, Fortsetzung nach Ctrl+C und ein Timeout bei der Abfrage vor dem Abbau sind geprüft. Die Absicherung harter Prozessabbrüche, Timeouts während Plattformänderungen und die AWS-Anbindung bleiben offen.
+    Modellprüfung, CLI, SQLite-Zustandsführung und MCP-Anbindung sind mit dem KubeVirt-Adapter verbunden. create, status, reset und delete funktionieren im lokalen Ablauf. Geprüft sind Wiederholung, Fortsetzung nach Ctrl+C und hartem Agentenabbruch während des Abbaus, die Ablehnung eines parallelen Resets sowie die Wiederaufnahme nach einem gezielt ausgelösten MCP-Timeout nach bestätigtem VM-Löschaufruf. AWS-Anbindung, formale Messserien und abschliessende Bewertung bleiben offen.
 
 | | |
 | --- | --- |
@@ -11,7 +11,7 @@
 | Schulexperte | Thanam Pangri, HF-Lehrgangsleitung |
 | Bewilligter Zeitraum | 11.09.2026 bis 18.12.2026 |
 | Arbeitsplanung | 14.09.2026 bis 18.12.2026 |
-| Version | 0.20, Lokaler Agentenlebenszyklus auf KubeVirt |
+| Version | 0.21, Prozessschutz und Wiederaufnahme auf KubeVirt |
 | Grundlage | Bewilligte Projektbeschreibung vom 10.09.2026; schulische Vorgaben gemäss gültigem Merkblatt |
 
 ---
@@ -20,7 +20,7 @@
 
 Die Grundlagen für den Proof of Concept sind erarbeitet. Die bestehende LernMAAS-Bereitstellung wurde untersucht und mit drei Basisläufen als Vergleichsgrundlage dokumentiert. Die lokale KubeVirt-Plattform ist verifiziert. Auf KubeVirt und AWS wurde jeweils eine reduzierte Referenz-VM manuell erstellt, über HTTP und SSH geprüft und wieder abgebaut. Die Messwerte und die Grenzen ihrer Aussagekraft stehen bei den jeweiligen Versuchen.
 
-Das plattformneutrale YAML-Modell mit JSON-Schema wird vom Python-Agenten eingelesen und geprüft. Der Agent speichert Modell-Snapshot, Aufträge und Ressourcen in SQLite und steuert den KubeVirt-Adapter über MCP. Der lokale Ablauf umfasst Erstellung, aktuelle Status- und HTTP-Prüfung, Reset aus dem gespeicherten Modell und vollständigen Abbau. Wiederholte Aufträge erzeugen im geprüften Ablauf keine Dubletten. Behandelte Abbrüche und der geprüfte Abfrage-Timeout erhalten das Inventar für die Fortsetzung. Diese Funktionsprüfungen ersetzen weder die vorgesehenen Messserien noch die Bewertung gegenüber LernMAAS.
+Das plattformneutrale YAML-Modell mit JSON-Schema wird vom Python-Agenten eingelesen und geprüft. Der Agent speichert Modell-Snapshot, Aufträge und Ressourcen in SQLite und steuert den KubeVirt-Adapter über MCP. Der lokale Ablauf umfasst Erstellung, aktuelle Status- und HTTP-Prüfung, Reset aus dem gespeicherten Modell und vollständigen Abbau. Wiederholte Aufträge erzeugen im geprüften Ablauf keine Dubletten. Eine gemeinsame Prozesssperre verhindert konkurrierende Schreibbefehle auf denselben Lauf. Abbruch und Timeout erhalten das Inventar für die Fortsetzung; die Wiederaufnahme nach hartem Agentenabbruch und nach verzögerter MCP-Antwort auf einen bestätigten Löschaufruf ist auf KubeVirt geprüft. Diese Funktionsprüfungen ersetzen weder die vorgesehenen Messserien noch die Bewertung gegenüber LernMAAS.
 
 Vor dem ersten Review waren aus der ursprünglichen Sprint-1-Planung 14 fachliche Stories mit 34 Story Points abgeschlossen. US05 ist entfallen; die Abschlussprüfung von US16 mit drei Punkten steht nach der Reviewnachbereitung noch aus. Das erste Review fand am 23.10.2026 statt. Die Experten gaben eine positive Rückmeldung zum bisherigen Arbeitsstand und zur Präsentation. Die eigene Retrospektive und die Vereinbarungen stehen in Kapitel 2.10. Bis zum Ende von Sprint 2 soll der Agent den vollständigen lokalen Lebenszyklus über MCP ausführen können. Dieser Ablauf hat Vorrang vor dem AWS-Durchstich und bildet die Grundlage für die Messserien in Sprint 3. Die Planung steht in Kapitel 2.11. Später folgen je drei vollständige PoC-Läufe auf KubeVirt und AWS, der Vergleich und die abschliessende Bewertung.
 
@@ -53,12 +53,12 @@ Die fünf Teilziele aus der bewilligten Projektbeschreibung bestimmen den Umfang
 | ID | Ziel | Messkriterium | Zielwert | Nachweis | Status |
 | --- | --- | --- | --- | --- | --- |
 | Z1 | Plattformneutrales Modell für Lernumgebungen | Versioniertes YAML-Modell mit JSON-Schema, gültige Definition wird akzeptiert, ungültige abgewiesen | 1 Modell, 1 Schema, je 1 positiver und 1 negativer Testfall bestehen | Repository, Testprotokoll | Versioniert; lokale Tests und CI erfolgreich, siehe Kapitel 4.2 |
-| Z2 | Zentraler Agent mit Zustandsführung | create, status, reset und delete laufen über festgelegte Zustandsübergänge, Zustand ist persistent | 4 Operationen funktionsfähig, reset erzeugt aus derselben Definition neu | Quellcode, Zustandsdiagramm, Testprotokoll | Auf KubeVirt funktionsfähig; offene Fehlerfälle in Kapitel 4.7 |
+| Z2 | Zentraler Agent mit Zustandsführung | create, status, reset und delete laufen über festgelegte Zustandsübergänge, Zustand ist persistent | 4 Operationen funktionsfähig, reset erzeugt aus derselben Definition neu | Quellcode, Zustandsdiagramm, Testprotokoll | Auf KubeVirt funktionsfähig; geprüfte Fehlerfälle und Grenzen in Kapitel 5.5 |
 | Z3 | On-Prem-Backend mit Kubernetes und KubeVirt | Test-Lernumgebung wird automatisiert bereitgestellt und vollständig entfernt | 3 vollständige Durchläufe ohne manuelle Korrektur | Laufprotokolle, Screenshots | Lokaler Funktionsdurchstich erfolgreich; drei formale Durchläufe noch offen |
 | Z4 | Bewertung der MCP-basierten Adapterarchitektur | Dieselbe Definition läuft lokal und auf genau einer Public Cloud, Bewertung gegen direkte API-Anbindung | 3 vollständige Durchläufe in der Cloud, Bewertung nach 5 Kriterien dokumentiert | Laufprotokolle, Bewertungstabelle | Offen |
 | Z5 | Messbarer Vergleich mit dem heutigen Vorgehen | Bereitstellungszeit, manuelle Eingriffe, Reproduzierbarkeit, vollständiger Abbau | Vorher- und Nachher-Werte für denselben Testfall protokolliert | Messprotokoll, Vergleichstabelle | Offen |
 
-Modell und lokaler Funktionsablauf sind umgesetzt. Der vollständige Zielnachweis benötigt weiterhin die offenen Fehlerprüfungen, den AWS-Ablauf, die formalen Messserien und die abschliessende Bewertung.
+Modell und lokaler Funktionsablauf sind umgesetzt. Der vollständige Zielnachweis benötigt weiterhin den AWS-Ablauf, die formalen Messserien und die abschliessende Bewertung. Die Reichweite der Fehlerprüfungen ist in Kapitel 5.5 abgegrenzt.
 
 ### 1.5 Erfolgskriterien des Proof of Concept
 
@@ -1349,14 +1349,18 @@ Der Agent verwendet SQLite aus der Python-Standardbibliothek. Vor der ersten Pla
 | Tabelle | Gespeicherte Daten |
 | --- | --- |
 | `runs` | Laufkennung, Plattform, unveränderter Modell-Snapshot, Modell-Hash, Phase und aktuelle Operationskennung |
-| `operations` | Operationskennung, Art create/reset/delete, Status running/succeeded/failed, letzte Ablaufphase, Fehlercode und Zeitstempel |
+| `operations` | Operationskennung, Art create/reset/delete, Status running/succeeded/failed, letzte Ablaufphase, Kennzeichnung des Prozessschutzes, Fehlercode und Zeitstempel |
 | `resources` | Laufkennung, Ressourcentyp, Name, UID, Namespace beziehungsweise clusterweiter Bereich und zusätzliche Speichermetadaten |
 
 `modell/snapshot.py` validiert das Modell und serialisiert es als JSON mit sortierten Schlüsseln. Daraus entsteht ein SHA-256-Hash. YAML-Formatierung und die Reihenfolge von Objektschlüsseln verändern diesen Hash nicht. Plattform und Snapshot bleiben für eine Laufkennung unverändert. Reset liest diese gespeicherte Definition; eine spätere Änderung der ursprünglichen YAML-Datei verändert den Reset nicht. Eine andere Definition benötigt eine neue Laufkennung.
 
-Kurze Transaktionen mit `BEGIN IMMEDIATE` schützen Zustandsprüfung und Änderung. Ein eindeutiger Index erlaubt höchstens eine Operation mit Status `running` pro Lauf. Ein konkurrierender schreibender Start wird abgewiesen, auch unter derselben Operationskennung. Die Transaktion bleibt nicht während eines Plattformaufrufs offen; die fachliche Sperre besteht über den gespeicherten Operationsstatus. Die Datenbank ist für den lokalen Agentenbetrieb vorgesehen.
+Kurze Transaktionen mit `BEGIN IMMEDIATE` schützen Zustandsprüfung und Änderung. Ein eindeutiger Index erlaubt höchstens eine Operation mit Status `running` pro Lauf. Die Zustandstransaktion bleibt nicht während eines Plattformaufrufs offen. Die Datenbank ist für den lokalen Agentenbetrieb vorgesehen.
 
-`PRAGMA user_version` kennzeichnet das Schema. Version 4 ergänzt die gespeicherte Ablaufphase einer Operation. Unterstützte ältere Versionen werden migriert, wobei vorhandene Ressourcenkennungen und Speicherdetails erhalten bleiben. Unbekannte Versionen werden abgewiesen. Die Phase unterscheidet bei einem fehlgeschlagenen Reset zwischen Abbau und Neuerstellung.
+Zusätzlich schützt `gemeinsam/prozessschutz.py` die gesamte schreibende Operation. Pro Lauf liegt eine separate SQLite-Sperrdatei im Verzeichnis `<Zustandsdatei>.agent-locks`. Eine neue Sitzung benötigt exklusiven Zugriff und schreibt eine zufällige Sitzungskennung. Danach halten Agent und Adapter Lesetransaktionen auf dieser Datei. Solange einer von ihnen noch arbeitet, kann kein zweiter Agent die exklusive Sitzung eröffnen. Das gilt auch für dieselbe Operationskennung. Andere Läufe verwenden eigene Sperrdateien.
+
+Der Adapter hält den Schutz sowohl während seines Prozesses als auch innerhalb der Werkzeugausführung. Vor einem Werkzeugaufruf prüft er die Sitzungskennung. Ein verspätet gestarteter Adapter einer abgelösten Sitzung wird dadurch abgewiesen. Der Client verlangt zusätzlich die Bestätigung des Adapters über MCP. Die Sperrdateien sind von Git ausgeschlossen und dürfen zur Freigabe eines Auftrags nicht gelöscht werden: Ein neuer Dateipfad würde die Sperre noch aktiver Prozesse umgehen.
+
+`PRAGMA user_version` kennzeichnet das Schema. Version 5 speichert zusätzlich mit `guarded`, ob eine Operation unter Prozessschutz begonnen wurde. Die gespeicherte Ablaufphase unterscheidet bei einem fehlgeschlagenen Reset zwischen Abbau und Neuerstellung. Unterstützte ältere Versionen werden migriert, wobei vorhandene Ressourcenkennungen und Speicherdetails erhalten bleiben. Unbekannte Versionen werden abgewiesen. Alte laufende Aufträge erhalten bei der Migration keinen nachträglichen Prozessschutz und werden nicht automatisch übernommen.
 
 #### Zustandsübergänge im Normalablauf
 
@@ -1393,7 +1397,7 @@ stateDiagram-v2
 
     creating --> error: Fehler oder Abbruch
     deleting --> error: Fehler oder Abbruch
-    error --> creating: Reset-Erstellung fortsetzen
+    error --> creating: Erstellung fortsetzen
     error --> deleting: Abbau fortsetzen oder bereinigen
 ```
 
@@ -1401,11 +1405,11 @@ Die Fehlerpfade beschreiben behandelte Adapterfehler, Timeouts und Ctrl+C. Dabei
 
 | Rückweg | Voraussetzung |
 | --- | --- |
-| Nach `creating` | Fehlgeschlagenen Reset mit derselben Operationskennung fortsetzen; seine gespeicherte Ablaufphase ist `creating` |
+| Nach `creating` | Fehlgeschlagenes create oder fehlgeschlagenen Reset mit derselben Operationskennung fortsetzen; die gespeicherte Ablaufphase ist `creating` |
 | Nach `deleting` | Fehlgeschlagenen Reset oder delete mit derselben Operationskennung fortsetzen; die gespeicherte Ablaufphase ist `deleting` |
 | Zur Bereinigung nach `deleting` | Einen neuen delete-Auftrag für die fehlerhafte Umgebung beginnen, beispielsweise nach einem fehlgeschlagenen create |
 
-Eine noch als `running` gespeicherte Operation wird nicht aufgrund ihres Alters freigegeben. Ein harter Prozessabbruch führt deshalb nicht automatisch in die Phase `error`: Der bisherige Auftrag bleibt gesperrt. Die kontrollierte Wiederaufnahme dieses Falls ist noch zu ergänzen.
+Ein harter Prozessabbruch führt nicht automatisch in die Phase `error`: In SQLite bleibt der Auftrag zunächst als `running` gespeichert. Bei einem erneuten Schreibbefehl muss der Agent zuerst die exklusive Prozesssitzung erwerben. Für einen geschützten Auftrag gleicht er danach den Plattformbestand lesend ab, ergänzt das Inventar und markiert den verlassenen Auftrag als `interrupted`. Das Ereignis `operation_recovered` zeigt diese Übernahme an. Derselbe Auftrag kann anschliessend in seiner gespeicherten Ablaufphase fortfahren. Scheitert der Bestandsabgleich, bleibt der laufende Auftrag erhalten. Eine Freigabe allein aufgrund seines Alters oder einer nicht mehr sichtbaren PID findet nicht statt.
 
 Neue Beobachtungen ergänzen das Inventar. Eine fehlende Ressource wird durch eine reine Statusabfrage nicht ausgetragen. Erst der Abbau bestätigt ihre Entfernung. Dadurch bleiben auch früher beobachtete Importer-Pods oder temporäre Datenträger für die Abschlusskontrolle bekannt. Antworten eines inzwischen abgelösten Auftrags werden über die aktuelle Operationskennung abgewiesen.
 
@@ -1432,13 +1436,14 @@ Die direkten Abhängigkeiten stehen festgeschrieben in `requirements.txt`: PyYAM
 | Werkzeug | Argumente | Ergebnis |
 | --- | --- | --- |
 | `platform_status()` | Keine | Plattform, Knotenbereitschaft, KubeVirt-Phase und VM-/VMI-Bestand |
+| `process_guard()` | Keine; Sitzung aus der Prozessumgebung | Bestätigung der aktuellen Sitzungskennung vor einem geschützten Werkzeugaufruf |
 | `create(run_id, operation_id, model)` | Lauf, Auftrag und validierbares Modell | `complete` und die im Schritt bestätigten Ressourcen |
 | `status(run_id)` | Lauf | Tatsächlicher Ressourcenbestand, VM-/VMI-Zustand, Modell-Hash und ermittelte Zugangsangaben |
 | `delete(run_id, operation_id, resources)` | Lauf, Auftrag und bekanntes Inventar | `complete`, beobachtete Ressourcen und als entfernt bestätigte Ressourcen |
 
 Reset wird im Agenten aus delete und create zusammengesetzt. Damit gelten für Reset dieselben Regeln zur Inventarsicherung und Abbaukontrolle wie für die Einzeloperationen.
 
-Ein Lebenszykluswerkzeug antwortet mit `{ok: true, data: ...}` oder `{ok: false, error: ...}`. `platform_status` verwendet bei Erfolg das Feld `status`. Der Server liefert diese Objekte als strukturierte MCP-Inhalte. `adapter/vertrag.py` prüft die Antworten mit JSON-Schemas; unbekannte Felder oder unpassende Typen führen zu einem Fehler.
+Ein Lebenszykluswerkzeug antwortet mit `{ok: true, data: ...}` oder `{ok: false, error: ...}`. `platform_status` verwendet bei Erfolg das Feld `status`. Das technische Hilfswerkzeug `process_guard` bestätigt die Sitzung separat mit `{session: ...}`; eine fehlende oder abweichende Bestätigung verhindert den anschliessenden Werkzeugaufruf. Der Server liefert diese Objekte als strukturierte MCP-Inhalte. `adapter/vertrag.py` prüft die fachlichen Antworten mit JSON-Schemas; unbekannte Felder oder unpassende Typen führen zu einem Fehler.
 
 Ein Ressourceneintrag enthält `kind`, `name`, `resource_id` und `scope`. `resource_id` ist bei Kubernetes die UID. `scope` enthält den Namespace und ist bei einem PV leer. Optionale `details` sichern die PVC-Zuordnung, den Hostpath und den Knotennamen für die Speicherprüfung. `pathSource` unterscheidet aus der API gelesene Angaben von kontrolliert abgeleiteten historischen Scratch-Pfaden.
 
@@ -1532,11 +1537,13 @@ Bei einem behandelten Adapterfehler oder Ctrl+C speichert der Agent `error` und 
 | --- | --- |
 | Reset nach behandeltem Fehler | Dieselbe Reset-Kennung erneut verwenden; die gespeicherte Abbau- oder Erstellungsphase wird fortgesetzt |
 | delete nach behandeltem Fehler | Dieselbe Löschkennung erneut verwenden und den Restbestand abgleichen |
-| Fehlgeschlagenes create | Mit delete bereinigen; nach bestätigtem `absent` einen neuen Erstellungsauftrag mit demselben Snapshot beginnen |
-| Hart beendeter Prozess mit Status `running` | Automatische Wiederaufnahme noch offen; der gespeicherte Auftrag bleibt gesperrt |
+| Fehlgeschlagenes create | Dieselbe Erstellungskennung mit unverändertem Modell und unveränderter Plattform fortsetzen oder mit delete bereinigen |
+| Hart beendeter Prozess mit geschütztem Auftrag `running` | Dieselbe Kennung verwenden; erst Prozesssitzung erwerben, Bestand lesen und dann die gespeicherte Phase fortsetzen |
+| Noch aktiver Agent oder Adapter | Zweiter Schreibbefehl wird abgewiesen; den ursprünglichen Auftrag weiterlaufen lassen |
+| Alter laufender Auftrag ohne Prozessschutz | Automatische Übernahme wird abgewiesen; eine fehlende alte Prozesssperre bestätigt kein Prozessende |
 | Fremde UID, unpassende Kennzeichnung oder unklare Speicherzuordnung | Fehler prüfen; der Adapter übernimmt oder entfernt das widersprüchliche Objekt nicht ungeprüft |
 
-Die Freigabe nach hartem Prozessende benötigt den Nachweis, dass kein bisheriger Agent oder Adapter mehr Änderungen ausführt. Diese Absicherung ist noch nicht implementiert. Timeouts während schreibender Plattformaufrufe und deren anschliessende Bereinigung sind ebenfalls noch auf der echten Infrastruktur zu prüfen. Die vorhandenen Entwicklungsläufe belegen die in Kapitel 5.5 beschriebenen Fälle.
+Die Prozesssperre und die Sitzungsprüfung schützen die lokalen Agenten- und Adapterprozesse. Ein bereits von Kubernetes angenommener Auftrag kann unabhängig vom Ende des aufrufenden Prozesses weiterlaufen. Deshalb bestätigt erst der anschliessende Ressourcenabgleich den erreichten Plattformzustand. Die geprüften Abbruch- und Timeout-Fälle sowie die Grenzen der Prüfung stehen in Kapitel 5.5.
 
 ### 4.8 Bedienung auf der lokalen Plattform
 
@@ -1823,7 +1830,7 @@ Die Funktionsprüfung verbindet automatisierte Tests mit Aufrufen auf der lokale
 | Modell und Konfiguration | Pflichtfelder, Datentypen, unbekannte Felder, YAML-Mehrdeutigkeiten, öffentliche Schlüssel, Pfadauflösung und verständliche Fehler |
 | CLI | Hilfe, Argumente, Exitcodes, UTF-8 und Aufruf aus einem anderen Arbeitsverzeichnis |
 | SQLite | Unveränderter Snapshot, Migrationen, konkurrierende Starts, zulässige Übergänge, Kapazitätsreservierung und Inventarerhalt |
-| MCP | Tatsächlicher stdio-Transport mit Test-Provider, strukturierte Antworten, Fehler und Handshake-Timeout mit Prozessbeendigung |
+| MCP und Prozessschutz | Tatsächlicher stdio-Transport mit Test-Provider, strukturierte Antworten, Fehler, Handshake-Timeout, harter Agentenabbruch, verbliebener Adapter, veraltete Sitzung und erforderliche Sitzungsbestätigung |
 | Erstellung und Bereitschaft | Einzelne Erstellungsschritte, Inventarsicherung, Wiederholung ohne Dubletten und HTTP-Prüfung auf Status, Inhalt, Weiterleitung, Grösse und Zeit |
 | Reset und Abbau | Bestätigter Abbau vor Neuerstellung, gleiche und neue Operationskennungen, verlorene Antworten, historische UIDs und Prüfung des Speicherabschlusses |
 | Bestehende Hilfswerkzeuge | Messproben, Issue-Verarbeitung und Repository-Konsistenz |
@@ -1834,7 +1841,7 @@ Für die lokale Prüfung aus dem Repository-Verzeichnis:
 
 ```bash
 python -m pip install -r requirements.txt -r requirements-docs.txt
-python -m unittest discover -s tests -v
+python -m unittest discover -s tests -q
 python scripts/check-repository.py
 bash -n scripts/create-issues.sh scripts/update-issues.sh
 python -m mkdocs build --strict
@@ -1853,12 +1860,18 @@ Auf der echten Plattform sind folgende Abläufe anhand der übermittelten Termin
 | Wiederholung derselben abgeschlossenen Reset-Kennung | Nur eine Statusmeldung; die direkte Kubernetes-Abfrage bestätigt dieselbe VM-UID |
 | Neue Reset-Kennung und Ctrl+C während des Abbaus | Neuer Auftrag beginnt. Der Abbruch hinterlässt `error` mit `interrupted` und bekanntem Inventar. Derselbe Auftrag setzt bei `deleting` fort und schliesst erfolgreich ab |
 | Timeout bei der Abfrage vor dem Abbau | Die absichtlich kurze Zeitgrenze führt zu `timeout` und erhaltenem Inventar. Mit derselben Kennung und normaler Zeitgrenze gelingt der vollständige Reset |
+| Harter Agentenabbruch während des Abbaus | Der Agent wird nach `waiting_for_deletion` mit SIGKILL beendet. Der nächste Start derselben Reset-Kennung meldet `operation_recovered`, bestätigt den Abbau und erreicht erneut HTTP-Bereitschaft |
+| Wiederholung des wiederaufgenommenen Resets | Nur `status`; die direkte Kubernetes-Abfrage zeigt genau eine VM mit derselben UID |
+| Zweiter Reset während eines laufenden Resets | Derselbe Auftrag wird aus einem zweiten SSH-Terminal gestartet und mit Sperrmeldung und Exitcode 1 abgewiesen. Der erste Reset erreicht weiterhin `ready` und `reset_completed` |
+| MCP-Timeout nach bestätigtem VM-Löschaufruf | Ein Testadapter verzögert die Antwort nach dem tatsächlich angenommenen Löschaufruf um 45 Sekunden bei 30 Sekunden MCP-Zeitgrenze. `timeout`, `error` und bekannte Ressourcen bleiben gespeichert. Mit der normalen Konfiguration bestätigt derselbe Auftrag den Restabbau und erstellt aus demselben Modell neu bis zur HTTP-Bereitschaft |
 
-Die Statusausgabe nach dem Timeout zeigte zugleich einen fehlgeschlagenen Auftrag und eine weiterhin bereite bestehende VM. Damit ist auch die getrennte Darstellung von Auftragsphase und tatsächlicher Dienstbereitschaft im lokalen Ablauf geprüft.
+Die Statusausgabe nach dem Abfrage-Timeout zeigte zugleich einen fehlgeschlagenen Auftrag und eine weiterhin bereite bestehende VM. Nach dem verzögerten Löschaufruf blieb die gespeicherte Phase dagegen `error`, während die VM bereits fehlte und noch Service sowie EndpointSlice beobachtet wurden. Der Abbau prüfte anschliessend auch das übrige gespeicherte Inventar auf Abwesenheit. Damit ist die getrennte Darstellung von Auftragsphase, aktuellem Bestand und Dienstbereitschaft im lokalen Ablauf geprüft.
+
+Die [Nachweisauszüge zur Fehlerbehandlung](nachweise/agent-fehlerbehandlung.txt) enthalten die entscheidenden Ereignisse der Prozessabbruch-, Parallel- und Timeout-Prüfung. Zugangsangaben, konkrete Ressourcenkennungen und lokale Speicherpfade sind ausgelassen. Das Verfahren für die gezielte Antwortverzögerung ist dort ebenfalls festgehalten.
 
 Diese Ergebnisse sind Funktionsprüfungen während der Entwicklung. Sie beruhen auf Konsolenausgaben vom Zielsystem; ein vollständiger versionierter Agenten-Laufdatensatz für eine formale Messserie liegt noch nicht vor. Die Entwicklungsläufe werden deshalb weder als die drei vorgesehenen PoC-Messläufe gezählt noch zur Berechnung einer Verbesserung gegenüber LernMAAS verwendet.
 
-Offen bleiben die Wiederaufnahme nach hartem Prozessende, echte Timeouts während schreibender Plattformaufrufe und deren Bereinigung sowie der automatisierte AWS-Ablauf. Die automatische Sperre eines nach Prozessabbruch noch als `running` gespeicherten Auftrags ist im Test abgedeckt; seine Freigabe und sichere Fortsetzung sind damit nicht nachgewiesen. Ein Lastnachweis für 30 VMs und eine automatisierte SSH-Anmeldung im Gast gehören ebenfalls nicht zu den hier bestätigten Ergebnissen.
+Der Timeout-Nachweis betrifft eine gezielte Antwortverzögerung nach einem bestätigten VM-Löschaufruf. Ein beliebiger Netzwerkausfall oder das harte Ende eines noch laufenden kubectl-Unterprozesses ist damit nicht geprüft. Der harte Agentenabbruch wurde auf dem Cluster in der Abbauphase geprüft; der Schutz bei verloren gegangener Erstellungsantwort und in beiden Reset-Phasen ist zusätzlich automatisiert mit Testbeständen abgedeckt. Offen bleiben der automatisierte AWS-Ablauf, die formalen Messserien, ein Lastnachweis für 30 VMs und eine automatisierte SSH-Anmeldung im Gast.
 
 
 ## Verzeichnisse
