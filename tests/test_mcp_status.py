@@ -17,6 +17,7 @@ from adapter.kubevirt_provider import KubeVirtProvider
 from adapter.vertrag import AdapterError, read_status_response, CREATE_SCHEMA, RUN_STATUS_SCHEMA, DELETE_SCHEMA
 from agent.mcp_client import platform_status, call_tool
 from modell.validierung import load_model
+from gemeinsam.prozessschutz import run_guard
 
 
 class McpStatusTests(unittest.TestCase):
@@ -79,6 +80,18 @@ class McpStatusTests(unittest.TestCase):
             stopped = heartbeat.read_text(encoding='utf-8')
             time.sleep(0.3)
             self.assertEqual(heartbeat.read_text(encoding='utf-8'), stopped)
+
+    def test_guard_participation_is_required_before_calling_the_requested_tool(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            with run_guard(root/'state.sqlite3', 'test-run') as session:
+                result = platform_status({**self.config('success'), '_processGuard': session})
+                self.assertEqual(result['status']['kubevirtPhase'], 'Deployed')
+                for mode in ('missing-guard', 'wrong-guard'):
+                    marker = root/mode
+                    with self.subTest(mode=mode), self.assertRaises(AdapterError):
+                        platform_status({**self.config(mode, marker), '_processGuard': session})
+                    self.assertFalse(marker.exists(), 'Ohne passende Sitzung darf das Zielwerkzeug nicht laufen.')
 
     def test_provider_only_issues_get_requests_and_keeps_vm_state_separate(self):
         documents = [

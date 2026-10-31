@@ -1,5 +1,6 @@
 """Lebenszyklus steuern, Inventar sichern und Endzustände prüfen."""
 from datetime import datetime, timezone
+from functools import wraps
 import asyncio
 import json
 import time
@@ -12,6 +13,7 @@ from adapter.vertrag import AdapterError, CREATE_SCHEMA, RUN_STATUS_SCHEMA, DELE
 from agent.mcp_client import call_tool
 from agent.zustand import StateError, StateStore
 from modell.snapshot import encode_snapshot
+from gemeinsam.prozessschutz import ProcessGuardError, run_guard
 
 
 def emit(event, run_id, operation_id, **values):
@@ -47,7 +49,35 @@ def service_ready(url, model, timeout=2):
 def _adapter(config, platform):
     if platform != 'kubevirt' or platform not in config['adapters']:
         raise StateError('Für diese Plattform ist die Lebenszyklussteuerung noch nicht verfügbar.')
-    return config['adapters'][platform]
+    return {**config['adapters'][platform], '_processGuard': config.get('_processGuard', {})}
+
+
+def _guarded(action):
+    @wraps(action)
+    def execute(config, run_id, *arguments, **options):
+        validate_id(run_id)
+        if action.__name__ != 'create' and not config['stateFile'].is_file():
+            raise StateError('Für diese Laufkennung ist keine Umgebung gespeichert.')
+        try:
+            with run_guard(config['stateFile'], run_id) as session:
+                return action({**config, '_processGuard': session}, run_id, *arguments, **options)
+        except ProcessGuardError as error:
+            raise StateError(str(error)) from error
+    return execute
+
+
+def _recover(store, adapter, record):
+    if record['operation']['status'] != 'running':
+        return record
+    if not record['operation']['guarded']:
+        raise StateError('Dieser laufende Altauftrag hat keinen Prozessschutz; eine automatische Wiederaufnahme ist nicht zulässig.')
+    # Die erworbene Sitzung schliesst aktive bisherige Agenten/Adapter aus.
+    # Vor weiteren Änderungen zuerst auch verlorene API-Antworten abgleichen.
+    _read(store, adapter, record)
+    operation_id = record['operation']['operation_id']
+    store.fail(record['run_id'], operation_id, 'interrupted')
+    emit('operation_recovered', record['run_id'], operation_id, stage=record['operation']['stage'])
+    return store.get(record['run_id'])
 
 
 def _read(store, adapter, record, timeout=None):
@@ -90,6 +120,7 @@ def _failed(store, adapter, record, error):
     emit('error', run_id, operation_id, code=code, resources=store.get(run_id)['resources'])
 
 
+@_guarded
 def create(config, run_id, operation_id, platform, model, timeout_seconds=900):
     validate_id(run_id)
     validate_id(operation_id)
@@ -100,15 +131,17 @@ def create(config, run_id, operation_id, platform, model, timeout_seconds=900):
         previous = store.get(run_id)
     except StateError:
         previous = None
-    if previous and previous['phase'] == 'ready':
+    if previous:
         old_snapshot, _ = encode_snapshot(previous['model_snapshot'])
         if old_snapshot != snapshot or previous['platform'] != platform:
             raise StateError('Plattform und Modell-Snapshot eines Laufs dürfen nicht verändert werden.')
+        previous = _recover(store, adapter, previous)
+    if previous and previous['phase'] == 'ready':
         result = status(config, run_id)
         if not result[1]:
             raise AdapterError('platform_error')
         return result
-    store.start_create(run_id, operation_id, platform, model)
+    store.start_create(run_id, operation_id, platform, model, guarded=True)
     emit('create_started', run_id, operation_id)
     record = store.get(run_id)
     try:
@@ -126,19 +159,21 @@ def _stored_run(config, run_id):
     return store, record, _adapter(config, record['platform'])
 
 
+@_guarded
 def delete(config, run_id, operation_id, timeout_seconds=300):
     validate_id(run_id)
     validate_id(operation_id)
     store, record, adapter = _stored_run(config, run_id)
+    record = _recover(store, adapter, record)
     if record['phase'] == 'absent':
         actual = call_tool(adapter, 'status', {'run_id': run_id}, RUN_STATUS_SCHEMA)
         if actual['resources']:
             raise AdapterError('resource_conflict')
         if record['operation']['operation_id'] != operation_id:
-            store.start_operation(run_id, operation_id, 'delete')
+            store.start_operation(run_id, operation_id, 'delete', guarded=True)
         emit('deleted', run_id, operation_id, alreadyAbsent=True)
         return
-    store.start_operation(run_id, operation_id, 'delete')
+    store.start_operation(run_id, operation_id, 'delete', guarded=True)
     record = store.get(run_id)
     emit('delete_started', run_id, operation_id)
     try:
@@ -150,10 +185,12 @@ def delete(config, run_id, operation_id, timeout_seconds=300):
         raise
 
 
+@_guarded
 def reset(config, run_id, operation_id, timeout_seconds=1200):
     validate_id(run_id)
     validate_id(operation_id)
     store, record, adapter = _stored_run(config, run_id)
+    record = _recover(store, adapter, record)
     previous = record['operation']
     if (previous['operation_id'] == operation_id and previous['kind'] == 'reset'
             and previous['status'] == 'succeeded' and record['phase'] == 'ready'):
@@ -161,7 +198,7 @@ def reset(config, run_id, operation_id, timeout_seconds=1200):
         if not result[1]:
             raise AdapterError('platform_error')
         return result
-    store.start_operation(run_id, operation_id, 'reset')
+    store.start_operation(run_id, operation_id, 'reset', guarded=True)
     record = store.get(run_id)
     deadline = time.monotonic() + timeout_seconds
     emit('reset_started', run_id, operation_id, stage=record['phase'])

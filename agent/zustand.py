@@ -26,7 +26,8 @@ SCHEMA = (
         error_code TEXT,
         started_at TEXT NOT NULL,
         updated_at TEXT NOT NULL,
-        stage TEXT CHECK (stage IN ('creating', 'deleting'))
+        stage TEXT CHECK (stage IN ('creating', 'deleting')),
+        guarded INTEGER NOT NULL DEFAULT 0 CHECK (guarded IN (0, 1))
     )""",
     """CREATE UNIQUE INDEX IF NOT EXISTS one_running_operation
         ON operations(run_id) WHERE status = 'running'""",
@@ -71,7 +72,7 @@ class StateStore:
             raise StateError('Zustandsordner konnte nicht angelegt werden.') from error
         with self.connection(write=True) as connection:
             version = connection.execute('PRAGMA user_version').fetchone()[0]
-            if version not in (0, 1, 2, 3, 4):
+            if version not in (0, 1, 2, 3, 4, 5):
                 raise StateError('Die Version des Zustandsspeichers wird nicht unterstützt.')
             for statement in SCHEMA:
                 connection.execute(statement)
@@ -86,7 +87,9 @@ class StateStore:
                 connection.execute("UPDATE operations SET stage = CASE kind WHEN 'create' THEN 'creating' "
                                    "WHEN 'delete' THEN 'deleting' ELSE (SELECT phase FROM runs "
                                    "WHERE runs.operation_id = operations.operation_id AND phase IN ('creating', 'deleting')) END")
-            connection.execute('PRAGMA user_version = 4')
+            if 'guarded' not in columns:
+                connection.execute('ALTER TABLE operations ADD COLUMN guarded INTEGER NOT NULL DEFAULT 0 CHECK (guarded IN (0, 1))')
+            connection.execute('PRAGMA user_version = 5')
 
     @contextmanager
     def connection(self, write=False):
@@ -118,8 +121,10 @@ class StateStore:
             raise StateError('Die Operation ist für diesen Lauf nicht aktiv.')
         return row
 
-    def _start(self, connection, run_id, operation_id, kind):
+    def _start(self, connection, run_id, operation_id, kind, guarded):
         require_text(run_id, operation_id)
+        if type(guarded) is not bool:
+            raise StateError('Der Prozessschutz muss eindeutig angegeben sein.')
         run = self._run(connection, run_id)
         if connection.execute("SELECT 1 FROM operations WHERE run_id = ? AND status = 'running'",
                               (run_id,)).fetchone():
@@ -127,12 +132,12 @@ class StateStore:
         previous = connection.execute('SELECT * FROM operations WHERE operation_id = ?',
                                       (operation_id,)).fetchone()
         if previous:
-            if (kind in ('delete', 'reset') and run['phase'] == 'error' and run['operation_id'] == operation_id
+            if (run['phase'] == 'error' and run['operation_id'] == operation_id
                     and previous['run_id'] == run_id and previous['kind'] == kind
                     and previous['status'] == 'failed' and previous['stage'] in ('creating', 'deleting')):
                 now = timestamp()
-                connection.execute("UPDATE operations SET status = 'running', error_code = NULL, updated_at = ? WHERE operation_id = ?",
-                                   (now, operation_id))
+                connection.execute("UPDATE operations SET status = 'running', error_code = NULL, updated_at = ?, guarded = ? WHERE operation_id = ?",
+                                   (now, int(guarded), operation_id))
                 connection.execute('UPDATE runs SET phase = ?, updated_at = ? WHERE run_id = ?',
                                    (previous['stage'], now, run_id))
                 return
@@ -149,13 +154,13 @@ class StateStore:
             phase, status = 'absent', 'succeeded'
         now = timestamp()
         stage = 'creating' if kind == 'create' else 'deleting'
-        connection.execute('INSERT INTO operations (operation_id, run_id, kind, status, error_code, started_at, updated_at, stage) '
-                           'VALUES (?, ?, ?, ?, NULL, ?, ?, ?)',
-                           (operation_id, run_id, kind, status, now, now, stage))
+        connection.execute('INSERT INTO operations (operation_id, run_id, kind, status, error_code, started_at, updated_at, stage, guarded) '
+                           'VALUES (?, ?, ?, ?, NULL, ?, ?, ?, ?)',
+                           (operation_id, run_id, kind, status, now, now, stage, int(guarded)))
         connection.execute('UPDATE runs SET phase = ?, operation_id = ?, updated_at = ? WHERE run_id = ?',
                            (phase, operation_id, now, run_id))
 
-    def start_create(self, run_id, operation_id, platform, model):
+    def start_create(self, run_id, operation_id, platform, model, *, guarded=False):
         """Modell und Auftrag vor dem ersten Plattformaufruf atomar speichern."""
         require_text(run_id, operation_id)
         if platform not in ('kubevirt', 'aws'):
@@ -168,14 +173,14 @@ class StateStore:
             run = self._run(connection, run_id)
             if run['platform'] != platform or run['model_snapshot'] != snapshot:
                 raise StateError('Plattform und Modell-Snapshot eines Laufs dürfen nicht verändert werden.')
-            self._start(connection, run_id, operation_id, 'create')
+            self._start(connection, run_id, operation_id, 'create', guarded)
 
-    def start_operation(self, run_id, operation_id, kind):
+    def start_operation(self, run_id, operation_id, kind, *, guarded=False):
         """Reset oder Abbau für eine bereits gespeicherte Umgebung beginnen."""
         if kind not in ('reset', 'delete'):
             raise StateError('Hier sind nur reset und delete zulässig.')
         with self.connection(write=True) as connection:
-            self._start(connection, run_id, operation_id, kind)
+            self._start(connection, run_id, operation_id, kind, guarded)
 
     def record_resource(self, run_id, operation_id, kind, resource_id, scope='', name=''):
         """Eine erstellte oder beim Abgleich gefundene Ressource speichern."""

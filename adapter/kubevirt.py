@@ -1,5 +1,6 @@
 """KubeVirt-Abfragen als MCP-Werkzeug über stdio anbieten."""
 import argparse
+import os
 
 from mcp.server import MCPServer
 from mcp.types import CallToolResult, ToolAnnotations
@@ -7,29 +8,46 @@ from mcp.types import CallToolResult, ToolAnnotations
 from adapter.kubevirt_lifecycle import KubeVirtLifecycle
 from adapter.vertrag import AdapterError, read_status_response
 from modell.validierung import ModelValidationError
+from gemeinsam.prozessschutz import adapter_guard, ProcessGuardError, GUARD_TOKEN
 
 
 def create_server(provider):
     server = MCPServer('diplomarbeit-kubevirt', version='0.1', log_level='WARNING')
+
+    @server.tool(annotations=ToolAnnotations(readOnlyHint=True, destructiveHint=False, idempotentHint=True))
+    def process_guard() -> CallToolResult:
+        """Teilnahme an der vom Agenten vorgegebenen Prozesssitzung bestätigen."""
+        try:
+            with adapter_guard():
+                return CallToolResult(content=[], structured_content={'session': os.environ.get(GUARD_TOKEN)})
+        except ProcessGuardError:
+            return CallToolResult(content=[], is_error=True)
 
     @server.tool(annotations=ToolAnnotations(
         readOnlyHint=True, destructiveHint=False, idempotentHint=True, openWorldHint=False))
     def platform_status() -> CallToolResult:
         """Knoten, KubeVirt und VMs lesen; keine Dienstbereitschaft bestätigen."""
         try:
-            response = {'ok': True, 'status': provider.platform_status()}
+            with adapter_guard():
+                response = {'ok': True, 'status': provider.platform_status()}
             read_status_response(response)
         except AdapterError as error:
             response = {'ok': False, 'error': error.code}
+        except ProcessGuardError:
+            response = {'ok': False, 'error': 'resource_conflict'}
         return CallToolResult(content=[], structured_content=response)
 
     def result(action):
         try:
-            response = {'ok': True, 'data': action()}
+            # Der Worker hält selbst eine Sperre, auch während der Server endet.
+            with adapter_guard():
+                response = {'ok': True, 'data': action()}
         except AdapterError as error:
             response = {'ok': False, 'error': error.code}
         except ModelValidationError:
             response = {'ok': False, 'error': 'invalid_request'}
+        except ProcessGuardError:
+            response = {'ok': False, 'error': 'resource_conflict'}
         return CallToolResult(content=[], structured_content=response)
 
     @server.tool(annotations=ToolAnnotations(readOnlyHint=False, destructiveHint=False, idempotentHint=True))
@@ -59,7 +77,11 @@ def main():
     args = parser.parse_args()
     if args.timeout_seconds < 1:
         parser.error('--timeout-seconds muss positiv sein')
-    create_server(KubeVirtLifecycle(args.kubectl_command, args.timeout_seconds)).run(transport='stdio')
+    try:
+        with adapter_guard():
+            create_server(KubeVirtLifecycle(args.kubectl_command, args.timeout_seconds)).run(transport='stdio')
+    except ProcessGuardError as error:
+        parser.exit(1, f'Adapterfehler: {error}\n')
 
 
 if __name__ == '__main__':

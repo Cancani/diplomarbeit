@@ -21,6 +21,7 @@ from mcp.types import CallToolResult
 
 from adapter.kubevirt import create_server
 from adapter.vertrag import AdapterError
+from gemeinsam.prozessschutz import adapter_guard
 
 
 class FakeProvider:
@@ -44,14 +45,23 @@ class FakeProvider:
         return {'complete': True, 'resources': [], 'removed': resources}
 
 
-if mode == 'invalid':
+if mode in ('invalid', 'missing-guard', 'wrong-guard'):
     server = MCPServer('test-invalid-adapter', log_level='WARNING')
 
     @server.tool()
     def platform_status() -> CallToolResult:
+        if mode != 'invalid':
+            Path(sys.argv[2]).touch()
+            return CallToolResult(content=[], structured_content={'ok': True, 'status': FakeProvider().platform_status()})
         return CallToolResult(content=[], structured_content={'unexpected': 'PRIVATE-CONTENT'})
+
+    if mode == 'wrong-guard':
+        @server.tool()
+        def process_guard() -> CallToolResult:
+            return CallToolResult(content=[], structured_content={'session': 'another-session'})
 else:
     server = create_server(FakeProvider())
 
 
-server.run(transport='stdio')
+with adapter_guard():
+    server.run(transport='stdio')

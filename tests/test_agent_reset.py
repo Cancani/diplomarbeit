@@ -159,6 +159,44 @@ class AgentResetTests(unittest.TestCase):
         self.assertNotIn('create', self.calls)
         self.assertEqual(self.store.get('run-01')['resources'], self.original['resources'])
 
+    def test_abandoned_guarded_reset_resumes_both_stages_after_read_only_reconciliation(self):
+        class ProcessGone(BaseException):
+            pass
+
+        for stage in ('deleting', 'creating'):
+            operation_id = 'reset-' + stage
+
+            def abandoned(adapter, tool, arguments, schema):
+                if stage == 'deleting' and tool == 'delete':
+                    raise ProcessGone()
+                result = self.call(adapter, tool, arguments, schema)
+                if stage == 'creating' and tool == 'create':
+                    raise ProcessGone()  # Plattformänderung ohne gespeicherte Antwort.
+                return result
+
+            with self.subTest(stage=stage), patch('agent.lebenszyklus.call_tool', side_effect=abandoned), \
+                    patch('agent.lebenszyklus.time.sleep'), redirect_stdout(io.StringIO()):
+                with self.assertRaises(ProcessGone):
+                    reset(self.config, 'run-01', operation_id)
+            record = self.store.get('run-01')
+            self.assertEqual(record['operation']['status'], 'running')
+            self.assertEqual(record['operation']['stage'], stage)
+            self.assertEqual(record['operation']['guarded'], 1)
+            self.calls.clear()
+
+            def reconcile_first(adapter, tool, arguments, schema):
+                if not self.calls:
+                    self.assertEqual(tool, 'status')
+                    self.assertEqual(self.store.get('run-01')['operation']['status'], 'running')
+                return self.call(adapter, tool, arguments, schema)
+
+            with http_endpoint() as self.url, patch('agent.lebenszyklus.call_tool', side_effect=reconcile_first), \
+                    patch('agent.lebenszyklus.time.sleep'), redirect_stdout(io.StringIO()):
+                reset(self.config, 'run-01', operation_id)
+            self.assertEqual(self.store.get('run-01')['phase'], 'ready')
+            if stage == 'creating':
+                self.assertNotIn('delete', self.calls)
+
 
 if __name__ == '__main__':
     unittest.main()
