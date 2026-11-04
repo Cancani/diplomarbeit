@@ -3,8 +3,7 @@ import hashlib
 import re
 from copy import deepcopy
 
-import yaml
-
+from adapter.cloud_init import cloud_init
 from adapter.vertrag import AdapterError
 from modell.snapshot import encode_snapshot
 
@@ -55,22 +54,6 @@ def manifests(run_id, operation_id, model):
     metadata = {'name': name, 'namespace': NAMESPACE, 'labels': tags,
                 'annotations': {'diplomarbeit/model-sha256': digest,
                                 'diplomarbeit/image-sha256-publisher': IMAGE_SHA256}}
-    cloud_config = {
-        'hostname': name, 'manage_etc_hosts': True, 'disable_root': True, 'ssh_pwauth': False,
-        'package_update': False, 'package_upgrade': False,
-        'users': [{'name': vm['ssh']['username'], 'groups': ['sudo'], 'sudo': 'ALL=(ALL) NOPASSWD:ALL',
-                   'shell': '/bin/bash', 'lock_passwd': True, 'ssh_authorized_keys': vm['ssh']['publicKeys']}],
-        'write_files': [
-            {'path': '/var/www/index.html', 'permissions': '0644',
-             'content': vm['testService']['expectedBody'] + '\n'},
-            {'path': '/etc/systemd/system/testdienst.service', 'permissions': '0644', 'content':
-             '[Unit]\nDescription=HTTP-Testdienst der Lernumgebung\nAfter=network.target\n'
-             '[Service]\nUser=nobody\nGroup=nogroup\nWorkingDirectory=/var/www\n'
-             'ExecStart=/usr/bin/python3 -m http.server 8080 --bind 0.0.0.0 --directory /var/www\n'
-             'Restart=on-failure\n[Install]\nWantedBy=multi-user.target\n'},
-        ],
-        'runcmd': [['systemctl', 'daemon-reload'], ['systemctl', 'enable', '--now', 'testdienst.service']],
-    }
     machine = {
         'apiVersion': 'kubevirt.io/v1', 'kind': 'VirtualMachine', 'metadata': metadata,
         'spec': {
@@ -95,7 +78,7 @@ def manifests(run_id, operation_id, model):
                 'networks': [{'name': 'default', 'pod': {}}],
                 'volumes': [{'name': 'rootdisk', 'dataVolume': {'name': name + '-disk'}},
                             {'name': 'cloudinit', 'cloudInitNoCloud': {
-                                'userData': '#cloud-config\n' + yaml.safe_dump(cloud_config, allow_unicode=True)}}],
+                                'userData': cloud_init(name, vm)}}],
             }},
         },
     }

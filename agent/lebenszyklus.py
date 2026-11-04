@@ -41,7 +41,7 @@ def service_ready(url, model, timeout=2):
 
 
 def _adapter(config, platform):
-    if platform != 'kubevirt' or platform not in config['adapters']:
+    if platform not in ('kubevirt', 'aws') or platform not in config['adapters']:
         raise StateError('Für diese Plattform ist die Lebenszyklussteuerung noch nicht verfügbar.')
     return {**config['adapters'][platform], '_processGuard': config.get('_processGuard', {})}
 
@@ -184,6 +184,8 @@ def reset(config, run_id, operation_id, timeout_seconds=1200):
     validate_id(run_id)
     validate_id(operation_id)
     store, record, adapter = _stored_run(config, run_id)
+    if record['platform'] == 'aws':
+        raise StateError('Reset ist für AWS noch nicht verfügbar.')
     record = _recover(store, adapter, record)
     previous = record['operation']
     if (previous['operation_id'] == operation_id and previous['kind'] == 'reset'
@@ -258,8 +260,10 @@ def _delete(store, adapter, record, deadline):
             raise AdapterError('timeout')
         known = store.get(run_id)['resources']
         settings = {**adapter, 'timeoutSeconds': min(adapter['timeoutSeconds'], remaining)}
-        step = call_tool(settings, 'delete', {
-            'run_id': run_id, 'operation_id': operation_id, 'resources': known}, DELETE_SCHEMA)
+        arguments = {'run_id': run_id, 'operation_id': operation_id, 'resources': known}
+        if record['platform'] == 'aws':
+            arguments['model_hash'] = record['model_hash']
+        step = call_tool(settings, 'delete', arguments, DELETE_SCHEMA)
         store.observe_resources(run_id, operation_id, step['resources'])
         for resource in step['removed']:
             store.confirm_removed(run_id, operation_id, resource['kind'],

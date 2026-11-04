@@ -9,7 +9,9 @@ from jsonschema import Draft202012Validator
 ERRORS = {
     'command_not_found': 'Das Kubernetes-Werkzeug wurde nicht gefunden.',
     'aws_cli_unavailable': 'Die AWS CLI wurde nicht gefunden.',
-    'aws_query_failed': 'Die EC2-Abfrage ist fehlgeschlagen. Prüfe das AWS-Profil und die aktive Lab-Sitzung.',
+    'aws_query_failed': 'Der AWS-Aufruf ist fehlgeschlagen. Prüfe das AWS-Profil, die Lab-Sitzung und die Berechtigungen.',
+    'aws_launch_unconfigured': 'Für den EC2-Start fehlen Konto, VPC, Subnetz oder HTTP-Quelladresse in der Adapterkonfiguration.',
+    'aws_model_unsupported': 'Der EC2-Adapter unterstützt t3.small mit bis zu 100 GiB und maximal 16 KiB Cloud-init-Daten.',
     'platform_error': 'Die Clusterabfrage ist fehlgeschlagen. Prüfe den lokalen Clusterzugang.',
     'timeout': 'Die Zeitgrenze für die Abfrage wurde überschritten.',
     'invalid_response': 'Die Adapterantwort entspricht nicht dem vereinbarten Format.',
