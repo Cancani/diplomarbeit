@@ -8,11 +8,14 @@ import time
 import unittest
 from unittest.mock import patch
 
+import boto3
+from botocore.stub import Stubber
 import yaml
 
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
+from adapter.aws import run_status
 from adapter.kubevirt_provider import KubeVirtProvider
 from adapter.vertrag import AdapterError, read_status_response, CREATE_SCHEMA, RUN_STATUS_SCHEMA, DELETE_SCHEMA
 from agent.mcp_client import platform_status, call_tool
@@ -25,6 +28,37 @@ class McpStatusTests(unittest.TestCase):
         return {'command': sys.executable,
                 'args': [str(ROOT/'tests/fixtures/mcp_adapter.py'), mode, *map(str, arguments)],
                 'timeoutSeconds': timeout}
+
+    def test_aws_run_status_keeps_non_instance_resources_after_termination(self):
+        region = 'us-east-1'
+        run_id = 'aws-test-01'
+        digest = 'a' * 64
+        client = boto3.client('ec2', region_name=region,
+                              aws_access_key_id='test', aws_secret_access_key='test')
+        filters = {'Filters': [{'Name': 'tag:ManagedBy', 'Values': ['diplomarbeit-agent']},
+                               {'Name': 'tag:RunId', 'Values': [run_id]}]}
+        tags = [{'Key': 'ManagedBy', 'Value': 'diplomarbeit-agent'},
+                {'Key': 'RunId', 'Value': run_id}, {'Key': 'ModelHash', 'Value': digest}]
+        for state in ('running', 'terminated'):
+            with self.subTest(state=state), Stubber(client) as ec2:
+                instance = {'InstanceId': 'i-0123456789abcdef0', 'State': {'Name': state},
+                            'PublicIpAddress': '192.0.2.10', 'Tags': tags}
+                ec2.add_response('describe_instances', {'Reservations': [{'Instances': [instance]}]}, filters)
+                ec2.add_response('describe_volumes', {'Volumes': [{'VolumeId': 'vol-0123', 'Tags': tags}]}, filters)
+                ec2.add_response('describe_network_interfaces', {'NetworkInterfaces': [
+                    {'NetworkInterfaceId': 'eni-0123', 'TagSet': tags}]}, filters)
+                ec2.add_response('describe_security_groups', {'SecurityGroups': [
+                    {'GroupId': 'sg-0123', 'Tags': tags}]}, filters)
+
+                result = run_status(client, region, run_id)
+                ec2.assert_no_pending_responses()
+                expected = ['EBSVolume', 'NetworkInterface', 'SecurityGroup']
+                if state == 'running':
+                    expected.insert(0, 'EC2Instance')
+                self.assertEqual([item['kind'] for item in result['resources']], expected)
+                self.assertEqual(result['modelHash'], digest)
+                self.assertEqual(result['vmReady'], state == 'running')
+                self.assertEqual(result['httpUrl'], 'http://192.0.2.10:8080/' if state == 'running' else None)
 
     def test_aws_status_reads_all_pages_for_configured_profile_without_database(self):
         with tempfile.TemporaryDirectory() as folder:
