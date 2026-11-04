@@ -1,0 +1,6 @@
+stateFile: zustand.sqlite3
+adapters:
+  aws:
+    command: python
+    args: ["-m", "adapter.aws", "--profile", "diplomarbeit", "--region", "us-east-1"]
+    timeoutSeconds: 30

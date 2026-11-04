@@ -26,6 +26,39 @@ class McpStatusTests(unittest.TestCase):
                 'args': [str(ROOT/'tests/fixtures/mcp_adapter.py'), mode, *map(str, arguments)],
                 'timeoutSeconds': timeout}
 
+    def test_aws_cli_status_uses_profile_region_and_managed_filter_without_database(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            aws = root/'aws_cli.py'
+            aws.write_text(
+                'import sys\n'
+                'args = sys.argv[1:]\n'
+                'assert args[:2] == ["ec2", "describe-instances"]\n'
+                'assert args[args.index("--profile") + 1] == "diplomarbeit"\n'
+                'assert args[args.index("--region") + 1] == "us-east-1"\n'
+                'assert args[args.index("--filters") + 1] == "Name=tag:ManagedBy,Values=diplomarbeit-agent"\n'
+                'print(\'[{"id":"i-0123456789abcdef0","state":"running"}]\')\n', encoding='utf-8')
+            config = root/'config.yaml'
+            config.write_text(yaml.safe_dump({
+                'stateFile': 'must-not-exist.sqlite3',
+                'adapters': {'aws': {'command': sys.executable, 'timeoutSeconds': 10,
+                                     'args': ['-m', 'adapter.aws', '--profile', 'diplomarbeit',
+                                              '--region', 'us-east-1', '--aws-command', sys.executable, str(aws)]}},
+            }), encoding='utf-8')
+            command = [sys.executable, '-m', 'agent', '--config', str(config),
+                       'platform-status', '--platform', 'aws']
+            options = dict(cwd=ROOT, capture_output=True, text=True, encoding='utf-8', timeout=20)
+            result = subprocess.run([*command, '--json'], **options)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(json.loads(result.stdout)['status'], {
+                'platform': 'aws', 'region': 'us-east-1',
+                'instances': [{'id': 'i-0123456789abcdef0', 'state': 'running'}],
+            })
+            result = subprocess.run(command, **options)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn('Vom Agenten gekennzeichnete EC2-Instanzen: 1', result.stdout)
+            self.assertFalse((root/'must-not-exist.sqlite3').exists())
+
     def test_real_stdio_round_trip_through_cli_creates_no_database(self):
         with tempfile.TemporaryDirectory() as folder:
             root = Path(folder)

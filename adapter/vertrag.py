@@ -8,6 +8,8 @@ from jsonschema import Draft202012Validator
 
 ERRORS = {
     'command_not_found': 'Das Kubernetes-Werkzeug wurde nicht gefunden.',
+    'aws_cli_unavailable': 'Die AWS CLI wurde nicht gefunden.',
+    'aws_query_failed': 'Die EC2-Abfrage ist fehlgeschlagen. Prüfe das AWS-Profil und die aktive Lab-Sitzung.',
     'platform_error': 'Die Clusterabfrage ist fehlgeschlagen. Prüfe den lokalen Clusterzugang.',
     'timeout': 'Die Zeitgrenze für die Abfrage wurde überschritten.',
     'invalid_response': 'Die Adapterantwort entspricht nicht dem vereinbarten Format.',
@@ -40,9 +42,26 @@ STATUS_SCHEMA = {
     },
 }
 
+AWS_STATUS_SCHEMA = {
+    'type': 'object', 'additionalProperties': False,
+    'required': ['platform', 'region', 'instances'],
+    'properties': {
+        'platform': {'const': 'aws'},
+        'region': {'type': 'string', 'minLength': 1},
+        'instances': {'type': 'array', 'items': {
+            'type': 'object', 'additionalProperties': False,
+            'required': ['id', 'state'],
+            'properties': {
+                'id': {'type': 'string', 'pattern': '^i-[0-9a-f]+$'},
+                'state': {'enum': ['pending', 'running', 'shutting-down', 'terminated', 'stopping', 'stopped']},
+            },
+        }},
+    },
+}
+
 RESPONSE_SCHEMA = {'oneOf': [
     {'type': 'object', 'additionalProperties': False, 'required': ['ok', 'status'],
-     'properties': {'ok': {'const': True}, 'status': STATUS_SCHEMA}},
+     'properties': {'ok': {'const': True}, 'status': {'oneOf': [STATUS_SCHEMA, AWS_STATUS_SCHEMA]}}},
     {'type': 'object', 'additionalProperties': False, 'required': ['ok', 'error'],
      'properties': {'ok': {'const': False}, 'error': {'enum': list(ERRORS)}}},
 ]}

@@ -134,6 +134,12 @@ def platform_result(result, json_output=False):
     status = result['status']
     write(f'Plattform: {status["platform"]}')
     write('MCP-Verbindung: Erreichbar')
+    if status['platform'] == 'aws':
+        write(f'AWS-Region: {status["region"]}')
+        write(f'Vom Agenten gekennzeichnete EC2-Instanzen: {len(status["instances"])}')
+        for instance in status['instances']:
+            write(f'  {instance["id"]}: {instance["state"]}')
+        return
     write(f'KubeVirt: {"Betriebsbereit" if status["kubevirtPhase"] == "Deployed" else status["kubevirtPhase"]}')
     write(f'Knoten: {len(status["nodes"])}')
     for node in status['nodes']:
