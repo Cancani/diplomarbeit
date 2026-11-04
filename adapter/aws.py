@@ -1,15 +1,16 @@
-"""EC2-Bestand über AWS CLI und MCP lesen."""
+"""EC2-Bestand über Boto3 und MCP lesen."""
 import argparse
-import json
-import subprocess
 
+import boto3
+from botocore.config import Config
+from botocore.exceptions import BotoCoreError, ClientError, ConnectTimeoutError, ReadTimeoutError
 from mcp.server import MCPServer
 from mcp.types import CallToolResult, ToolAnnotations
 
-from adapter.vertrag import AdapterError, read_status_response
+from adapter.vertrag import read_status_response
 
 
-def create_server(command, profile, region, timeout):
+def create_server(profile, region, timeout):
     server = MCPServer('diplomarbeit-aws', version='0.1', log_level='WARNING')
 
     @server.tool(annotations=ToolAnnotations(
@@ -17,24 +18,27 @@ def create_server(command, profile, region, timeout):
     def platform_status() -> CallToolResult:
         """Den EC2-Zustand der für den Agenten gekennzeichneten Instanzen lesen."""
         try:
-            response = subprocess.run(
-                [*command, 'ec2', 'describe-instances', '--profile', profile, '--region', region,
-                 '--filters', 'Name=tag:ManagedBy,Values=diplomarbeit-agent',
-                 '--query', 'Reservations[].Instances[].{id:InstanceId,state:State.Name}',
-                 '--output', 'json', '--no-cli-pager', '--no-cli-auto-prompt'],
-                stdin=subprocess.DEVNULL, capture_output=True, text=True, encoding='utf-8',
-                timeout=timeout, check=True,
+            client = boto3.Session(profile_name=profile, region_name=region).client(
+                'ec2', config=Config(connect_timeout=timeout, read_timeout=timeout,
+                                     retries={'total_max_attempts': 1}),
             )
+            pages = client.get_paginator('describe_instances').paginate(
+                Filters=[{'Name': 'tag:ManagedBy', 'Values': ['diplomarbeit-agent']}],
+            )
+            instances = [
+                {'id': instance['InstanceId'], 'state': instance['State']['Name']}
+                for page in pages
+                for reservation in page['Reservations']
+                for instance in reservation['Instances']
+            ]
             result = {'ok': True, 'status': {'platform': 'aws', 'region': region,
-                                             'instances': json.loads(response.stdout)}}
+                                             'instances': instances}}
             read_status_response(result)
-        except FileNotFoundError:
-            result = {'ok': False, 'error': 'aws_cli_unavailable'}
-        except subprocess.TimeoutExpired:
+        except (ConnectTimeoutError, ReadTimeoutError):
             result = {'ok': False, 'error': 'timeout'}
-        except (subprocess.CalledProcessError, OSError):
+        except (BotoCoreError, ClientError, OSError):
             result = {'ok': False, 'error': 'aws_query_failed'}
-        except ValueError:
+        except (KeyError, TypeError, ValueError):
             result = {'ok': False, 'error': 'invalid_response'}
         return CallToolResult(content=[], structured_content=result)
 
@@ -43,14 +47,13 @@ def create_server(command, profile, region, timeout):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--aws-command', nargs='+', default=['aws'])
     parser.add_argument('--profile', required=True)
     parser.add_argument('--region', required=True)
     parser.add_argument('--timeout-seconds', type=int, default=15)
     args = parser.parse_args()
     if args.timeout_seconds < 1:
         parser.error('--timeout-seconds muss positiv sein')
-    create_server(args.aws_command, args.profile, args.region, args.timeout_seconds).run(transport='stdio')
+    create_server(args.profile, args.region, args.timeout_seconds).run(transport='stdio')
 
 
 if __name__ == '__main__':

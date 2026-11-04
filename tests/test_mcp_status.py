@@ -26,24 +26,41 @@ class McpStatusTests(unittest.TestCase):
                 'args': [str(ROOT/'tests/fixtures/mcp_adapter.py'), mode, *map(str, arguments)],
                 'timeoutSeconds': timeout}
 
-    def test_aws_cli_status_uses_profile_region_and_managed_filter_without_database(self):
+    def test_aws_status_reads_all_pages_for_configured_profile_without_database(self):
         with tempfile.TemporaryDirectory() as folder:
             root = Path(folder)
-            aws = root/'aws_cli.py'
+            aws = root/'aws_status.py'
             aws.write_text(
-                'import sys\n'
-                'args = sys.argv[1:]\n'
-                'assert args[:2] == ["ec2", "describe-instances"]\n'
-                'assert args[args.index("--profile") + 1] == "diplomarbeit"\n'
-                'assert args[args.index("--region") + 1] == "us-east-1"\n'
-                'assert args[args.index("--filters") + 1] == "Name=tag:ManagedBy,Values=diplomarbeit-agent"\n'
-                'print(\'[{"id":"i-0123456789abcdef0","state":"running"}]\')\n', encoding='utf-8')
+                """import boto3
+from botocore.stub import Stubber
+from unittest.mock import patch
+
+from adapter.aws import main
+
+client = boto3.client('ec2', region_name='us-east-1',
+                      aws_access_key_id='test', aws_secret_access_key='test')
+filters = [{'Name': 'tag:ManagedBy', 'Values': ['diplomarbeit-agent']}]
+with Stubber(client) as stubber, patch('boto3.Session') as session:
+    stubber.add_response('describe_instances', {'Reservations': [], 'NextToken': 'page2'},
+                         {'Filters': filters})
+    stubber.add_response('describe_instances', {'Reservations': [{'Instances': [
+        {'InstanceId': 'i-0123456789abcdef0', 'State': {'Name': 'running'}}
+    ]}]}, {'Filters': filters, 'NextToken': 'page2'})
+
+    def connect(*, profile_name, region_name):
+        assert (profile_name, region_name) == ('diplomarbeit', 'us-east-1')
+        return session.return_value
+
+    session.side_effect = connect
+    session.return_value.client.return_value = client
+    main()
+""", encoding='utf-8')
             config = root/'config.yaml'
             config.write_text(yaml.safe_dump({
                 'stateFile': 'must-not-exist.sqlite3',
                 'adapters': {'aws': {'command': sys.executable, 'timeoutSeconds': 10,
-                                     'args': ['-m', 'adapter.aws', '--profile', 'diplomarbeit',
-                                              '--region', 'us-east-1', '--aws-command', sys.executable, str(aws)]}},
+                                     'args': ['-c', 'import runpy, sys; runpy.run_path(sys.argv.pop(1))',
+                                              str(aws), '--profile', 'diplomarbeit', '--region', 'us-east-1']}},
             }), encoding='utf-8')
             command = [sys.executable, '-m', 'agent', '--config', str(config),
                        'platform-status', '--platform', 'aws']
