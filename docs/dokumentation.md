@@ -1,7 +1,7 @@
 # Diplomarbeit: Agentenbasierte Hybrid-Cloud-Bereitstellung von Lernumgebungen mit Kubernetes, KubeVirt und MCP
 
-!!! info "Lokaler Lebenszyklus auf KubeVirt"
-    Modellprüfung, CLI, SQLite-Zustandsführung und MCP-Anbindung sind mit dem KubeVirt-Adapter verbunden. create, status, reset und delete funktionieren im lokalen Ablauf. Geprüft sind Wiederholung, Fortsetzung nach Ctrl+C und hartem Agentenabbruch während des Abbaus, die Ablehnung eines parallelen Resets sowie die Wiederaufnahme nach einem gezielt ausgelösten MCP-Timeout nach bestätigtem VM-Löschaufruf. AWS-Anbindung, formale Messserien und abschliessende Bewertung bleiben offen.
+!!! info "Umgesetzte Bereitstellung auf KubeVirt und AWS"
+    Der Python-Agent verbindet YAML-Modellprüfung, SQLite und MCP mit beiden Plattformadaptern. Auf KubeVirt sind create, status, reset und delete einschliesslich der dokumentierten Wiederholungs- und Fehlerfälle geprüft. Auf AWS sind create, status und delete mit derselben Referenz-YAML im Learner Lab ausgeführt. Der HTTP-Dienst war bereit und eine direkte AWS-Abfrage bestätigte nach dem Abbau den leeren Ressourcenbestand in us-east-1.
 
 | | |
 | --- | --- |
@@ -11,7 +11,7 @@
 | Schulexperte | Thanam Pangri, HF-Lehrgangsleitung |
 | Bewilligter Zeitraum | 11.09.2026 bis 18.12.2026 |
 | Arbeitsplanung | 14.09.2026 bis 18.12.2026 |
-| Version | 0.22, Lesbare Agentenausgabe mit JSON-Option |
+| Version | 0.23, Agentenbetrieb auf KubeVirt und AWS |
 | Grundlage | Bewilligte Projektbeschreibung vom 10.09.2026; schulische Vorgaben gemäss gültigem Merkblatt |
 
 ---
@@ -20,9 +20,11 @@
 
 Die Grundlagen für den Proof of Concept sind erarbeitet. Die bestehende LernMAAS-Bereitstellung wurde untersucht und mit drei Basisläufen als Vergleichsgrundlage dokumentiert. Die lokale KubeVirt-Plattform ist verifiziert. Auf KubeVirt und AWS wurde jeweils eine reduzierte Referenz-VM manuell erstellt, über HTTP und SSH geprüft und wieder abgebaut. Die Messwerte und die Grenzen ihrer Aussagekraft stehen bei den jeweiligen Versuchen.
 
-Das plattformneutrale YAML-Modell mit JSON-Schema wird vom Python-Agenten eingelesen und geprüft. Der Agent speichert Modell-Snapshot, Aufträge und Ressourcen in SQLite und steuert den KubeVirt-Adapter über MCP. Der lokale Ablauf umfasst Erstellung, aktuelle Status- und HTTP-Prüfung, Reset aus dem gespeicherten Modell und vollständigen Abbau. Wiederholte Aufträge erzeugen im geprüften Ablauf keine Dubletten. Eine gemeinsame Prozesssperre verhindert konkurrierende Schreibbefehle auf denselben Lauf. Abbruch und Timeout erhalten das Inventar für die Fortsetzung; die Wiederaufnahme nach hartem Agentenabbruch und nach verzögerter MCP-Antwort auf einen bestätigten Löschaufruf ist auf KubeVirt geprüft. Diese Funktionsprüfungen ersetzen weder die vorgesehenen Messserien noch die Bewertung gegenüber LernMAAS.
+Das plattformneutrale YAML-Modell mit JSON-Schema wird vom Python-Agenten eingelesen und geprüft. Der Agent speichert Modell-Snapshot, Aufträge und Ressourcen in SQLite und steuert die Plattformadapter über MCP. Der lokale Ablauf umfasst Erstellung, aktuelle Status- und HTTP-Prüfung, Reset aus dem gespeicherten Modell und vollständigen Abbau. Wiederholte Aufträge erzeugen im geprüften Ablauf keine Dubletten. Eine gemeinsame Prozesssperre verhindert konkurrierende Schreibbefehle auf denselben Lauf. Abbruch und Timeout erhalten das Inventar für die Fortsetzung; die Wiederaufnahme nach hartem Agentenabbruch und nach verzögerter MCP-Antwort auf einen bestätigten Löschaufruf ist auf KubeVirt geprüft. Diese Funktionsprüfungen ersetzen weder die vorgesehenen Messserien noch die Bewertung gegenüber LernMAAS.
 
-Vor dem ersten Review waren aus der ursprünglichen Sprint-1-Planung 14 fachliche Stories mit 34 Story Points abgeschlossen. US05 ist entfallen; die Abschlussprüfung von US16 mit drei Punkten steht nach der Reviewnachbereitung noch aus. Das erste Review fand am 23.10.2026 statt. Die Experten gaben eine positive Rückmeldung zum bisherigen Arbeitsstand und zur Präsentation. Die eigene Retrospektive und die Vereinbarungen stehen in Kapitel 2.10. Bis zum Ende von Sprint 2 soll der Agent den vollständigen lokalen Lebenszyklus über MCP ausführen können. Dieser Ablauf hat Vorrang vor dem AWS-Durchstich und bildet die Grundlage für die Messserien in Sprint 3. Die Planung steht in Kapitel 2.11. Später folgen je drei vollständige PoC-Läufe auf KubeVirt und AWS, der Vergleich und die abschliessende Bewertung.
+Auf AWS sind create, status und delete über denselben Agenten umgesetzt. Im Learner Lab wurde die Referenz-YAML als einzelne EC2-VM mit Datenträger, Netzwerkschnittstelle und eigener Security Group bereitgestellt. Der Agent bestätigte die HTTP-Bereitschaft und entfernte die vier Ressourcen. Eine anschliessende direkte AWS-Abfrage ohne Agent-Tag-Filter zeigte weder aktive oder gestoppte Instanzen noch EBS-Datenträger, Netzwerkschnittstellen, zusätzliche Security Groups oder Elastic IPs in der geprüften Region. Der Ablauf ist in Kapitel 5.6 mit den übermittelten Terminalausgaben belegt.
+
+Vor dem ersten Review waren aus der ursprünglichen Sprint-1-Planung 14 fachliche Stories mit 34 Story Points abgeschlossen. US05 ist entfallen; die Abschlussprüfung von US16 mit drei Punkten steht nach der Reviewnachbereitung noch aus. Das erste Review fand am 23.10.2026 statt. Die Experten gaben eine positive Rückmeldung zum bisherigen Arbeitsstand und zur Präsentation. Die eigene Retrospektive und die Vereinbarungen stehen in Kapitel 2.10. Der im Review priorisierte lokale Lebenszyklus und der ergänzende AWS-Durchstich sind umgesetzt. Kapitel 2.11 enthält die zugehörige Sprintplanung. Die dokumentierten Entwicklungsläufe belegen die Funktion der Komponenten. Die vergleichende Messauswertung ist in Kapitel 3.4 methodisch festgelegt.
 
 ---
 
@@ -1044,7 +1046,7 @@ Diese Protokolle enthalten keine vergleichbare Serie mit vollständigen Zeit- un
 
 **ADR-004: AWS als zweite Zielplattform**
 
-Ich verwende AWS, weil der Zugang über das Academy Learner Lab vorhanden ist und ich die Plattform aus dem Lehrgang kenne. EC2 bietet die benötigten Aufrufe zum Erstellen, Abfragen und Beenden einer VM. Für den späteren Python-Adapter ist Boto3 vorgesehen.
+Ich verwende AWS, weil der Zugang über das Academy Learner Lab vorhanden ist und ich die Plattform aus dem Lehrgang kenne. EC2 bietet die benötigten Aufrufe zum Erstellen, Abfragen und Beenden einer VM. Der Python-Adapter verwendet Boto3 für die EC2- und STS-Aufrufe.
 
 Der Smoke-Test belegt die praktische Eignung für die Referenzkonfiguration: Die Referenz-VM konnte erstellt, über SSH und HTTP erreicht und mit ihren abhängigen Ressourcen entfernt werden. Damit steht für den PoC eine zweite ausführbare Zielplattform zur Verfügung. Ein zusätzlicher Anbieter würde den Umfang erhöhen, ohne den vorgesehenen Nachweis zu erweitern.
 
@@ -1113,11 +1115,11 @@ Das Lab-Budget von USD 50 entspricht mit dieser Rechenbasis CHF 40,39. Das priva
 
 ### 3.7 Zielarchitektur
 
-Die Zielarchitektur trennt die fachliche Definition, die Steuerung des Lebenszyklus und die konkreten Plattformaufrufe. Die Verbindung aus Modell, Agent, SQLite und KubeVirt-Adapter ist umgesetzt. Die AWS-Anbindung bleibt Teil des Zielbilds; sie ist in der Komponentensicht als geplant gekennzeichnet.
+Die Zielarchitektur trennt die fachliche Definition, die Steuerung des Lebenszyklus und die konkreten Plattformaufrufe. Modell, Agent, SQLite und beide MCP-Adapter sind verbunden. KubeVirt unterstützt create, status, reset und delete. Der AWS-Adapter unterstützt create, status und delete.
 
 #### 3.7.1 Systemkontext
 
-Die Lösung soll dieselbe fachliche Lernumgebung auf einer gewählten Zielplattform bereitstellen. Die Bedienperson übergibt eine YAML-Definition und steuert den Lebenszyklus über die Kommandozeile. Der KubeVirt-Weg ist implementiert; AWS ist die vorgesehene zweite Zielplattform.
+Die Lösung soll dieselbe fachliche Lernumgebung auf einer gewählten Zielplattform bereitstellen. Die Bedienperson übergibt eine YAML-Definition und steuert den Lebenszyklus über die Kommandozeile. KubeVirt und AWS sind als Zielplattformen implementiert. Der verfügbare Befehlsumfang steht in Kapitel 4.3.
 
 ```mermaid
 flowchart TD
@@ -1129,13 +1131,13 @@ flowchart TD
     end
 
     Lokal["Lokale Plattform: Kubernetes mit KubeVirt"]
-    Cloud["Public Cloud: AWS im Learner Lab, geplant"]
+    Cloud["Public Cloud: AWS EC2 im Learner Lab"]
 
     Person -->|"create, status, reset, delete"| System
     Definition -->|"Anforderungen an VM und Testdienst"| System
     System -->|"Status, Ergebnisse und Fehler"| Person
     System <-->|"VM-Lebenszyklus und Zustandsabfragen"| Lokal
-    System <-->|"VM-Lebenszyklus und Zustandsabfragen"| Cloud
+    System <-->|"create, status, delete"| Cloud
 ```
 
 <small id="abb-11"><em>Abbildung 11: Systemkontext der Bereitstellungslösung</em></small>
@@ -1149,9 +1151,9 @@ flowchart TD
     Eingabe["CLI und YAML"] --> Agent["Agent: Validierung und Lebenszyklus"]
     Agent <--> Zustand["Zustandsspeicher: Modell und Ressourcen-IDs"]
     Agent -->|MCP / stdio| KubeVirtAdapter["KubeVirt-Adapter"]
-    Agent -.->|"geplant: MCP / stdio"| AWSAdapter["AWS-Adapter"]
+    Agent -->|MCP / stdio| AWSAdapter["AWS-Adapter"]
     KubeVirtAdapter --> KubeVirt["Kubernetes und KubeVirt"]
-    AWSAdapter -.->|"geplant"| AWS["AWS EC2"]
+    AWSAdapter -->|Boto3| AWS["AWS EC2 und STS"]
 ```
 
 <small id="abb-12"><em>Abbildung 12: Aufbau von CLI, Agent und Adaptern</em></small>
@@ -1164,11 +1166,11 @@ SQLite speichert Modell-Snapshot, Laufkennung, Operationskennung, Phase und Ress
 | --- | --- | --- |
 | Nicht vorhanden | Keine laufbezogenen Ressourcen vorhanden | create |
 | Wird erstellt | Aufbau begonnen, Dienst noch nicht bereit | status; laufenden Auftrag abwarten |
-| Bereit | VM läuft und Dienstprüfung ist erfolgreich | status, reset oder delete |
+| Bereit | VM läuft und Dienstprüfung ist erfolgreich | status oder delete, auf KubeVirt auch reset |
 | Wird gelöscht | Abbau begonnen, Endkontrolle läuft | status; laufenden Auftrag abwarten |
 | Fehler | Aufbau, Dienstprüfung oder Abbau fehlgeschlagen | status; behandelten Reset oder Abbau fortsetzen beziehungsweise bereinigen |
 
-Nur eine schreibende Operation darf gleichzeitig auf derselben Umgebung laufen. Eine wiederholte Erstellung darf keine Dublette erzeugen. Die Operationskennung unterscheidet einen neuen Auftrag von der Wiederaufnahme nach einem Abbruch. Ein erneutes delete einer bereits entfernten Umgebung bleibt ohne zusätzliche Wirkung. Bei reset wird erst nach bestätigtem Abbau aus dem Snapshot neu erstellt.
+Nur eine schreibende Operation darf gleichzeitig auf derselben Umgebung laufen. Eine wiederholte Erstellung darf keine Dublette erzeugen. Die Operationskennung unterscheidet einen neuen Auftrag von der Wiederaufnahme nach einem Abbruch. Ein erneutes delete einer bereits entfernten Umgebung bleibt ohne zusätzliche Wirkung. Beim KubeVirt-Reset wird erst nach bestätigtem Abbau aus dem Snapshot neu erstellt.
 
 Die Adapter kapseln die Übersetzung in Kubernetes- beziehungsweise AWS-Aufrufe. Beispielsweise kann die Mindestanforderung an CPU und RAM auf AWS nur über einen passenden Instanztyp erfüllt werden; auf KubeVirt entstehen daraus VM-Ressourcen im Manifest. Die fachliche Definition enthält diese Unterschiede nicht.
 
@@ -1303,7 +1305,15 @@ Automatisierte Modelltests prüfen Pflichtfelder, Mindestkapazitäten, Datentype
 
 ### 4.3 Agent und Kommandozeile
 
-Der Agent verbindet die Modellprüfung mit der Zustandsführung und dem Plattformadapter. Der Einstieg erfolgt über `python -m agent`. Die Lebenszyklussteuerung liegt in `agent/lebenszyklus.py`; die CLI nimmt die Argumente entgegen und gibt Ergebnisse sowie Fehler zurück. Der lokale Ablauf unterstützt create, status, reset und delete. Die Auswahl `aws` ist in der CLI vorbereitet, für sie ist die Lebenszyklussteuerung noch nicht verfügbar.
+Der Agent verbindet die Modellprüfung mit der Zustandsführung und dem Plattformadapter. Der Einstieg erfolgt über `python -m agent`. Die Lebenszyklussteuerung liegt in `agent/lebenszyklus.py`; die CLI nimmt die Argumente entgegen und gibt Ergebnisse sowie Fehler zurück. Die verfügbaren Operationen hängen von der gewählten Plattform ab.
+
+| Operation | KubeVirt | AWS EC2 |
+| --- | --- | --- |
+| `platform-status` | Knoten, KubeVirt und VM-/VMI-Bestand | Region und gekennzeichnete EC2-Instanzen |
+| `create` | VM, Datenträger und NodePort-Service | EC2-Instanz, EBS-Datenträger, Netzwerkschnittstelle und Security Group |
+| `status` | Aktueller Bestand sowie VM- und HTTP-Bereitschaft | Aktueller Bestand sowie Instanz- und HTTP-Bereitschaft |
+| `reset` | Abbau und Neuerstellung aus dem gespeicherten Modell | Aufruf wird vom Agenten abgewiesen |
+| `delete` | Laufbezogener Abbau mit Speicherabschluss | Laufbezogener Abbau mit Kontrolle der gespeicherten AWS-IDs |
 
 | Bestandteil | Aufgabe |
 | --- | --- |
@@ -1313,7 +1323,7 @@ Der Agent verbindet die Modellprüfung mit der Zustandsführung und dem Plattfor
 | `agent/lebenszyklus.py` | Erstellung, Statusprüfung, Reset und Abbau steuern |
 | `agent/zustand.py` | Modell, Operationen und Ressourcen persistent speichern |
 | `agent/mcp_client.py` | Konfigurierten MCP-Prozess aufrufen und Antworten prüfen |
-| `adapter/` | Werkzeugvertrag und konkrete KubeVirt-Aufrufe |
+| `adapter/` | Werkzeugvertrag, KubeVirt- und AWS-Aufrufe sowie gemeinsame Cloud-init-Erzeugung |
 
 Die Konfiguration wird mit `--config` vor dem Befehlsnamen angegeben. Sie trennt technische Einstellungen vom fachlichen Modell. Die Vorlage in `agent/beispiele/konfiguration.yaml` lautet:
 
@@ -1432,9 +1442,9 @@ Die Zahl 30 ist eine festgelegte Obergrenze, keine nachgewiesene Kapazität des 
 
 ### 4.5 MCP-Vertrag und Adapterkommunikation
 
-Der Agent startet den konfigurierten Adapter als lokalen Unterprozess und kommuniziert über MCP mit stdio. Für jeden Werkzeugaufruf werden Verbindung und Prozess im SDK-Kontext verwaltet. stdout ist dem Protokoll vorbehalten; Diagnosen werden davon getrennt ausgegeben. Der Provider führt die Kubernetes-Aufrufe aus und kennt den MCP-Transport nicht.
+Der Agent startet den konfigurierten Adapter als lokalen Unterprozess und kommuniziert über MCP mit stdio. Für jeden Werkzeugaufruf werden Verbindung und Prozess im SDK-Kontext verwaltet. stdout ist dem Protokoll vorbehalten; Diagnosen werden davon getrennt ausgegeben. Der KubeVirt-Provider führt die Kubernetes-Aufrufe aus. Der AWS-Adapter ruft EC2 und STS über Boto3 auf. Der Agent verwendet für beide denselben MCP-Client.
 
-Die direkten Abhängigkeiten stehen festgeschrieben in `requirements.txt`: PyYAML 6.0.3, jsonschema 4.26.0, MCP-Python-SDK 2.3.0, AnyIO 4.15.1 und httpx2 2.16.0. Grundlage der Client- und Server-Anbindung ist das [MCP-Python-SDK](https://github.com/modelcontextprotocol/python-sdk/tree/v2.3.0). Client und Server handeln beim Verbindungsaufbau die Protokollversion aus. Der lokale Durchstich verwendete `2026-07-28`; dies ist keine im eigenen Client fest eingetragene Protokollversion.
+Die direkten Abhängigkeiten stehen festgeschrieben in `requirements.txt`: PyYAML 6.0.3, jsonschema 4.26.0, MCP-Python-SDK 2.3.0, AnyIO 4.15.1, httpx2 2.16.0 und Boto3 1.43.123. Grundlage der Client- und Server-Anbindung ist das [MCP-Python-SDK](https://github.com/modelcontextprotocol/python-sdk/tree/v2.3.0). Client und Server handeln beim Verbindungsaufbau die Protokollversion aus. Der lokale Durchstich verwendete `2026-07-28`; dies ist keine im eigenen Client fest eingetragene Protokollversion.
 
 `adapter/kubevirt.py` bietet folgende Werkzeuge an:
 
@@ -1446,11 +1456,13 @@ Die direkten Abhängigkeiten stehen festgeschrieben in `requirements.txt`: PyYAM
 | `status(run_id)` | Lauf | Tatsächlicher Ressourcenbestand, VM-/VMI-Zustand, Modell-Hash und ermittelte Zugangsangaben |
 | `delete(run_id, operation_id, resources)` | Lauf, Auftrag und bekanntes Inventar | `complete`, beobachtete Ressourcen und als entfernt bestätigte Ressourcen |
 
-Reset wird im Agenten aus delete und create zusammengesetzt. Damit gelten für Reset dieselben Regeln zur Inventarsicherung und Abbaukontrolle wie für die Einzeloperationen.
+`adapter/aws.py` bietet ebenfalls `platform_status`, `process_guard`, `create`, `status` und `delete` an. Sein Löschaufruf erhält zusätzlich den gespeicherten `model_hash`, gegen den das gefundene Inventar geprüft wird. Der AWS-Plattformstatus enthält die Region und die gekennzeichneten EC2-Instanzen. Beim laufbezogenen Status bezeichnet `vmiPhase` den auf den gemeinsamen Vertrag abgebildeten EC2-Zustand.
+
+Reset wird für KubeVirt im Agenten aus delete und create zusammengesetzt. Für AWS weist der Agent den Reset-Befehl ab.
 
 Ein Lebenszykluswerkzeug antwortet mit `{ok: true, data: ...}` oder `{ok: false, error: ...}`. `platform_status` verwendet bei Erfolg das Feld `status`. Das technische Hilfswerkzeug `process_guard` bestätigt die Sitzung separat mit `{session: ...}`; eine fehlende oder abweichende Bestätigung verhindert den anschliessenden Werkzeugaufruf. Der Server liefert diese Objekte als strukturierte MCP-Inhalte. `adapter/vertrag.py` prüft die fachlichen Antworten mit JSON-Schemas; unbekannte Felder oder unpassende Typen führen zu einem Fehler.
 
-Ein Ressourceneintrag enthält `kind`, `name`, `resource_id` und `scope`. `resource_id` ist bei Kubernetes die UID. `scope` enthält den Namespace und ist bei einem PV leer. Optionale `details` sichern die PVC-Zuordnung, den Hostpath und den Knotennamen für die Speicherprüfung. `pathSource` unterscheidet aus der API gelesene Angaben von kontrolliert abgeleiteten historischen Scratch-Pfaden.
+Ein Ressourceneintrag enthält `kind`, `name`, `resource_id` und `scope`. `resource_id` ist bei Kubernetes die UID. `scope` enthält den Namespace und ist bei einem PV leer. Bei AWS enthält `resource_id` die EC2-Ressourcenkennung und `scope` die Region. Optionale `details` sichern bei KubeVirt die PVC-Zuordnung, den Hostpath und den Knotennamen für die Speicherprüfung. `pathSource` unterscheidet aus der API gelesene Angaben von kontrolliert abgeleiteten historischen Scratch-Pfaden.
 
 | Fehlercode | Bedeutung |
 | --- | --- |
@@ -1462,8 +1474,11 @@ Ein Ressourceneintrag enthält `kind`, `name`, `resource_id` und `scope`. `resou
 | `resource_conflict` | Ressourcenbestand, Zuordnung oder Kennzeichnung widerspricht dem Auftrag |
 | `capacity_limit` | VM-Obergrenze erreicht |
 | `storage_unverified` | Datenträgerzuordnung oder Speicherabschluss nicht bestätigt |
+| `aws_query_failed` | AWS-Aufruf fehlgeschlagen, beispielsweise wegen Profil, Lab-Sitzung oder Berechtigung |
+| `aws_launch_unconfigured` | Erforderliche Angaben für den EC2-Start fehlen |
+| `aws_model_unsupported` | Modell überschreitet den vom EC2-Adapter unterstützten Umfang |
 
-Der Agent gibt begrenzte Fehlermeldungen aus. Freie Kubernetes-Fehlertexte werden nicht als Ergebnis durchgereicht oder in SQLite gespeichert. Dort stehen die zusammengefassten Fehlercodes `timeout`, `platform_error` und `interrupted`. Die Werkzeuge sind entsprechend ihrer Wirkung als lesend oder schreibend gekennzeichnet; Löschung ist als destruktiv markiert.
+Der Agent gibt begrenzte Fehlermeldungen aus. Freie Kubernetes- und AWS-Fehlertexte werden nicht als Ergebnis durchgereicht oder in SQLite gespeichert. Dort stehen die zusammengefassten Fehlercodes `timeout`, `platform_error` und `interrupted`. Die Werkzeuge sind entsprechend ihrer Wirkung als lesend oder schreibend gekennzeichnet; Löschung ist als destruktiv markiert.
 
 ### 4.6 KubeVirt-Adapter und Ressourcenverwaltung
 
@@ -1481,7 +1496,7 @@ Der Adapter verwendet die vorhandene MicroK8s-Installation über `microk8s kubec
 | HTTP-Testdienst | systemd-Dienst mit Python-HTTP-Server und erwartetem Inhalt auf Gastport 8080 |
 | HTTP und SSH | NodePort-Service mit dynamisch vergebenen Ports |
 
-Das verwendete Abbild ist der Canonical-Build `20260911` aus dem manuellen Referenzlauf. Die veröffentlichte Prüfsumme wird als Annotation festgehalten; dies ist keine zusätzliche Laufzeitprüfung des heruntergeladenen Abbilds durch den Agenten. cloud-init richtet den Testdienst ein, ohne ein Paketupdate oder Distributionsupgrade auszulösen.
+Das verwendete Abbild ist der Canonical-Build `20260911` aus dem manuellen Referenzlauf. Die veröffentlichte Prüfsumme wird als Annotation festgehalten; dies ist keine zusätzliche Laufzeitprüfung des heruntergeladenen Abbilds durch den Agenten. Die gemeinsame Funktion in `adapter/cloud_init.py` richtet Benutzer, öffentliche SSH-Schlüssel und HTTP-Testdienst für beide Plattformen ein. Paketaktualisierungen und Distributionsupgrades sind darin deaktiviert.
 
 Der gemeinsame Namespace `diplomarbeit-agent` und die Quota `vm-limit` sind Agent-Infrastruktur. Sie bleiben beim Löschen eines einzelnen Laufs erhalten. Ressourcenname und Labels werden vor der Erstellung festgelegt. Der Name entsteht deterministisch aus der Laufkennung; Labels enthalten verwaltenden Agenten, Lauf und Erstellungsauftrag. Der Modell-Hash steht als Annotation auf VM und Service. Vorhandene Objekte werden auf passende Kennzeichnungen und Definition geprüft, statt ungeprüft überschrieben zu werden.
 
@@ -1507,9 +1522,9 @@ Der Abbau gilt erst als abgeschlossen, wenn das bekannte Inventar leer ist und e
 
 #### create und status
 
-create prüft Modell, Kennungen und Zielplattform. Danach speichert es Snapshot, Auftrag und Reservierung in SQLite. Der MCP-Adapter bestätigt pro Erstellungsschritt höchstens ein neu angelegtes Objekt. Der Agent sichert die zurückgemeldeten UIDs vor dem nächsten Schritt. Ist die Erstellung vollständig, beginnt die Bereitschaftsprüfung.
+create prüft Modell, Kennungen und Zielplattform. Danach speichert es Snapshot, Auftrag und Reservierung in SQLite. Der MCP-Adapter bestätigt die im jeweiligen Erstellungsschritt angelegten oder beobachteten Ressourcen. Bei AWS kann ein EC2-Start zugleich eine Instanz, einen Datenträger und eine Netzwerkschnittstelle erzeugen. Der Agent sichert die zurückgemeldeten Ressourcen-IDs vor dem nächsten Schritt. Ist die Erstellung vollständig, beginnt die Bereitschaftsprüfung.
 
-Eine laufende VM genügt dafür nicht. Zusätzlich zu `vmReady` und einer VMI in Phase `Running` muss der HTTP-Test Status 200 und den erwarteten Inhalt liefern. Der HTTP-Client folgt keinen Weiterleitungen, verwendet keine Umgebungs-Proxys und begrenzt Zeit sowie Antwortgrösse. Eine Antwort über 4096 Byte oder mit falschem Inhalt wird nicht als bereit akzeptiert.
+Eine laufende VM genügt dafür nicht. Zusätzlich zum laufenden Plattformzustand muss der HTTP-Test Status 200 und den erwarteten Inhalt liefern. Bei KubeVirt wird die VMI-Phase geprüft, bei AWS der entsprechend abgebildete EC2-Instanzzustand. Der HTTP-Client folgt keinen Weiterleitungen, verwendet keine Umgebungs-Proxys und begrenzt Zeit sowie Antwortgrösse. Eine Antwort über 4096 Byte oder mit falschem Inhalt wird nicht als bereit akzeptiert.
 
 status liest den gespeicherten Lauf und fragt die Plattform neu ab. Es zeigt `storedPhase`, `vmState`, `vmiPhase`, `vmReady` und `serviceReady` getrennt. Ein fehlgeschlagener Auftrag kann deshalb `storedPhase: error` haben, obwohl die bisherige VM weiterhin läuft und der Dienst antwortet. Umgekehrt beweist eine zuvor gespeicherte Phase `ready` keine aktuelle Nutzbarkeit. Die Statusprüfung ergänzt das Inventar, repariert den Ablauf aber nicht automatisch.
 
@@ -1517,11 +1532,11 @@ Wird create für eine bereits als bereit gespeicherte Umgebung mit demselben Mod
 
 #### reset und delete
 
-reset startet für eine bereite Umgebung einen Abbau. Erst nach bestätigter Entfernung des gesamten bekannten Bestands wechselt die gespeicherte Ablaufphase von `deleting` nach `creating`. Danach wird aus dem unveränderten Snapshot neu erstellt und erneut auf HTTP-Bereitschaft gewartet. Der Ressourcenname kann gleich bleiben; die UID bezeichnet die neu erzeugte VM.
+Auf KubeVirt startet reset für eine bereite Umgebung einen Abbau. Erst nach bestätigter Entfernung des gesamten bekannten Bestands wechselt die gespeicherte Ablaufphase von `deleting` nach `creating`. Danach wird aus dem unveränderten Snapshot neu erstellt und erneut auf HTTP-Bereitschaft gewartet. Der Ressourcenname kann gleich bleiben; die UID bezeichnet die neu erzeugte VM.
 
 Eine bereits erfolgreich abgeschlossene Reset-Kennung löst nur eine Statusprüfung aus. Eine neue Reset-Kennung startet einen neuen Reset. Nach einem behandelten Reset-Fehler setzt dieselbe Kennung die gespeicherte Phase fort. Scheitert der Abbau, wird keine zweite Umgebung erstellt.
 
-delete verwendet dieselbe Abbaukontrolle und schliesst den Lauf mit `absent` ab. Bei einer Wiederholung prüft es die tatsächliche Abwesenheit und meldet `alreadyAbsent: true`. Gemeinsamer Namespace und Quota werden dabei nicht als laufbezogene Ressourcen entfernt.
+delete verwendet dieselbe Abbaukontrolle und schliesst den Lauf mit `absent` ab. Bei einer Wiederholung prüft es die tatsächliche Abwesenheit und meldet `alreadyAbsent: true`. Auf KubeVirt bleiben gemeinsamer Namespace und Quota bestehen. Auf AWS gehört die für den Lauf angelegte Security Group zum Abbau.
 
 #### Zeitgrenzen und Wiederaufnahme
 
@@ -1530,8 +1545,8 @@ delete verwendet dieselbe Abbaukontrolle und schliesst den Lauf mit `absent` ab.
 | create | 900 Sekunden | Erstellung bis zur HTTP-Bereitschaft |
 | reset | 1200 Sekunden | Abbau und erneute Erstellung bis zur HTTP-Bereitschaft |
 | delete | 300 Sekunden | Abbau und Abschlusskontrolle |
-| MCP-Aufruf | 30 Sekunden in der Beispielkonfiguration | Prozessstart, Verbindung und ein Werkzeugaufruf |
-| Provider-Aufruf | 15 Sekunden | Kubernetes-Aufrufe innerhalb eines Adapteraufrufs |
+| MCP-Aufruf | 30 Sekunden in den versionierten Beispielen, 60 Sekunden in der verwendeten AWS-Laufkonfiguration | Prozessstart, Verbindung und ein Werkzeugaufruf |
+| Provider-Aufruf | 15 Sekunden | Kubernetes-Aufrufe sowie Verbindungs- und Lesezeitgrenze der AWS-SDK-Aufrufe |
 | HTTP-Prüfung | Höchstens 2 Sekunden pro Versuch | Vollständige Antwort innerhalb der verbleibenden Operationszeit |
 
 Die CLI-Option `--timeout-seconds` verändert die Zeitgrenze von create, reset oder delete. Der Agent verwendet für einzelne Aufrufe die kleinere Grenze aus verbleibender Operationszeit und Adapterkonfiguration. Nach einem Fehler versucht er zusätzlich einen begrenzten lesenden Plattformabgleich und beendet den MCP-Kontext. Dieser Fehlerabgleich und die Prozessbereinigung können über die fachliche Zeitgrenze hinaus dauern. Eine Vorgabe von einer Sekunde bedeutet deshalb nicht, dass der gesamte Prozess nach genau einer Sekunde beendet ist.
@@ -1548,7 +1563,7 @@ Bei einem behandelten Adapterfehler oder Ctrl+C speichert der Agent `error` und 
 | Alter laufender Auftrag ohne Prozessschutz | Automatische Übernahme wird abgewiesen; eine fehlende alte Prozesssperre bestätigt kein Prozessende |
 | Fremde UID, unpassende Kennzeichnung oder unklare Speicherzuordnung | Fehler prüfen; der Adapter übernimmt oder entfernt das widersprüchliche Objekt nicht ungeprüft |
 
-Die Prozesssperre und die Sitzungsprüfung schützen die lokalen Agenten- und Adapterprozesse. Ein bereits von Kubernetes angenommener Auftrag kann unabhängig vom Ende des aufrufenden Prozesses weiterlaufen. Deshalb bestätigt erst der anschliessende Ressourcenabgleich den erreichten Plattformzustand. Die geprüften Abbruch- und Timeout-Fälle sowie die Grenzen der Prüfung stehen in Kapitel 5.5.
+Die Prozesssperre und die Sitzungsprüfung schützen die lokalen Agenten- und Adapterprozesse. Ein bereits von Kubernetes angenommener Auftrag kann unabhängig vom Ende des aufrufenden Prozesses weiterlaufen. Deshalb bestätigt erst der anschliessende Ressourcenabgleich den erreichten Plattformzustand. Die auf KubeVirt geprüften Abbruch- und Timeout-Fälle stehen in Kapitel 5.5. Der auf AWS ausgeführte Normalablauf ist in Kapitel 5.6 belegt.
 
 ### 4.8 Bedienung auf der lokalen Plattform
 
@@ -1623,6 +1638,75 @@ Für bestehende Läufe müssen Konfiguration und Zustandsdatenbank beibehalten w
 Für eine unabhängige Abbaukontrolle werden vor delete die UIDs und Speichermetadaten aus dem Inventar gesichert. Danach werden der laufbezogene Bestand im Namespace, die bekannten PV-Namen clusterweit und die gesicherten lokalen Datenverzeichnisse geprüft. Andere Läufe sowie gemeinsame Basisressourcen können weiterhin bestehen. Ein leerer Namespace allein ersetzt die PV- und Verzeichniskontrolle nicht.
 
 
+### 4.9 AWS-Adapter und EC2-Betrieb
+
+Der Agent läuft auf `dl380-01` und startet `adapter/aws.py` als MCP-Prozess. Der Adapter verwendet Boto3 1.43.123 mit dem lokalen AWS-Profil `diplomarbeit`. EC2 stellt die VM-Ressourcen bereit, STS prüft das erwartete Konto. Die Zugangsdaten des Learner Labs liegen im AWS-Profil ausserhalb des Repositorys.
+
+#### Zuordnung der Referenz-YAML
+
+Der AWS-Durchstich verarbeitet unverändert `modell/beispiele/referenz.yaml`. Die Plattformwahl erfolgt mit `--platform aws`. Die Plattformparameter gehören zur Adapterkonfiguration.
+
+| Fachliche Anforderung | Umsetzung auf EC2 |
+| --- | --- |
+| Mindestens zwei vCPU und 2048 MiB RAM | Festgelegter Instanztyp `t3.small` mit zwei vCPU und 2048 MiB |
+| Ubuntu 24.04 für x86_64 | Canonical-AMI `ami-0fa5967347d08d2df` in `us-east-1` |
+| Mindestens 12 GiB Systemdatenträger | EBS-Volume `gp3` in der angeforderten Grösse, `DeleteOnTermination: true` |
+| Benutzer und öffentliche Schlüssel | Gemeinsame Cloud-init-Erzeugung mit gesperrter Passwortanmeldung |
+| Testdienst | Python-HTTP-Server als systemd-Dienst auf Port 8080 mit `lernumgebung bereit` |
+| Erreichbarkeit der HTTP-Prüfung | Öffentliche IPv4 der Instanz und eigene Security Group mit einer TCP-8080-Regel für die öffentliche Agentenadresse als `/32` |
+
+Die unterstützten Mindestanforderungen sind durch `t3.small` begrenzt. Mehr als zwei vCPU, mehr als 2048 MiB RAM, mehr als 100 GiB Datenträger oder mehr als 16 KiB Cloud-init-Daten weist der Adapter vor einer Ressourcenerstellung ab. Die Grösse des Systemdatenträgers bleibt innerhalb dieses Bereichs aus dem Modell abgeleitet. Die gemeinsame SQLite-Datenbank reserviert pro Lauf einen VM-Platz nach der Grenze aus Kapitel 4.4.
+
+#### Erstellung und Ressourceninventar
+
+Vor dem ersten Plattformaufruf sichert der Agent das Modell und den Auftrag. Der Adapter prüft die Subnetzzuordnung zur konfigurierten VPC und legt eine deterministisch benannte Security Group an. In einem weiteren Schritt bestätigt er die einzelne HTTP-Regel. Danach startet er genau eine Instanz mit öffentlicher IPv4, Systemdatenträger und Netzwerkschnittstelle. Der Start verlangt IMDSv2 und verwendet die CPU-Credit-Einstellung `standard`.
+
+Ein aus Lauf- und Operationskennung berechneter `ClientToken` kennzeichnet den EC2-Start. Vorhandene Ressourcen werden auf Modell, Auftrag und Startkonfiguration geprüft. Ein bereits sichtbarer passender Instanzbestand wird wiederverwendet. Die Funktionsprüfung dieses Wiederholungsfalls erfolgt automatisiert über die SDK-Schnittstelle. Der Live-Nachweis in Kapitel 5.6 umfasst einen regulären Start.
+
+| Kennzeichnung | Zuordnung |
+| --- | --- |
+| `ManagedBy` | Verwaltung durch `diplomarbeit-agent` |
+| `RunId` | Lernumgebung |
+| `OperationId` | Erstellungsauftrag |
+| `ModelHash` | Unveränderter YAML-Snapshot |
+| `LaunchConfig` | Hash aus VPC, Subnetz, HTTP-Quelladresse und AMI |
+
+Die Tags werden beim Anlegen von Security Group, Instanz, EBS-Volume und Netzwerkschnittstelle gesetzt. Der Agent sichert die gemeldeten IDs in SQLite. Die Bestandsabfrage liest alle vier Ressourcentypen mit Seitennavigation. Sie erfasst Datenträger, Netzwerkschnittstelle und Security Group unabhängig davon, ob die Instanz noch aktiv ist. Eine beendete Instanz zählt als entfernt.
+
+#### Status und Abbau
+
+Nach bestätigter Erstellung fragt der Agent den Instanzzustand und den HTTP-Testdienst ab. Erst eine laufende Instanz zusammen mit der erwarteten HTTP-Antwort führt zur gespeicherten Phase `ready`. Ein separater Statusaufruf fragt AWS und den Dienst erneut ab. Der ausgeführte Durchstich verwendet ausschliesslich die HTTP-Freigabe. Die Security Group enthält keine eingehende SSH-Regel.
+
+Vor einem schreibenden Werkzeugaufruf bestätigt der Adapter seine Prozesssitzung und gleicht das AWS-Konto über STS mit der Konfiguration ab. Für delete prüft er die gefundenen Ressourcen gegen Laufkennung, Modell-Hash und Region. Bekannte IDs, die in der Tag-Suche fehlen, werden zusätzlich über ihren ID-Filter gesucht. Widersprüchliche Besitzkennzeichnungen führen zu einem Fehler.
+
+Der Abbau beendet zuerst die Instanz. Verbliebene EBS-Datenträger werden nur im Zustand `available`, Netzwerkschnittstellen nur im Zustand `available` gelöscht. Die Security Group wird nach dem Verschwinden der laufbezogenen Netzwerkschnittstellen entfernt. Neu entdeckte IDs meldet der Adapter zuerst an den Agenten zurück, damit sie vor einem Löschaufruf gespeichert sind. Eine erfolgreiche Löschanforderung gilt erst bei einer nachfolgenden Bestandsabfrage als bestätigte Entfernung. Der Agent trägt die IDs einzeln aus und setzt den Lauf nach leerer Abschlusskontrolle auf `absent`.
+
+#### Verwendete Betriebskonfiguration
+
+Die lokale Datei `~/.config/diplomarbeit/aws.yaml` enthält das erwartete Konto, die VPC, das Subnetz und die öffentliche Quelladresse von `dl380-01` als `/32`. Sie verwendet dieselbe Zustandsdatei wie das KubeVirt-Beispiel. Die MCP-Zeitgrenze beträgt in dieser Konfiguration 60 Sekunden. Die versionierte Datei `agent/beispiele/aws-status.yaml` enthält die Einstellungen für reine Bestandsabfragen.
+
+| Adapterargument | Wert oder Zweck |
+| --- | --- |
+| `--profile` | `diplomarbeit`, Profil mit den temporären Learner-Lab-Zugangsdaten |
+| `--region` | `us-east-1` |
+| `--account-id` | Erwartetes zwölfstelliges AWS-Konto |
+| `--vpc-id`, `--subnet-id` | Verifiziertes Netz des Learner Labs |
+| `--http-source-cidr` | Öffentliche IPv4 des Agentenhosts als `/32` |
+
+Bei aktivierter virtueller Python-Umgebung werden die Befehle im Repository ausgeführt. Die Konfigurationsdatei ist lokal befüllt.
+
+```bash
+AWS_CFG="$HOME/.config/diplomarbeit/aws.yaml"
+python -m agent --config "$AWS_CFG" create modell/beispiele/referenz.yaml \
+  --platform aws --run-id aws-s2-01 --operation-id create-aws-s2-01
+python -m agent --config "$AWS_CFG" status --run-id aws-s2-01
+python -m agent --config "$AWS_CFG" delete \
+  --run-id aws-s2-01 --operation-id delete-aws-s2-01
+python -m agent --config "$AWS_CFG" status --run-id aws-s2-01
+```
+
+Diese Befehle zeigen die im Durchstich verwendeten Kennungen. Die Datenbank enthält den zugehörigen abgeschlossenen Lauf. Ein neuer eigenständiger Durchlauf erhält eine eigene Laufkennung.
+
 ## 5 Tests und Messungen
 
 Die Prüfungen haben unterschiedliche Zwecke. Automatisierte Tests sichern die Regeln und Schnittstellen im Code ab. Manuelle Referenzversuche klären die praktische Machbarkeit. Die lokale Agentenprüfung verbindet die Komponenten mit echter Infrastruktur. Die LernMAAS-Basisserie liefert die Ausgangswerte für den späteren Vergleich.
@@ -1633,8 +1717,9 @@ Die Prüfungen haben unterschiedliche Zwecke. Automatisierte Tests sichern die R
 | KubeVirt-Referenzlauf | Manuelle Erstellung, HTTP, SSH und Ressourcenabschluss erfolgreich |
 | Lokaler Agentenlebenszyklus | create, status, reset und delete sowie Wiederholung und behandelte Fehlerfälle geprüft; Grenzen in Kapitel 5.5 |
 | LernMAAS-Basisserie | Drei technische Abläufe abgeschlossen; abweichende Erfassung der Bedienzeit bei den Ergebnissen ausgewiesen |
-| AWS-Smoke-Test | Manuelle Erstellung, HTTP, SSH und Abbau erfolgreich; noch kein AWS-Agentennachweis |
-| Formale PoC-Serien | Je drei vollständige Messläufe auf KubeVirt und AWS noch ausstehend |
+| AWS-Smoke-Test | Manuelle Erstellung, HTTP, SSH und Abbau erfolgreich; manueller Referenzversuch vor der Adapterumsetzung |
+| AWS-Agentenlauf | create, status, HTTP-Bereitschaft und delete erfolgreich, direkte AWS-Nachkontrolle ohne Treffer in us-east-1, siehe Kapitel 5.6 |
+| Formale PoC-Serien | Kein vollständiger versionierter Datensatz mit je drei Messläufen pro Plattform vorhanden |
 
 ### 5.1 Messplan
 
@@ -1885,8 +1970,45 @@ Die [Nachweisauszüge zur Fehlerbehandlung](nachweise/agent-fehlerbehandlung.txt
 
 Diese Ergebnisse sind Funktionsprüfungen während der Entwicklung. Sie beruhen auf Konsolenausgaben vom Zielsystem; ein vollständiger versionierter Agenten-Laufdatensatz für eine formale Messserie liegt noch nicht vor. Die Entwicklungsläufe werden deshalb weder als die drei vorgesehenen PoC-Messläufe gezählt noch zur Berechnung einer Verbesserung gegenüber LernMAAS verwendet.
 
-Der Timeout-Nachweis betrifft eine gezielte Antwortverzögerung nach einem bestätigten VM-Löschaufruf. Ein beliebiger Netzwerkausfall oder das harte Ende eines noch laufenden kubectl-Unterprozesses ist damit nicht geprüft. Der harte Agentenabbruch wurde auf dem Cluster in der Abbauphase geprüft; der Schutz bei verloren gegangener Erstellungsantwort und in beiden Reset-Phasen ist zusätzlich automatisiert mit Testbeständen abgedeckt. Offen bleiben der automatisierte AWS-Ablauf, die formalen Messserien, ein Lastnachweis für 30 VMs und eine automatisierte SSH-Anmeldung im Gast.
+Der Timeout-Nachweis betrifft eine gezielte Antwortverzögerung nach einem bestätigten VM-Löschaufruf. Ein beliebiger Netzwerkausfall oder das harte Ende eines noch laufenden kubectl-Unterprozesses ist damit nicht geprüft. Der harte Agentenabbruch wurde auf dem Cluster in der Abbauphase geprüft; der Schutz bei verloren gegangener Erstellungsantwort und in beiden Reset-Phasen ist zusätzlich automatisiert mit Testbeständen abgedeckt. Der AWS-Normalablauf ist separat in Kapitel 5.6 dokumentiert. Für 30 gleichzeitig nutzbare VMs und eine automatisierte SSH-Anmeldung im Gast liegt kein Last- beziehungsweise Funktionsnachweis vor.
 
+
+### 5.6 Funktionsprüfung des AWS-Agenten
+
+Der Lauf `aws-s2-01` wurde vom Agenten auf `dl380-01` gegen das AWS Academy Learner Lab in `us-east-1` ausgeführt. Eingabe war dieselbe `modell/beispiele/referenz.yaml` wie auf KubeVirt. Die Prüfung umfasst die Verbindung über MCP und Boto3, den Aufbau einer einzelnen EC2-VM, die aktuelle HTTP-Bereitschaft und den vollständigen Abbau. Die [Nachweisauszüge](nachweise/aws-agent-durchstich.txt) enthalten die vom Diplomanden übermittelten Terminalausgaben.
+
+| Prüfung | Beobachtetes Ergebnis |
+| --- | --- |
+| Profil und MCP-Plattformstatus | Profil `diplomarbeit` war verwendbar, MCP erreichbar und die Region `us-east-1` lesbar |
+| AMI und Subnetz | AMI verfügbar mit Architektur `x86_64` und Root-Gerät `/dev/sda1`, Standard-Subnetz verfügbar und öffentliche IPv4-Zuweisung aktiviert |
+| Startberechtigung | AWS-Dry-Runs für `RunInstances` und `CreateSecurityGroup` lieferten `DryRunOperation` |
+| create | Eigene Security Group, EC2-Instanz, Netzwerkschnittstelle und EBS-Datenträger erfasst, anschliessend VM und HTTP-Dienst bereit |
+| Separater Statusaufruf | Gespeicherter Zustand `Bereit`, VM läuft, HTTP-Dienst bereit und vier aktuell beobachtete Ressourcen |
+| delete | Entfernung der vier Ressourcen bestätigt und Lauf vollständig entfernt |
+| Status nach delete | Gespeicherter Zustand `Nicht vorhanden`, VM und VM-Instanz nicht vorhanden, VM-Bereitschaft nein und null aktuell beobachtete Ressourcen |
+
+Zusätzlich wurde nach delete direkt mit der AWS CLI geprüft. Die Abfragen verwendeten das Profil `diplomarbeit` und die Region `us-east-1`. Sie waren unabhängig von den Agent-Tags.
+
+| Direkte AWS-Abfrage | Umfang | Ergebnis |
+| --- | --- | --- |
+| `describe-instances` | Alle Instanzen in `pending`, `running`, `stopping`, `stopped` und `shutting-down` | `[]` |
+| `describe-volumes` | Alle EBS-Datenträger | `[]` |
+| `describe-network-interfaces` | Alle Netzwerkschnittstellen | `[]` |
+| `describe-security-groups` | Alle Security Groups ausser `default` | `[]` |
+| `describe-addresses` | Alle Elastic IPs | `[]` |
+
+Damit sind der automatische Aufbau, die Dienstbereitschaft und der Abbau im geprüften Konto und in der geprüften Region durch den Plattformbetrieb belegt. Die direkte Nachkontrolle bestätigte auch ausserhalb der Agent-Tags den leeren Bestand der abgefragten Ressourcenarten.
+
+Die automatisierte Prüfung des implementierten Codes umfasst 108 erfolgreiche Tests unter Python 3.12. Die AWS-Tests verwenden Boto3 mit `botocore.stub.Stubber`. Sie prüfen unter anderem Profil und Region, Seitennavigation, Ressourceninventar nach einer Instanzbeendigung, den schrittweisen Start mit ClientToken und eingeschränkter HTTP-Regel, den CLI-Ablauf mit SQLite sowie die Löschreihenfolge und das Ablehnen unpassender Besitzkennzeichnungen. Dabei werden die erwarteten SDK-Aufrufe geprüft. Die reale Bereitstellung ist durch den beschriebenen Learner-Lab-Lauf belegt.
+
+| Umfang des Nachweises | Einordnung |
+| --- | --- |
+| Automatisierter Plattformbetrieb | Ein erfolgreicher AWS-Lauf mit create, status, HTTP-Prüfung und delete |
+| Direkte Nachkontrolle | Leerer Bestand der fünf abgefragten Ressourcenarten in `us-east-1` |
+| Ressourcen-IDs | Im Agenten verwendet und geprüft, in den übermittelten Textausgaben nicht einzeln enthalten |
+| Zeitmessung | Fortschrittsausgaben ohne vollständige Start- und Endzeitstempel, keine daraus berechnete Aufbaudauer |
+| SSH | HTTP-Freigabe im Agentenlauf, SSH-Nachweis im manuellen Smoke-Test aus Kapitel 5.3 |
+| Reset und Unterbrechungsfälle | In diesem AWS-Lauf nicht ausgeführt, Reset wird im AWS-Befehlspfad abgewiesen |
 
 ## Verzeichnisse
 
@@ -1934,6 +2056,8 @@ Der Timeout-Nachweis betrifft eine gezielte Antwortverzögerung nach einem best�
 | [AWS T3](https://aws.amazon.com/ec2/instance-types/t3/), [gp3](https://docs.aws.amazon.com/prescriptive-guidance/latest/optimize-costs-microsoft-workloads/ebs-migrate-gp2-gp3.html), [EBS-Abrechnung](https://aws.amazon.com/ebs/pricing/), [öffentliche IPv4](https://aws.amazon.com/vpc/pricing/) | Veröffentlichte Rechenansätze der Preisabschätzung |
 | [SNB-Datenportal](https://data.snb.ch/en) | USD-Monatsmittel August 2026, CHF 0,8078 je USD; historische Umrechnungsbasis |
 | [AWS: GetResources](https://docs.aws.amazon.com/resourcegroupstagging/latest/APIReference/API_GetResources.html) | Grenze der Tagging-Abfragen |
+| [Boto3 EC2 RunInstances](https://docs.aws.amazon.com/boto3/latest/reference/services/ec2/client/run_instances.html) | SDK-Aufruf, ClientToken, Cloud-init und Tags beim Instanzstart |
+| [Boto3 DeleteSecurityGroup](https://docs.aws.amazon.com/boto3/latest/reference/services/ec2/client/delete_security_group.html) | Abbauabhängigkeit zwischen Security Group und Netzwerkschnittstellen |
 | [Scrum Guide](https://scrumguides.org/scrum-guide.html) | Abgrenzung des angepassten Vorgehens |
 
 Interne Betriebsunterlagen und die Reservationsliste sind in der IST-Analyse benannt. Die Rohprotokolle sind eigene Erhebungen des Diplomanden.
@@ -1949,6 +2073,7 @@ Die Rohprotokolle und verwendeten Eingaben bleiben in den ursprünglichen Laufor
 | [LernMAAS-Vorversuch](#lernmaas-vorversuch) | Vorbereitung der gemeinsamen Referenz; abweichende Eingabe und Messgrenzen im Versuchskapitel beschrieben |
 | [LernMAAS-Basisserie](#lernmaas-basisserie) | Drei technische Läufe, Zeitstempel, Eingaben und MAAS-Ressourcenvergleich; Herkunft der Bedienzeiten dort ausgewiesen |
 | [AWS-Smoke-Test](#aws-smoke-test) | EC2-Aufbau, HTTP, SSH und API-Abbauprüfung; S3-Transfer-Bucket nach dem Download gelöscht |
+| [AWS-Agentenlauf](#56-funktionsprufung-des-aws-agenten), [Terminalauszüge](nachweise/aws-agent-durchstich.txt) | create, status, HTTP-Bereitschaft, delete und direkte regionale AWS-Nachkontrolle |
 | [AWS-Budget](#363-budgetwarnungen-und-kostenstand) | CSV-Export, Warnschwellen und bestätigter aktiver Empfänger; historische Erfassungsnotiz bleibt unverändert |
 | [LernMAAS-Lernlauf](nachweise/lernlauf-lernmaas-00-20260916.txt), [mess01](messungen/messprotokoll-mess01.txt), [parallel01](messungen/messprotokoll-parallel01.txt) | Frühe Ablaufanalyse; Einordnung der unvollständigen Mess- und Abbaudaten in Kapitel 3.5 |
 | [Erster KubeVirt-Versuch](nachweise/nachweis-testvm-20260914.txt), [damaliges Manifest](nachweise/testvm.yaml), [frühe Cloud-init-Vorlage](messungen/cloud-init-messlauf.yaml) | Historische Vorbereitung; das bearbeitete Manifest und die frühe Vorlage sind keine unveränderten Definitionen der späteren Serie |
@@ -1971,8 +2096,8 @@ Die Bestätigung des aktiven Budgetempfängers ist kein Test einer tatsächlich 
 | 8 | [Starfish-Retrospektive zu Sprint 1](#abb-08) | Eigene Rückschau und Verbesserungen |
 | 9 | [Milestone Sprint 2 mit offenen und vorgezogenen Stories](#abb-09) | Grundlage für die Sprintplanung |
 | 10 | [Zeitplan der offenen User Stories für Sprint 2 mit anschliessendem Review](#abb-10) | Terminplanung; lokaler Lebenszyklus gemäss Review priorisiert |
-| 11 | [Systemkontext der Bereitstellungslösung](#abb-11) | KubeVirt umgesetzt, AWS geplant |
-| 12 | [Aufbau von CLI, Agent und Adaptern](#abb-12) | Implementierte lokale Komponenten und geplanter AWS-Adapter |
+| 11 | [Systemkontext der Bereitstellungslösung](#abb-11) | KubeVirt und AWS umgesetzt |
+| 12 | [Aufbau von CLI, Agent und Adaptern](#abb-12) | CLI, SQLite und beide MCP-Adapter implementiert |
 
 ## Kontakt
 

@@ -1,0 +1,107 @@
+AWS-Agentenlauf aws-s2-01
+
+Herkunft
+Auszüge aus den vom Diplomanden übermittelten Terminalausgaben auf dl380-01.
+Der Lauf verwendet modell/beispiele/referenz.yaml und das Profil diplomarbeit
+in us-east-1. Die öffentliche HTTP-Adresse ist durch <oeffentliche-ipv4>
+ersetzt. Wiederholte unveränderte Abbaumeldungen sind gekürzt.
+Die Auszüge enthalten keine vollständigen Laufzeitstempel oder Ressourcen-IDs.
+
+Plattformstatus über MCP und Boto3
+
+Plattform: aws
+MCP-Verbindung: Erreichbar
+AWS-Region: us-east-1
+Vom Agenten gekennzeichnete EC2-Instanzen: 0
+
+Vorprüfung
+
+describe-images zeigte das angefragte AMI als available, Architektur x86_64,
+Root-Gerät /dev/sda1. describe-subnets zeigte das Standard-Subnetz in
+us-east-1a als available mit aktivierter öffentlicher IPv4-Zuweisung.
+
+Die Dry-Runs für RunInstances und CreateSecurityGroup lieferten jeweils
+DryRunOperation mit der Meldung
+Request would have succeeded, but DryRun flag is set.
+
+create
+
+Lauf: aws-s2-01
+Auftrag: create-aws-s2-01
+Lernumgebung wird erstellt.
+Ressourcen bestätigt: SecurityGroup.
+Ressourcen bestätigt: SecurityGroup.
+Ressourcen bestätigt: SecurityGroup, EC2Instance, NetworkInterface.
+Ressourcen bestätigt: EC2Instance, EBSVolume, NetworkInterface, SecurityGroup.
+VM- und HTTP-Bereitschaft werden geprüft.
+VM läuft. HTTP-Dienst noch nicht bestätigt. Zeitlimit in 14 min 33 s.
+Lernumgebung erfolgreich erstellt. VM und HTTP-Dienst sind bereit.
+HTTP: http://<oeffentliche-ipv4>:8080/
+
+Separater Statusaufruf
+python -m agent --config "$AWS_CFG" status --run-id aws-s2-01
+
+Lauf: aws-s2-01
+Auftrag: create-aws-s2-01
+Gespeicherter Zustand: Bereit
+VM: Läuft
+VM-Instanz: Läuft
+VM-Bereitschaft: Ja
+HTTP-Dienst: Bereit
+Aktuell beobachtete Ressourcen: 4
+HTTP: http://<oeffentliche-ipv4>:8080/
+
+delete und anschliessender Statusaufruf
+python -m agent --config "$AWS_CFG" delete \
+  --run-id aws-s2-01 --operation-id delete-aws-s2-01 &&
+python -m agent --config "$AWS_CFG" status --run-id aws-s2-01
+
+Lauf: aws-s2-01
+Auftrag: delete-aws-s2-01
+Lernumgebung wird vollständig entfernt.
+Abbau läuft. Noch 4 bekannte Ressourcen zu prüfen.
+Entfernung bestätigt: 2 Ressourcen.
+Abbau läuft. Noch 2 bekannte Ressourcen zu prüfen.
+Entfernung bestätigt: 1 Ressourcen.
+Abbau läuft. Noch 1 bekannte Ressourcen zu prüfen.
+Entfernung bestätigt: 1 Ressourcen.
+Lernumgebung vollständig entfernt.
+Lauf: aws-s2-01
+Auftrag: delete-aws-s2-01
+Gespeicherter Zustand: Nicht vorhanden
+VM: Nicht vorhanden
+VM-Instanz: Nicht vorhanden
+VM-Bereitschaft: Nein
+HTTP-Dienst: Nicht bestätigt
+Aktuell beobachtete Ressourcen: 0
+
+Direkte AWS-Nachkontrolle
+Die folgenden Abfragen wurden nach delete ausgeführt. Sie verwenden keine
+Agent-Tag-Filter.
+
+ec2() {
+  aws ec2 "$@" --profile diplomarbeit --region us-east-1 --output json --no-cli-pager
+}
+
+ec2 describe-instances \
+  --filters 'Name=instance-state-name,Values=pending,running,stopping,stopped,shutting-down' \
+  --query 'Reservations[].Instances[].{ID:InstanceId,Status:State.Name,Run:Tags[?Key==`RunId`].Value|[0]}'
+ec2 describe-volumes --query 'Volumes[].{ID:VolumeId,Status:State,GiB:Size}'
+ec2 describe-network-interfaces \
+  --query 'NetworkInterfaces[].{ID:NetworkInterfaceId,Status:Status,VM:Attachment.InstanceId}'
+ec2 describe-security-groups \
+  --query 'SecurityGroups[?GroupName!=`default`].{ID:GroupId,Name:GroupName}'
+ec2 describe-addresses --query 'Addresses[].{ID:AllocationId,VM:InstanceId}'
+
+Übermittelte Ergebnisse
+
+=== EC2-Instanzen ohne bereits beendete ===
+[]
+=== EBS-Datenträger ===
+[]
+=== Netzwerkschnittstellen ===
+[]
+=== Security Groups ausser default ===
+[]
+=== Elastic IPs ===
+[]
