@@ -12,6 +12,7 @@ from botocore.stub import ANY, Stubber
 import yaml
 
 from adapter.aws import _create_step
+from adapter.vertrag import AdapterError
 from agent.cli import build_parser, run as run_command
 from agent.zustand import StateStore
 from modell.snapshot import encode_snapshot
@@ -19,22 +20,43 @@ from modell.validierung import load_model
 
 
 class AwsCreateTests(unittest.TestCase):
-    def test_cli_creates_checks_and_deletes_aws_run_with_persisted_model_hash(self):
+    def test_cli_resumes_aws_reset_from_saved_phases(self):
         definition = Path(__file__).resolve().parents[1] / 'modell/beispiele/referenz.yaml'
-        _, digest = encode_snapshot(load_model(definition))
+        model = load_model(definition)
+        _, digest = encode_snapshot(model)
         resource = {'kind': 'EC2Instance', 'name': 'i-0123', 'resource_id': 'i-0123', 'scope': 'us-east-1'}
+        replacement = {**resource, 'name': 'i-0124', 'resource_id': 'i-0124'}
         inventory = []
+        calls = []
+        failures = {'check_reset': 'aws_image_unavailable', 'delete': 'timeout', 'create': 'timeout'}
 
         def call(adapter, tool, arguments, schema):
+            calls.append(tool)
+            if tool == 'check_reset':
+                if error := failures.pop(tool, None):
+                    raise AdapterError(error)
+                return {}
             self.assertEqual(arguments['run_id'], 'aws-test-01')
             if tool == 'create':
-                inventory.append(resource)
+                self.assertEqual(arguments['model'], model)
+                if arguments['operation_id'] == 'create-01':
+                    inventory.append(resource)
+                else:
+                    self.assertEqual(arguments['operation_id'], 'reset-01')
+                    self.assertNotIn(resource, inventory)
+                    if not inventory:
+                        inventory.append(replacement)
+                    if error := failures.pop(tool, None):
+                        raise AdapterError(error)
                 return {'complete': True, 'resources': inventory.copy()}
             if tool == 'delete':
                 self.assertEqual(arguments['model_hash'], digest)
-                self.assertEqual(arguments['resources'], [resource])
+                self.assertEqual(arguments['resources'], inventory)
+                if error := failures.pop(tool, None):
+                    raise AdapterError(error)
+                removed = inventory.copy()
                 inventory.clear()
-                return {'complete': True, 'resources': [], 'removed': [resource]}
+                return {'complete': True, 'resources': [], 'removed': removed}
             phase = 'Running' if inventory else 'Absent'
             return {'resources': inventory.copy(), 'vmState': phase, 'vmiPhase': phase,
                     'vmReady': bool(inventory), 'modelHash': digest if inventory else None,
@@ -55,13 +77,39 @@ class AwsCreateTests(unittest.TestCase):
                 ]))
 
             with patch('agent.lebenszyklus.call_tool', side_effect=call), \
-                    patch('agent.lebenszyklus.service_ready', return_value=True), redirect_stdout(io.StringIO()):
+                    patch('agent.lebenszyklus.service_ready', return_value=True), \
+                    patch('sys.stderr', new=io.StringIO()), redirect_stdout(io.StringIO()):
                 self.assertEqual(invoke('create', str(definition), '--platform', 'aws',
                                         '--operation-id', 'create-01'), 0)
                 self.assertEqual(invoke('status'), 0)
-                self.assertEqual(StateStore(state).get('aws-test-01')['phase'], 'ready')
+                store = StateStore(state)
+                calls.clear()
+                self.assertEqual(invoke('reset', '--operation-id', 'reset-01'), 1)
+                self.assertEqual(calls, ['check_reset'])
+                self.assertEqual(store.get('aws-test-01')['phase'], 'ready')
+
+                self.assertEqual(invoke('reset', '--operation-id', 'reset-01'), 1)
+                record = store.get('aws-test-01')
+                self.assertEqual((record['phase'], record['operation']['stage']), ('error', 'deleting'))
+                self.assertEqual(record['resources'], [resource])
+
+                self.assertEqual(invoke('reset', '--operation-id', 'reset-01'), 1)
+                record = store.get('aws-test-01')
+                self.assertEqual((record['phase'], record['operation']['stage']), ('error', 'creating'))
+                self.assertEqual(record['resources'], [replacement])
+
+                calls.clear()
+                self.assertEqual(invoke('reset', '--operation-id', 'reset-01'), 0)
+                self.assertEqual(calls, ['check_reset', 'create', 'status'])
+                record = store.get('aws-test-01')
+                self.assertEqual((record['phase'], record['model_hash']), ('ready', digest))
+                self.assertEqual(record['resources'], [replacement])
+
+                calls.clear()
+                self.assertEqual(invoke('reset', '--operation-id', 'reset-01'), 0)
+                self.assertEqual(calls, ['status'])
                 self.assertEqual(invoke('delete', '--operation-id', 'delete-01'), 0)
-                self.assertEqual(StateStore(state).get('aws-test-01')['phase'], 'absent')
+                self.assertEqual(store.get('aws-test-01')['phase'], 'absent')
 
     def test_launch_saves_ids_and_reuses_one_instance_with_restricted_http(self):
         region = 'us-east-1'

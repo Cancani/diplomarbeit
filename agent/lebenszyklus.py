@@ -7,7 +7,7 @@ import anyio
 import httpx2
 
 from adapter.kubevirt_manifest import validate_id
-from adapter.vertrag import AdapterError, CREATE_SCHEMA, RUN_STATUS_SCHEMA, DELETE_SCHEMA
+from adapter.vertrag import AdapterError, CREATE_SCHEMA, DELETE_SCHEMA, RESET_CHECK_SCHEMA, RUN_STATUS_SCHEMA
 from agent.mcp_client import call_tool
 from agent.ausgabe import emit
 from agent.zustand import StateError, StateStore
@@ -184,8 +184,6 @@ def reset(config, run_id, operation_id, timeout_seconds=1200):
     validate_id(run_id)
     validate_id(operation_id)
     store, record, adapter = _stored_run(config, run_id)
-    if record['platform'] == 'aws':
-        raise StateError('Reset ist für AWS noch nicht verfügbar.')
     record = _recover(store, adapter, record)
     previous = record['operation']
     if (previous['operation_id'] == operation_id and previous['kind'] == 'reset'
@@ -194,9 +192,14 @@ def reset(config, run_id, operation_id, timeout_seconds=1200):
         if not result[1]:
             raise AdapterError('platform_error')
         return result
+    deadline = time.monotonic() + timeout_seconds
+    if record['platform'] == 'aws':
+        settings = {**adapter, 'timeoutSeconds': min(adapter['timeoutSeconds'], timeout_seconds)}
+        call_tool(settings, 'check_reset', {}, RESET_CHECK_SCHEMA)
+        if time.monotonic() >= deadline:
+            raise AdapterError('timeout')
     store.start_operation(run_id, operation_id, 'reset', guarded=True)
     record = store.get(run_id)
-    deadline = time.monotonic() + timeout_seconds
     emit('reset_started', run_id, operation_id, stage=record['phase'])
     try:
         if record['phase'] == 'deleting':

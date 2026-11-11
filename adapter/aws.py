@@ -109,6 +109,12 @@ def run_status(client, region, run_id):
             'sshHost': None, 'sshPort': None}
 
 
+def _check_subnet(client, vpc_id, subnet_id):
+    subnets = client.describe_subnets(SubnetIds=[subnet_id])['Subnets']
+    if len(subnets) != 1 or subnets[0]['VpcId'] != vpc_id or subnets[0]['State'] != 'available':
+        raise AdapterError('resource_conflict')
+
+
 def _create_step(client, region, network, run_id, operation_id, model):
     validate_id(run_id)
     validate_id(operation_id)
@@ -136,9 +142,7 @@ def _create_step(client, region, network, run_id, operation_id, model):
     if len(groups) > 1 or len(instances) > 1 or (inventory and not groups):
         raise AdapterError('resource_conflict')
     if not groups:
-        subnets = client.describe_subnets(SubnetIds=[subnet_id])['Subnets']
-        if len(subnets) != 1 or subnets[0]['VpcId'] != vpc_id or subnets[0]['State'] != 'available':
-            raise AdapterError('resource_conflict')
+        _check_subnet(client, vpc_id, subnet_id)
         try:
             group = client.create_security_group(
                 GroupName=name, Description='Diplomarbeit HTTP test', VpcId=vpc_id,
@@ -309,6 +313,23 @@ def create_server(profile, region, timeout, account_id=None, network=None):
                 return CallToolResult(content=[], structured_content={'session': os.environ.get(GUARD_TOKEN)})
         except ProcessGuardError:
             return CallToolResult(content=[], is_error=True)
+
+    @server.tool(annotations=ToolAnnotations(
+        readOnlyHint=True, destructiveHint=False, idempotentHint=True, openWorldHint=True))
+    def check_reset() -> CallToolResult:
+        """Die Startvoraussetzungen vor dem Abbau eines AWS-Resets prüfen."""
+        if network is None or account_id is None:
+            return CallToolResult(content=[], structured_content={'ok': False, 'error': 'aws_launch_unconfigured'})
+
+        def check(client):
+            vpc_id, subnet_id, _ = network
+            _check_subnet(client, vpc_id, subnet_id)
+            images = client.describe_images(ImageIds=[IMAGE_ID])['Images']
+            if len(images) != 1 or images[0]['State'] != 'available':
+                raise AdapterError('aws_image_unavailable')
+            return {'ok': True, 'data': {}}
+
+        return query(check)
 
     @server.tool(annotations=ToolAnnotations(
         readOnlyHint=False, destructiveHint=False, idempotentHint=True, openWorldHint=True))
