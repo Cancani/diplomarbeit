@@ -148,12 +148,11 @@ class StateStore:
         if kind == 'create' and connection.execute(
                 "SELECT COUNT(*) FROM runs WHERE phase <> 'absent'").fetchone()[0] >= 30:
             raise StateError('Die Obergrenze von 30 reservierten oder vorhandenen VMs ist erreicht.')
-        phase = 'creating' if kind == 'create' else 'deleting'
-        status = 'running'
+        stage = 'creating' if kind == 'create' else 'deleting'
+        phase, status = stage, 'running'
         if kind == 'delete' and run['phase'] == 'absent':
             phase, status = 'absent', 'succeeded'
         now = timestamp()
-        stage = 'creating' if kind == 'create' else 'deleting'
         connection.execute('INSERT INTO operations (operation_id, run_id, kind, status, error_code, started_at, updated_at, stage, guarded) '
                            'VALUES (?, ?, ?, ?, NULL, ?, ?, ?, ?)',
                            (operation_id, run_id, kind, status, now, now, stage, int(guarded)))

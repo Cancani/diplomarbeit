@@ -115,9 +115,11 @@ class KubeVirtLifecycle(KubeVirtDeletion, KubeVirtProvider):
             node_name = next((r.get('status', {}).get('nodeName') for r in owned.values()
                               if r['kind'] == 'VirtualMachineInstance'), None)
             resources.append({**reference(pv), 'details': storage_details(pv, item, node_name)})
-        vm = next((r for r in owned.values() if r['kind'] == 'VirtualMachine' and r['metadata']['name'] == name), {})
-        vmi = next((r for r in owned.values() if r['kind'] == 'VirtualMachineInstance' and r['metadata']['name'] == name), {})
-        service = next((r for r in owned.values() if r['kind'] == 'Service' and r['metadata']['name'] == name), {})
+
+        def find(kind):
+            return next((r for r in owned.values() if r['kind'] == kind and r['metadata']['name'] == name), {})
+
+        vm, vmi, service = find('VirtualMachine'), find('VirtualMachineInstance'), find('Service')
         result = {
             'resources': resources, 'vmState': vm.get('status', {}).get('printableStatus', 'Absent'),
             'vmiPhase': vmi.get('status', {}).get('phase', 'Absent'),

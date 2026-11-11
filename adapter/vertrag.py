@@ -1,6 +1,7 @@
-"""Erster Adaptervertrag: platform_status() liest ohne Ressourcenänderung.
+"""Adaptervertrag: Fehlercodes und Antwortformate zwischen Agent und Adaptern.
 
-Erfolg: {ok: true, status: {...}}. Fehler: {ok: false, error: Fehlercode}.
+Erfolg: {ok: true, status: {...}} oder {ok: true, data: {...}}.
+Fehler: {ok: false, error: Fehlercode}.
 Ein Plattformstatus bestätigt keine HTTP-Bereitschaft einer Lernumgebung.
 """
 from jsonschema import Draft202012Validator
@@ -23,51 +24,62 @@ ERRORS = {
     'storage_unverified': 'Die Zuordnung oder Entfernung des lokalen Datenträgers ist nicht bestätigt.',
 }
 
-MACHINE_SCHEMA = {
-    'type': 'object', 'additionalProperties': False,
-    'required': ['name', 'namespace', 'id', 'state'],
-    'properties': {key: {'type': 'string', 'minLength': 1}
-                   for key in ['name', 'namespace', 'id', 'state']},
-}
+TEXT = {'type': 'string', 'minLength': 1}
+OPTIONAL_TEXT = {'type': ['string', 'null']}
 
-STATUS_SCHEMA = {
-    'type': 'object', 'additionalProperties': False,
-    'required': ['platform', 'nodes', 'kubevirtPhase', 'virtualMachines', 'virtualMachineInstances'],
-    'properties': {
-        'platform': {'const': 'kubevirt'},
-        'nodes': {'type': 'array', 'items': {
-            'type': 'object', 'additionalProperties': False, 'required': ['name', 'ready'],
-            'properties': {'name': {'type': 'string', 'minLength': 1}, 'ready': {'type': 'boolean'}},
-        }},
-        'kubevirtPhase': {'type': 'string', 'minLength': 1},
-        'virtualMachines': {'type': 'array', 'items': MACHINE_SCHEMA},
-        'virtualMachineInstances': {'type': 'array', 'items': MACHINE_SCHEMA},
-    },
-}
 
-AWS_STATUS_SCHEMA = {
-    'type': 'object', 'additionalProperties': False,
-    'required': ['platform', 'region', 'instances'],
-    'properties': {
-        'platform': {'const': 'aws'},
-        'region': {'type': 'string', 'minLength': 1},
-        'instances': {'type': 'array', 'items': {
-            'type': 'object', 'additionalProperties': False,
-            'required': ['id', 'state'],
-            'properties': {
-                'id': {'type': 'string', 'pattern': '^i-[0-9a-f]+$'},
-                'state': {'enum': ['pending', 'running', 'shutting-down', 'terminated', 'stopping', 'stopped']},
-            },
-        }},
-    },
-}
+def _object(properties, optional=()):
+    schema = {'type': 'object', 'additionalProperties': False, 'properties': properties}
+    required = [key for key in properties if key not in optional]
+    if required:
+        schema['required'] = required
+    return schema
+
+
+def _list(items):
+    return {'type': 'array', 'items': items}
+
+
+MACHINE_SCHEMA = _object({'name': TEXT, 'namespace': TEXT, 'id': TEXT, 'state': TEXT})
+
+STATUS_SCHEMA = _object({
+    'platform': {'const': 'kubevirt'},
+    'nodes': _list(_object({'name': TEXT, 'ready': {'type': 'boolean'}})),
+    'kubevirtPhase': TEXT,
+    'virtualMachines': _list(MACHINE_SCHEMA),
+    'virtualMachineInstances': _list(MACHINE_SCHEMA),
+})
+
+AWS_STATUS_SCHEMA = _object({
+    'platform': {'const': 'aws'},
+    'region': TEXT,
+    'instances': _list(_object({
+        'id': {'type': 'string', 'pattern': '^i-[0-9a-f]+$'},
+        'state': {'enum': ['pending', 'running', 'shutting-down', 'terminated', 'stopping', 'stopped']},
+    })),
+})
 
 RESPONSE_SCHEMA = {'oneOf': [
-    {'type': 'object', 'additionalProperties': False, 'required': ['ok', 'status'],
-     'properties': {'ok': {'const': True}, 'status': {'oneOf': [STATUS_SCHEMA, AWS_STATUS_SCHEMA]}}},
-    {'type': 'object', 'additionalProperties': False, 'required': ['ok', 'error'],
-     'properties': {'ok': {'const': False}, 'error': {'enum': list(ERRORS)}}},
+    _object({'ok': {'const': True}, 'status': {'oneOf': [STATUS_SCHEMA, AWS_STATUS_SCHEMA]}}),
+    _object({'ok': {'const': False}, 'error': {'enum': list(ERRORS)}}),
 ]}
+
+RESOURCE_SCHEMA = _object({
+    'kind': TEXT, 'name': TEXT, 'resource_id': TEXT, 'scope': {'type': 'string'},
+    'details': _object({'claimUid': TEXT, 'claimName': TEXT, 'hostPath': TEXT, 'nodeName': TEXT,
+                        'pathSource': {'enum': ['api', 'provisioner-name']}},
+                       optional=('claimUid', 'claimName', 'hostPath', 'nodeName', 'pathSource')),
+}, optional=('details',))
+CREATE_SCHEMA = _object({'complete': {'type': 'boolean'}, 'resources': _list(RESOURCE_SCHEMA)})
+RUN_STATUS_SCHEMA = _object({
+    'resources': _list(RESOURCE_SCHEMA),
+    'vmState': {'type': 'string'}, 'vmiPhase': {'type': 'string'}, 'vmReady': {'type': 'boolean'},
+    'modelHash': OPTIONAL_TEXT, 'httpUrl': OPTIONAL_TEXT,
+    'sshHost': OPTIONAL_TEXT, 'sshPort': {'type': ['integer', 'null']},
+})
+DELETE_SCHEMA = _object({'complete': {'type': 'boolean'}, 'resources': _list(RESOURCE_SCHEMA),
+                         'removed': _list(RESOURCE_SCHEMA)})
+RESET_CHECK_SCHEMA = {'type': 'object', 'maxProperties': 0}
 
 
 class AdapterError(ValueError):
@@ -82,42 +94,6 @@ def read_status_response(response):
     if not response['ok']:
         raise AdapterError(response['error'])
     return response['status']
-
-
-RESOURCE_SCHEMA = {
-    'type': 'object', 'additionalProperties': False,
-    'required': ['kind', 'name', 'resource_id', 'scope'],
-    'properties': {key: {'type': 'string', **({'minLength': 1} if key != 'scope' else {})}
-                   for key in ['kind', 'name', 'resource_id', 'scope']},
-}
-RESOURCE_SCHEMA['properties']['details'] = {
-    'type': 'object', 'additionalProperties': False,
-    'properties': {key: {'type': 'string', 'minLength': 1}
-                   for key in ['claimUid', 'claimName', 'hostPath', 'nodeName']},
-}
-RESOURCE_SCHEMA['properties']['details']['properties']['pathSource'] = {'enum': ['api', 'provisioner-name']}
-CREATE_SCHEMA = {
-    'type': 'object', 'additionalProperties': False, 'required': ['complete', 'resources'],
-    'properties': {'complete': {'type': 'boolean'},
-                   'resources': {'type': 'array', 'items': RESOURCE_SCHEMA}},
-}
-RUN_STATUS_SCHEMA = {
-    'type': 'object', 'additionalProperties': False,
-    'required': ['resources', 'vmState', 'vmiPhase', 'vmReady', 'modelHash', 'httpUrl', 'sshHost', 'sshPort'],
-    'properties': {
-        'resources': {'type': 'array', 'items': RESOURCE_SCHEMA},
-        'vmState': {'type': 'string'}, 'vmiPhase': {'type': 'string'}, 'vmReady': {'type': 'boolean'},
-        'modelHash': {'type': ['string', 'null']}, 'httpUrl': {'type': ['string', 'null']},
-        'sshHost': {'type': ['string', 'null']}, 'sshPort': {'type': ['integer', 'null']},
-    },
-}
-DELETE_SCHEMA = {
-    'type': 'object', 'additionalProperties': False, 'required': ['complete', 'resources', 'removed'],
-    'properties': {'complete': {'type': 'boolean'},
-                   'resources': {'type': 'array', 'items': RESOURCE_SCHEMA},
-                   'removed': {'type': 'array', 'items': RESOURCE_SCHEMA}},
-}
-RESET_CHECK_SCHEMA = {'type': 'object', 'maxProperties': 0}
 
 
 def read_result(response, schema):

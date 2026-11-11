@@ -79,7 +79,7 @@ def _read(store, adapter, record, timeout=None):
     if timeout is not None:
         if timeout <= 0:
             raise AdapterError('timeout')
-        settings['timeoutSeconds'] = min(settings['timeoutSeconds'], timeout)
+        settings = _within(adapter, timeout)
     actual = call_tool(settings, 'status', {'run_id': record['run_id']}, RUN_STATUS_SCHEMA)
     if actual['modelHash'] is not None and actual['modelHash'] != record['model_hash']:
         raise AdapterError('resource_conflict')
@@ -101,6 +101,18 @@ def status(config, run_id):
     return actual, ready
 
 
+def _confirmed_ready(config, run_id):
+    # Ein bereits abgeschlossener Auftrag gilt nur mit bestätigtem Dienst erneut als Erfolg.
+    result = status(config, run_id)
+    if not result[1]:
+        raise AdapterError('platform_error')
+    return result
+
+
+def _within(adapter, seconds):
+    return {**adapter, 'timeoutSeconds': min(adapter['timeoutSeconds'], seconds)}
+
+
 def _failed(store, adapter, record, error):
     # Auch eine verlorene API-Antwort kann Ressourcen hinterlassen haben.
     try:
@@ -116,7 +128,6 @@ def _failed(store, adapter, record, error):
 
 @_guarded
 def create(config, run_id, operation_id, platform, model, timeout_seconds=900):
-    validate_id(run_id)
     validate_id(operation_id)
     snapshot, _ = encode_snapshot(model)
     adapter = _adapter(config, platform)
@@ -131,10 +142,7 @@ def create(config, run_id, operation_id, platform, model, timeout_seconds=900):
             raise StateError('Plattform und Modell-Snapshot eines Laufs dürfen nicht verändert werden.')
         previous = _recover(store, adapter, previous)
     if previous and previous['phase'] == 'ready':
-        result = status(config, run_id)
-        if not result[1]:
-            raise AdapterError('platform_error')
-        return result
+        return _confirmed_ready(config, run_id)
     store.start_create(run_id, operation_id, platform, model, guarded=True)
     emit('create_started', run_id, operation_id)
     record = store.get(run_id)
@@ -155,7 +163,6 @@ def _stored_run(config, run_id):
 
 @_guarded
 def delete(config, run_id, operation_id, timeout_seconds=300):
-    validate_id(run_id)
     validate_id(operation_id)
     store, record, adapter = _stored_run(config, run_id)
     record = _recover(store, adapter, record)
@@ -181,21 +188,16 @@ def delete(config, run_id, operation_id, timeout_seconds=300):
 
 @_guarded
 def reset(config, run_id, operation_id, timeout_seconds=1200):
-    validate_id(run_id)
     validate_id(operation_id)
     store, record, adapter = _stored_run(config, run_id)
     record = _recover(store, adapter, record)
     previous = record['operation']
     if (previous['operation_id'] == operation_id and previous['kind'] == 'reset'
             and previous['status'] == 'succeeded' and record['phase'] == 'ready'):
-        result = status(config, run_id)
-        if not result[1]:
-            raise AdapterError('platform_error')
-        return result
+        return _confirmed_ready(config, run_id)
     deadline = time.monotonic() + timeout_seconds
     if record['platform'] == 'aws':
-        settings = {**adapter, 'timeoutSeconds': min(adapter['timeoutSeconds'], timeout_seconds)}
-        call_tool(settings, 'check_reset', {}, RESET_CHECK_SCHEMA)
+        call_tool(_within(adapter, timeout_seconds), 'check_reset', {}, RESET_CHECK_SCHEMA)
         if time.monotonic() >= deadline:
             raise AdapterError('timeout')
     store.start_operation(run_id, operation_id, 'reset', guarded=True)
@@ -221,8 +223,7 @@ def _create(store, adapter, record, deadline):
         remaining = deadline - time.monotonic()
         if remaining <= 0:
             raise AdapterError('timeout')
-        settings = {**adapter, 'timeoutSeconds': min(adapter['timeoutSeconds'], remaining)}
-        step = call_tool(settings, 'create', {
+        step = call_tool(_within(adapter, remaining), 'create', {
             'run_id': run_id, 'operation_id': operation_id, 'model': model}, CREATE_SCHEMA)
         store.observe_resources(run_id, operation_id, step['resources'])
         if step['resources']:
@@ -262,11 +263,10 @@ def _delete(store, adapter, record, deadline):
         if remaining <= 0:
             raise AdapterError('timeout')
         known = store.get(run_id)['resources']
-        settings = {**adapter, 'timeoutSeconds': min(adapter['timeoutSeconds'], remaining)}
         arguments = {'run_id': run_id, 'operation_id': operation_id, 'resources': known}
         if record['platform'] == 'aws':
             arguments['model_hash'] = record['model_hash']
-        step = call_tool(settings, 'delete', arguments, DELETE_SCHEMA)
+        step = call_tool(_within(adapter, remaining), 'delete', arguments, DELETE_SCHEMA)
         store.observe_resources(run_id, operation_id, step['resources'])
         for resource in step['removed']:
             store.confirm_removed(run_id, operation_id, resource['kind'],

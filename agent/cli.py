@@ -9,6 +9,9 @@ from agent.konfiguration import ConfigurationError, load_config
 from agent.ausgabe import output_mode, platform_result
 
 
+JSON_HELP = 'Vollständige JSON-Ausgabe für Skripte und Protokolle'
+
+
 def positive_seconds(value):
     number = int(value)
     if number < 1:
@@ -21,11 +24,11 @@ def build_parser():
         description='Lernumgebungen erstellen, prüfen, zurücksetzen und löschen.')
     parser.add_argument('--config', type=Path, required=True,
                         help='YAML-Datei der Agent-Konfiguration')
-    parser.add_argument('--json', action='store_true', help='Vollständige JSON-Ausgabe für Skripte und Protokolle')
+    parser.add_argument('--json', action='store_true', help=JSON_HELP)
     commands = parser.add_subparsers(dest='operation', required=True)
     probe = commands.add_parser('platform-status', help='Plattform über MCP lesend prüfen')
     probe.add_argument('--json', action='store_true', default=argparse.SUPPRESS,
-                       help='Vollständige JSON-Ausgabe für Skripte und Protokolle')
+                       help=JSON_HELP)
     probe.add_argument('--platform', required=True, choices=('kubevirt', 'aws'))
     descriptions = {
         'create': 'Lernumgebung aus einer YAML-Definition erstellen',
@@ -36,7 +39,7 @@ def build_parser():
     for name, description in descriptions.items():
         command = commands.add_parser(name, help=description, description=description)
         command.add_argument('--json', action='store_true', default=argparse.SUPPRESS,
-                             help='Vollständige JSON-Ausgabe für Skripte und Protokolle')
+                             help=JSON_HELP)
         command.add_argument('--run-id', required=True, help='Kennung des Laufs')
         if name == 'create':
             command.add_argument('definition', type=Path, help='YAML-Datei der Lernumgebung')
@@ -67,14 +70,13 @@ def run(args):
     except ConfigurationError as error:
         print(f'Konfigurationsfehler: {error}', file=sys.stderr)
         return 1
+    if args.operation in ('platform-status', 'create') and args.platform not in config['adapters']:
+        print(f'Für die Zielplattform {args.platform} ist kein Adapter konfiguriert.', file=sys.stderr)
+        return 1
     if args.operation == 'platform-status':
         from adapter.vertrag import AdapterError
         from agent.mcp_client import platform_status
 
-        if args.platform not in config['adapters']:
-            print(f'Für die Zielplattform {args.platform} ist kein Adapter konfiguriert.',
-                  file=sys.stderr)
-            return 1
         try:
             result = platform_status(config['adapters'][args.platform])
             if result['status']['platform'] != args.platform:
@@ -85,36 +87,33 @@ def run(args):
         platform_result(result, args.json)
         return 0
     if args.operation == 'create':
-        if args.platform not in config['adapters']:
-            print(f'Für die Zielplattform {args.platform} ist kein Adapter konfiguriert.',
-                  file=sys.stderr)
-            return 1
         try:
             model = load_model(args.definition)
         except ModelValidationError as error:
             for message in error.errors:
                 print(f'Ungültig: {message}', file=sys.stderr)
             return 1
-    if args.operation in ('create', 'status', 'reset', 'delete'):
-        from adapter.vertrag import AdapterError
-        from agent.lebenszyklus import create, status, reset, delete
-        from agent.zustand import StateError
 
-        try:
-            if args.operation == 'create':
-                create(config, args.run_id, args.operation_id or uuid.uuid4().hex,
-                       args.platform, model, args.timeout_seconds)
-            elif args.operation == 'delete':
-                delete(config, args.run_id, args.operation_id or uuid.uuid4().hex, args.timeout_seconds)
-            elif args.operation == 'reset':
-                reset(config, args.run_id, args.operation_id or uuid.uuid4().hex, args.timeout_seconds)
-            else:
-                status(config, args.run_id)
-        except (AdapterError, StateError) as error:
-            label = f'Fehler ({error.code})' if isinstance(error, AdapterError) else 'Fehler'
-            print(f'{label}: {error}', file=sys.stderr)
-            return 1
-        except KeyboardInterrupt:
-            print('Operation unterbrochen; gespeicherten Zustand prüfen.', file=sys.stderr)
-            return 130
-        return 0
+    from adapter.vertrag import AdapterError
+    from agent.lebenszyklus import create, status, reset, delete
+    from agent.zustand import StateError
+
+    try:
+        if args.operation == 'status':
+            status(config, args.run_id)
+            return 0
+        operation_id = args.operation_id or uuid.uuid4().hex
+        if args.operation == 'create':
+            create(config, args.run_id, operation_id, args.platform, model, args.timeout_seconds)
+        elif args.operation == 'delete':
+            delete(config, args.run_id, operation_id, args.timeout_seconds)
+        else:
+            reset(config, args.run_id, operation_id, args.timeout_seconds)
+    except (AdapterError, StateError) as error:
+        label = f'Fehler ({error.code})' if isinstance(error, AdapterError) else 'Fehler'
+        print(f'{label}: {error}', file=sys.stderr)
+        return 1
+    except KeyboardInterrupt:
+        print('Operation unterbrochen; gespeicherten Zustand prüfen.', file=sys.stderr)
+        return 130
+    return 0

@@ -290,6 +290,14 @@ def create_server(profile, region, timeout, account_id=None, network=None):
             result = {'ok': False, 'error': 'invalid_response'}
         return CallToolResult(content=[], structured_content=result)
 
+    def checked(data, schema):
+        result = {'ok': True, 'data': data}
+        read_result(result, schema)
+        return result
+
+    def unconfigured():
+        return CallToolResult(content=[], structured_content={'ok': False, 'error': 'aws_launch_unconfigured'})
+
     @server.tool(annotations=ToolAnnotations(
         readOnlyHint=True, destructiveHint=False, idempotentHint=True, openWorldHint=True))
     def platform_status() -> CallToolResult:
@@ -319,7 +327,7 @@ def create_server(profile, region, timeout, account_id=None, network=None):
     def check_reset() -> CallToolResult:
         """Die Startvoraussetzungen vor dem Abbau eines AWS-Resets prüfen."""
         if network is None or account_id is None:
-            return CallToolResult(content=[], structured_content={'ok': False, 'error': 'aws_launch_unconfigured'})
+            return unconfigured()
 
         def check(client):
             vpc_id, subnet_id, _ = network
@@ -336,12 +344,10 @@ def create_server(profile, region, timeout, account_id=None, network=None):
     def create(run_id: str, operation_id: str, model: dict) -> CallToolResult:
         """Die Sicherheitsgruppe und eine EC2-Instanz schrittweise bereitstellen."""
         if network is None:
-            return CallToolResult(content=[], structured_content={'ok': False, 'error': 'aws_launch_unconfigured'})
+            return unconfigured()
 
         def provision(client):
-            result = {'ok': True, 'data': _create_step(client, region, network, run_id, operation_id, model)}
-            read_result(result, CREATE_SCHEMA)
-            return result
+            return checked(_create_step(client, region, network, run_id, operation_id, model), CREATE_SCHEMA)
 
         return query(provision, mutation=True)
 
@@ -351,9 +357,7 @@ def create_server(profile, region, timeout, account_id=None, network=None):
         """Einen Abbauschritt für den bestätigten AWS-Lauf ausführen."""
         def remove(client):
             validate_id(operation_id)
-            result = {'ok': True, 'data': _delete_step(client, region, run_id, model_hash, resources)}
-            read_result(result, DELETE_SCHEMA)
-            return result
+            return checked(_delete_step(client, region, run_id, model_hash, resources), DELETE_SCHEMA)
 
         return query(remove, mutation=True)
 
@@ -362,9 +366,7 @@ def create_server(profile, region, timeout, account_id=None, network=None):
     def status(run_id: str) -> CallToolResult:
         """Die EC2-Ressourcen eines Laufs lesen; HTTP-Bereitschaft prüft der Agent."""
         def read(client):
-            result = {'ok': True, 'data': run_status(client, region, run_id)}
-            read_result(result, RUN_STATUS_SCHEMA)
-            return result
+            return checked(run_status(client, region, run_id), RUN_STATUS_SCHEMA)
 
         return query(read)
 
