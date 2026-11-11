@@ -333,6 +333,10 @@ Den fachlichen Abschluss einer Story halte ich fest, wenn ihre Akzeptanzkriterie
 
 Die Agententests decken unter anderem Timeouts, behandelte Abbrüche und verbleibende Ressourcen ab. Funktionsumfang und offene Nachweise stehen in Kapitel 5.5. Die sechs vollständigen PoC-Läufe werden anschliessend auf den Zielplattformen protokolliert. Für ein Review bereite ich die Präsentation der Ergebnisse und die passenden Nachweise vor; Rückmeldungen und daraus folgende Aufgaben werden nach dem Meeting festgehalten.
 
+#### KI-gestützte Hilfsmittel
+
+Ich habe ChatGPT und Claude Code als Hilfsmittel für Codeentwürfe, die Prüfung von Änderungen, die Vorbereitung von Testfällen und die sprachliche Überarbeitung der Dokumentation eingesetzt. Ich entscheide, welche Vorschläge ich übernehme, und prüfe die Änderungen anhand der Projektanforderungen und der passenden Tests. Die dokumentierten Messwerte und Funktionsnachweise stützen sich auf die jeweiligen Laufprotokolle. Der Agent selbst steuert den Lebenszyklus zur Laufzeit nach festgelegten Regeln.
+
 ### 2.7 Projektstand und Berichte
 
 Gemäss Rückmeldung von Thanam Pangri ist ein regelmässiges Wochenjournal nicht erforderlich. Zusätzliche Berichte können verlangt werden, wenn der Fortschritt zu gering oder nicht ausreichend nachvollziehbar ist. US05 wurde entsprechend [gestrichen](https://github.com/Cancani/diplomarbeit/issues/5). Der Projektverlauf bleibt über die folgenden Ablagen nachvollziehbar:
