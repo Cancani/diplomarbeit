@@ -24,7 +24,7 @@ Das plattformneutrale YAML-Modell mit JSON-Schema wird vom Python-Agenten eingel
 
 Auf AWS sind create, status, reset und delete über denselben Agenten umgesetzt. Der Reset erstellt aus dem gespeicherten Modell eine neue EC2-Instanz samt Datenträger, Netzwerkschnittstelle und Security Group. Im Learner Lab wurden die erneute HTTP-Bereitschaft, die Wiederaufnahme nach Ctrl+C und der Abbau anhand der Ressourcen-IDs geprüft. Kapitel 5.6 enthält die Ergebnisse des ersten AWS-Durchstichs und der beiden Reset-Läufe.
 
-Vor dem ersten Review waren aus der ursprünglichen Sprint-1-Planung 14 fachliche Stories mit 34 Story Points abgeschlossen. US05 ist entfallen; die Abschlussprüfung von US16 mit drei Punkten steht nach der Reviewnachbereitung noch aus. Das erste Review fand am 23.10.2026 statt. Die Experten gaben eine positive Rückmeldung zum bisherigen Arbeitsstand und zur Präsentation. Die eigene Retrospektive und die Vereinbarungen stehen in Kapitel 2.10. Der im Review priorisierte lokale Lebenszyklus und der ergänzende AWS-Durchstich sind umgesetzt. Kapitel 2.11 enthält die zugehörige Sprintplanung. Die dokumentierten Entwicklungsläufe belegen die Funktion der Komponenten. Die vergleichende Messauswertung ist in Kapitel 3.4 methodisch festgelegt.
+Vor dem ersten Review waren aus der ursprünglichen Sprint-1-Planung 14 fachliche Stories mit 34 Story Points abgeschlossen. US05 ist entfallen. US16 mit drei Punkten wurde nach der Reviewnachbereitung abgeschlossen. Das erste Review fand am 23.10.2026 statt. Die Experten gaben eine positive Rückmeldung zum bisherigen Arbeitsstand und zur Präsentation. Die eigene Retrospektive und die Vereinbarungen stehen in Kapitel 2.10. Der im Review priorisierte lokale Lebenszyklus und der ergänzende AWS-Durchstich sind umgesetzt. Kapitel 2.11 enthält die zugehörige Sprintplanung. Die dokumentierten Entwicklungsläufe belegen die Funktion der Komponenten. Die vergleichende Messauswertung ist in Kapitel 3.4 methodisch festgelegt.
 
 ---
 
@@ -55,12 +55,12 @@ Die fünf Teilziele aus der bewilligten Projektbeschreibung bestimmen den Umfang
 | ID | Ziel | Messkriterium | Zielwert | Nachweis | Status |
 | --- | --- | --- | --- | --- | --- |
 | Z1 | Plattformneutrales Modell für Lernumgebungen | Versioniertes YAML-Modell mit JSON-Schema, gültige Definition wird akzeptiert, ungültige abgewiesen | 1 Modell, 1 Schema, je 1 positiver und 1 negativer Testfall bestehen | Repository, Testprotokoll | Versioniert; lokale Tests und CI erfolgreich, siehe Kapitel 4.2 |
-| Z2 | Zentraler Agent mit Zustandsführung | create, status, reset und delete laufen über festgelegte Zustandsübergänge, Zustand ist persistent | 4 Operationen funktionsfähig, reset erzeugt aus derselben Definition neu | Quellcode, Zustandsdiagramm, Testprotokoll | Auf KubeVirt funktionsfähig; geprüfte Fehlerfälle und Grenzen in Kapitel 5.5 |
+| Z2 | Zentraler Agent mit Zustandsführung | create, status, reset und delete laufen über festgelegte Zustandsübergänge, Zustand ist persistent | 4 Operationen funktionsfähig, reset erzeugt aus derselben Definition neu | Quellcode, Zustandsdiagramm, Testprotokoll | Auf KubeVirt und AWS funktionsfähig; geprüfte Fehlerfälle und Grenzen in Kapitel 5.5 und 5.6 |
 | Z3 | On-Prem-Backend mit Kubernetes und KubeVirt | Test-Lernumgebung wird automatisiert bereitgestellt und vollständig entfernt | 3 vollständige Durchläufe ohne manuelle Korrektur | Laufprotokolle, Screenshots | Lokaler Funktionsdurchstich erfolgreich; drei formale Durchläufe noch offen |
-| Z4 | Bewertung der MCP-basierten Adapterarchitektur | Dieselbe Definition läuft lokal und auf genau einer Public Cloud, Bewertung gegen direkte API-Anbindung | 3 vollständige Durchläufe in der Cloud, Bewertung nach 5 Kriterien dokumentiert | Laufprotokolle, Bewertungstabelle | Offen |
+| Z4 | Bewertung der MCP-basierten Adapterarchitektur | Dieselbe Definition läuft lokal und auf genau einer Public Cloud, Bewertung gegen direkte API-Anbindung | 3 vollständige Durchläufe in der Cloud, Bewertung nach 5 Kriterien dokumentiert | Laufprotokolle, Bewertungstabelle | Funktionsläufe mit derselben Definition auf AWS erfolgreich, siehe Kapitel 5.6; drei formale Durchläufe und Bewertung offen |
 | Z5 | Messbarer Vergleich mit dem heutigen Vorgehen | Bereitstellungszeit, manuelle Eingriffe, Reproduzierbarkeit, vollständiger Abbau | Vorher- und Nachher-Werte für denselben Testfall protokolliert | Messprotokoll, Vergleichstabelle | Offen |
 
-Modell und lokaler Funktionsablauf sind umgesetzt. Der vollständige Zielnachweis benötigt weiterhin den AWS-Ablauf, die formalen Messserien und die abschliessende Bewertung. Die Reichweite der Fehlerprüfungen ist in Kapitel 5.5 abgegrenzt.
+Modell und Funktionsablauf sind auf beiden Plattformen umgesetzt. Der vollständige Zielnachweis benötigt weiterhin die formalen Messserien und die abschliessende Bewertung. Die Reichweite der Fehlerprüfungen ist in Kapitel 5.5 und 5.6 abgegrenzt.
 
 ### 1.5 Erfolgskriterien des Proof of Concept
 
@@ -151,7 +151,7 @@ Im ersten Review wurden die erarbeiteten Ergebnisse vorgestellt und die Priorit�
 
 Dozierende sind die späteren Nutzenden der Lernumgebungen, Lernende deren indirekte Nutzende. Ihr Interesse betrifft vor allem einen verständlichen Ablauf und eine zuverlässig nutzbare Umgebung. Der PoC liefert noch keine produktive Einführung.
 
-In den bestehenden wöchentlichen 1:1-Sitzungen mit Kuno werden ungefähr zehn Minuten für den Projektstand und offene Fragen genutzt. Wichtige Ergebnisse, Fragen und Entscheidungen halte ich zusätzlich im gemeinsamen Teams-Kanal für alle Experten fest. In Sprint 1 habe ich den Austausch nach der ersten Nachricht zu wenig genutzt. Die daraus abgeleiteten Verbesserungen und die Vereinbarungen aus dem Review stehen in Kapitel 2.10. Rückmeldungen und Beschlüsse werden beim betroffenen Issue und in der Dokumentation nachgeführt. Die Termine der Zwischenpräsentationen sind mit beiden Experten vereinbart.
+In den bestehenden wöchentlichen 1:1-Sitzungen mit Kuno Vogt werden ungefähr zehn Minuten für den Projektstand und offene Fragen genutzt. Wichtige Ergebnisse, Fragen und Entscheidungen halte ich zusätzlich im gemeinsamen Teams-Kanal für alle Experten fest. In Sprint 1 habe ich den Austausch nach der ersten Nachricht zu wenig genutzt. Die daraus abgeleiteten Verbesserungen und die Vereinbarungen aus dem Review stehen in Kapitel 2.10. Rückmeldungen und Beschlüsse werden beim betroffenen Issue und in der Dokumentation nachgeführt. Die Termine der Zwischenpräsentationen sind mit beiden Experten vereinbart.
 
 ### 2.3 Termine und Meilensteine
 
@@ -187,7 +187,7 @@ Die Reviewtermine sind fest vereinbart. Alle Uhrzeiten gelten für Zürich. Die 
 | 2 | Mittwoch, 18.11.2026, 15:00 Uhr | Online |
 | 3 | Mittwoch, 16.12.2026, 15:00 Uhr | Online |
 
-Die Sprintzeiträume bleiben die ursprünglichen Planungsabschnitte. Das erste Review fand nach dem geplanten Ende von Sprint 1 statt. US16 bleibt bis zur Nachführung und Abschlussprüfung des Issues offen. Der geplante Beginn von Sprint 2 lag damit vor dem ersten Review. Die weitere Umsetzung konzentriert sich gemäss Review auf den vollständigen lokalen Lebenszyklus bis Sprintende am 15.11.2026. Die Rückmeldungen stehen in Kapitel 2.10. Ab dem Scope-Freeze am 04.12.2026 ist die verbleibende Zeit für Fehlerkorrekturen, Messungen und Abschluss vorgesehen.
+Die Sprintzeiträume bleiben die ursprünglichen Planungsabschnitte. Das erste Review fand nach dem geplanten Ende von Sprint 1 statt. Der geplante Beginn von Sprint 2 lag damit vor dem ersten Review. Die weitere Umsetzung konzentriert sich gemäss Review auf den vollständigen lokalen Lebenszyklus bis Sprintende am 15.11.2026. Die Rückmeldungen stehen in Kapitel 2.10. Ab dem Scope-Freeze am 04.12.2026 ist die verbleibende Zeit für Fehlerkorrekturen, Messungen und Abschluss vorgesehen.
 
 ### 2.4 Backlog und Prioritäten
 
@@ -305,8 +305,9 @@ Die fachliche Dokumentation steht in dieser Datei. Code, Testdaten und Originalp
 | `docs/nachweise/`, `docs/messungen/` | Systemausgaben, Laufprotokolle und verwendete Manifeste |
 | `modell/` | JSON-Schema, YAML-Beispiele und Validierung |
 | `agent/` | CLI, Konfiguration, Lebenszyklus, SQLite und MCP-Client |
-| `adapter/` | MCP-Werkzeugvertrag, Server und KubeVirt-Aufrufe |
-| `scripts/` | Hilfswerkzeuge für Messungen, Issues und Repository-Prüfungen |
+| `adapter/` | MCP-Werkzeugvertrag, Server sowie KubeVirt- und AWS-Aufrufe |
+| `gemeinsam/` | Prozesssperre für Agent und Adapter |
+| `scripts/` | Hilfswerkzeuge für Messungen, Modellprüfung, Issues und Repository-Prüfungen |
 | `tests/` | Automatisierte Tests des vorhandenen Codes |
 | `.github/`, `mkdocs.yml`, `requirements-docs.txt` | Vorlagen und Veröffentlichung der Dokumentation |
 | `requirements.txt` | Festgeschriebene Abhängigkeiten von Modellprüfung, Agent und MCP |
@@ -344,7 +345,7 @@ Gemäss Rückmeldung von Thanam Pangri ist ein regelmässiges Wochenjournal nich
 | Kapitel 2.10 | Planung, Bearbeitungsstand und eigene Retrospektive zu Sprint 1 sowie anschliessend die Rückmeldungen aus dem gemeinsamen Review |
 | Kapitel 2.11 und 2.12 | Planung der weiteren Sprints sowie anschliessend ihre Retrospektiven und Reviewrückmeldungen |
 
-Für die wöchentlichen 1:1-Sitzungen mit Kuno bereite ich einen kurzen Überblick vor: Welche Funktionen sind umgesetzt und erfolgreich geprüft, was bearbeite ich als Nächstes und welche Hindernisse oder offenen Entscheidungen bestehen? Wichtige Punkte stelle ich zusätzlich im gemeinsamen Teams-Kanal bereit. Ein separates Wochenjournal ist dafür nicht vorgesehen.
+Für die wöchentlichen 1:1-Sitzungen mit Kuno Vogt bereite ich einen kurzen Überblick vor: Welche Funktionen sind umgesetzt und erfolgreich geprüft, was bearbeite ich als Nächstes und welche Hindernisse oder offenen Entscheidungen bestehen? Wichtige Punkte stelle ich zusätzlich im gemeinsamen Teams-Kanal bereit. Ein separates Wochenjournal ist dafür nicht vorgesehen.
 
 Bei relevanten Änderungen werden Anlass, Auswirkung und die daraus folgende Aufgabe im betroffenen Issue oder Fachkapitel festgehalten.
 
@@ -397,7 +398,7 @@ Für eine spätere produktive Nutzung wären insbesondere Zugriffsrechte, Netzwe
 
 #### Sprint 1 Planung
 
-**Zeitraum:** 14.09. bis 18.10.2026. Das zugehörige Review findet in der anschliessenden Reviewwoche statt.
+**Zeitraum:** 14.09. bis 18.10.2026. Das zugehörige Review fand in der anschliessenden Reviewwoche statt.
 
 **Sprintziel:** Die Ausgangslage und den bisherigen Bereitstellungsablauf verstehen, eine belastbare Vergleichsgrundlage vorbereiten, die reduzierte Referenzumgebung auf beiden Zielplattformen praktisch prüfen und die Zielarchitektur festlegen.
 
@@ -501,7 +502,7 @@ US05 entfällt und erhält keinen Zeitbalken. US17 und US18 sind aus Sprint 2 vo
 | Architektur | Systemkontext, Komponentensicht und vier ADRs vorhanden |
 | Vorgezogene Arbeiten | Fachmodell und Modellprüfung mit JSON-Schema aus US17 und US18 umgesetzt |
 
-Von den ursprünglichen Sprint-1-Stories sind 14 fachlich abgeschlossen, US05 ist entfallen und US16 bleibt in Bearbeitung. Die Milestone-Detailansicht zeigt entsprechend einen offenen und 15 geschlossene Issues. Das Board führt US16 auf In Progress. Die geschlossene US05 zählt nicht als fachlich erbrachte Leistung.
+Vor dem Review waren 14 der ursprünglichen Sprint-1-Stories fachlich abgeschlossen. US05 war entfallen und US16 in Bearbeitung. Die abgebildete Milestone-Detailansicht zeigt entsprechend einen offenen und 15 geschlossene Issues. Im abgebildeten Board steht US16 auf In Progress. Die geschlossene US05 zählt nicht als fachlich erbrachte Leistung.
 
 Das Project Board zeigt den Bearbeitungsstand über alle Sprints hinweg. Die 16 Karten in Done umfassen die 14 fachlich abgeschlossenen Stories aus Sprint 1 sowie US17 und US18, die aus Sprint 2 vorgezogen wurden.
 
@@ -509,7 +510,7 @@ Das Project Board zeigt den Bearbeitungsstand über alle Sprints hinweg. Die 16 
 
 <small id="abb-06"><em>Abbildung 6: Project Board mit Bearbeitungsstand und US16 in Bearbeitung</em></small>
 
-Die Detailansicht zeigt den Stand vor dem Review mit US16 als einzigem offenen Issue. Das Review ist inzwischen durchgeführt und die Rückmeldungen sind nachfolgend dokumentiert. Die Nachführung und Abschlussprüfung des Issues stehen noch aus.
+Die Detailansicht zeigt den Stand vor dem Review mit US16 als einzigem offenen Issue. Das Review ist inzwischen durchgeführt und die Rückmeldungen sind nachfolgend dokumentiert. US16 ist nach der Nachführung der Reviewrückmeldungen abgeschlossen.
 
 ![Milestone Sprint 1 mit offener US16](bilder/projektmanagement/sprint1-us16-offen.png)
 
@@ -521,7 +522,7 @@ Die Detailansicht zeigt den Stand vor dem Review mit US16 als einzigem offenen I
 | Sprint 2 | 9 Stories, 35 SP | US17 und US18, zusammen 8 SP, vorgezogen | Keine | 7 Stories, 27 SP |
 | Sprint 3 | 13 Stories, 38 SP | Keine | Keine | 13 Stories, 38 SP |
 
-Die Tabelle hält die Zwischenbilanz vor dem Review fest. Die Zwischenpräsentation ist inzwischen durchgeführt und die Rückmeldungen stehen im folgenden Reviewabschnitt. US16 wird nach der Nachführung und Abschlussprüfung des Issues in der Sprintbilanz berücksichtigt. Für die weitere Umsetzung hat der vollständige lokale Lebenszyklus erste Priorität.
+Die Tabelle hält die Zwischenbilanz vor dem Review fest. Die Zwischenpräsentation ist inzwischen durchgeführt und die Rückmeldungen stehen im folgenden Reviewabschnitt. Mit dem Abschluss von US16 sind in Sprint 1 insgesamt 15 Stories mit 37 Story Points fachlich abgeschlossen. Für die weitere Umsetzung hat der vollständige lokale Lebenszyklus erste Priorität.
 
 #### Sprint 1 Retrospektive
 
@@ -535,7 +536,7 @@ GitHub und das Project Board haben mir geholfen, die Aufgaben zu organisieren un
 
 ##### Was schwierig war
 
-Nach der ersten Nachricht habe ich Kuno und Thanam zu wenig über den Fortschritt informiert. Im Gespräch mit Kuno wurde deutlich, dass wir die Erwartungen an die Planung und das Review früher hätten abstimmen sollen.
+Nach der ersten Nachricht habe ich Kuno Vogt und Thanam Pangri zu wenig über den Fortschritt informiert. Im Gespräch mit Kuno Vogt wurde deutlich, dass wir die Erwartungen an die Planung und das Review früher hätten abstimmen sollen.
 
 Die Netzwerkanpassungen im Labor erforderten zusätzliche Abklärungen, konnten aber gelöst werden.
 
@@ -544,6 +545,8 @@ Die Netzwerkanpassungen im Labor erforderten zusätzliche Abklärungen, konnten 
 Ich möchte Zwischenstände früher zeigen und gezielt Feedback einholen. Vor den Reviews stelle ich den aktuellen Dokumentationsstand und offene Fragen bereit. Grössere Aufgaben teile ich in kleinere, überprüfbare Schritte auf.
 
 Die Prioritäten für Sprint 2 wurden im ersten Review gemeinsam mit den Experten besprochen und im folgenden Abschnitt festgehalten. Die Arbeit mit GitHub und kleinen Commits behalte ich bei.
+
+<span id="sprint-1-review"></span>
 
 #### Sprint 1 Review mit den Experten
 
@@ -561,11 +564,11 @@ Im Gespräch wurden die Prioritäten für die weitere Umsetzung festgelegt. Bis 
 | MCP | Die Umsetzung mit MCP wird weiterverfolgt. Die praktische Einbindung und ihre Eigenschaften werden im weiteren Projektverlauf untersucht. |
 | Sprachmodell | Im Gespräch wurde eine mögliche Verwendung eines Sprachmodells angesprochen. Ob daraus eine zusätzliche Anforderung entsteht, ist noch zu klären. Die bisherige Architektur sieht einen regelbasierten Agenten vor. |
 | AWS | Die AWS-Anbindung bleibt Bestandteil des Projekts. Bei der Umsetzung hat zunächst der funktionierende lokale Lebenszyklus Vorrang. |
-| Zusammenarbeit | In den bestehenden wöchentlichen 1:1-Sitzungen mit Kuno werden ungefähr zehn Minuten für den Projektstand und offene Fragen genutzt. Wichtige Ergebnisse, Fragen und Entscheidungen werden zusätzlich im gemeinsamen Teams-Kanal für alle Experten festgehalten. |
+| Zusammenarbeit | In den bestehenden wöchentlichen 1:1-Sitzungen mit Kuno Vogt werden ungefähr zehn Minuten für den Projektstand und offene Fragen genutzt. Wichtige Ergebnisse, Fragen und Entscheidungen werden zusätzlich im gemeinsamen Teams-Kanal für alle Experten festgehalten. |
 
 Als betrieblicher Hintergrund wurde die angestrebte Ablösung der bestehenden lokalen LernMAAS-Installation besprochen. Dabei wurden die veraltete Hardware sowie der Aufwand für Erweiterung und Pflege der bestehenden Umgebung angesprochen.
 
-Die Prioritäten betreffen US19 bis US24 und die nachfolgende Bearbeitung von US39. Die Nachführung und Abschlussprüfung von US16 erfolgen anhand der dokumentierten Ergebnisse und seiner Akzeptanzkriterien. Änderungen an Architekturentscheiden werden bei der jeweiligen ADR festgehalten. Die positive Rückmeldung zum Arbeitsstand ersetzt keine separat vereinbarte formale Abnahme. Die Zuständigkeit und Form der Abnahme gemäss Kapitel 2.2 sowie die offene Sprachmodellfrage werden weiter geklärt.
+Die Prioritäten betreffen US19 bis US24 und die nachfolgende Bearbeitung von US39. Änderungen an Architekturentscheiden werden bei der jeweiligen ADR festgehalten. Die positive Rückmeldung zum Arbeitsstand ersetzt keine separat vereinbarte formale Abnahme. Die Zuständigkeit und Form der Abnahme gemäss Kapitel 2.2 sowie die offene Sprachmodellfrage werden weiter geklärt.
 
 ### 2.11 Sprint 2
 
@@ -634,13 +637,13 @@ Darauf aufbauend werden die Erstellung, die Status- und Dienstprüfung sowie der
 
 Für den lokalen Durchlauf müssen create, status, reset und delete funktionieren. Eine laufende VM allein gilt noch nicht als bereite Lernumgebung. Zusätzlich wird die HTTP-Antwort des Testdienstes geprüft. Beim Löschen müssen die zugehörigen Testressourcen nach der Nachkontrolle entfernt sein. Reset umfasst den vollständigen Abbau und die erneute Erstellung aus der unveränderten Modelldefinition.
 
-Der AWS-Durchstich prüft zunächst create, status und delete. Die Vervollständigung des AWS-Adapters um Reset und Wiederaufnahme gehört mit US25 weiterhin zur ursprünglichen Sprint-3-Planung. Die Serienmessungen mit je drei vollständigen Durchläufen pro Plattform folgen ebenfalls in Sprint 3.
+Der AWS-Durchstich prüft zunächst create, status und delete. US25 ist Sprint 3 zugeordnet. AWS-Reset und Wiederaufnahme sind bereits vorgezogen umgesetzt und in Kapitel 5.6 belegt. Der formale Issue-Abschluss steht aus. Die Serienmessungen mit je drei vollständigen Durchläufen pro Plattform folgen ebenfalls in Sprint 3.
 
 ##### Prioritäten und Abstimmung nach dem ersten Review
 
 Erste Priorität hat der vollständige lokale Lebenszyklus aus US19 bis US24. Der Agent muss bis Sprintende die Grundfunktionen ausführen können, damit die Messserien in Sprint 3 durchgeführt werden können. Der AWS-Durchstich aus US39 folgt nach dem funktionierenden lokalen Ablauf. Der vereinbarte Kernumfang bleibt bestehen. Änderungen an verbindlichen Ergebnissen werden mit beiden Experten abgestimmt.
 
-Für die wöchentlichen Gespräche mit Kuno bereite ich einen kurzen Überblick vor:
+Für die wöchentlichen Gespräche mit Kuno Vogt bereite ich einen kurzen Überblick vor:
 
 - Welche Funktionen sind umgesetzt und erfolgreich geprüft?
 - Was bearbeite ich als Nächstes?
@@ -906,10 +909,10 @@ Die Aufstellung stammt aus dem Lernlauf auf `cloud-au-30` in der Zone `10-1-45-0
 | 5 | Zone in der Oberfläche setzen | manuell |
 | 6 | Deploy-Dialog öffnen | manuell |
 | 7 | Betriebssystem wählen | manuell |
-| 9 | Erstkonfiguration in das Textfeld einfügen | manuell |
-| 10 | Bereitstellung bestätigen | manuell |
-| 11 | Bereitstellung abwarten | automatisch |
-| 12 | Adresse der Maschine ermitteln | manuell |
+| 8 | Erstkonfiguration in das Textfeld einfügen | manuell |
+| 9 | Bereitstellung bestätigen | manuell |
+| 10 | Bereitstellung abwarten | automatisch |
+| 11 | Adresse der Maschine ermitteln | manuell |
 | 12 | Testdienst prüfen | manuell |
 | 13 | Maschine freigeben | manuell |
 | 14 | Maschine löschen | manuell |
@@ -1170,7 +1173,7 @@ SQLite speichert Modell-Snapshot, Laufkennung, Operationskennung, Phase und Ress
 | Wird gelöscht | Abbau begonnen, Endkontrolle läuft | status; laufenden Auftrag abwarten |
 | Fehler | Aufbau, Dienstprüfung oder Abbau fehlgeschlagen | status; behandelten Reset oder Abbau fortsetzen beziehungsweise bereinigen |
 
-Nur eine schreibende Operation darf gleichzeitig auf derselben Umgebung laufen. Eine wiederholte Erstellung darf keine Dublette erzeugen. Die Operationskennung unterscheidet einen neuen Auftrag von der Wiederaufnahme nach einem Abbruch. Ein erneutes delete einer bereits entfernten Umgebung bleibt ohne zusätzliche Wirkung. Beim KubeVirt-Reset wird erst nach bestätigtem Abbau aus dem Snapshot neu erstellt.
+Nur eine schreibende Operation darf gleichzeitig auf derselben Umgebung laufen. Eine wiederholte Erstellung darf keine Dublette erzeugen. Die Operationskennung unterscheidet einen neuen Auftrag von der Wiederaufnahme nach einem Abbruch. Ein erneutes delete einer bereits entfernten Umgebung bleibt ohne zusätzliche Wirkung. Beim Reset wird erst nach bestätigtem Abbau aus dem Snapshot neu erstellt.
 
 Die Adapter kapseln die Übersetzung in Kubernetes- beziehungsweise AWS-Aufrufe. Beispielsweise kann die Mindestanforderung an CPU und RAM auf AWS nur über einen passenden Instanztyp erfüllt werden; auf KubeVirt entstehen daraus VM-Ressourcen im Manifest. Die fachliche Definition enthält diese Unterschiede nicht.
 
@@ -1279,7 +1282,7 @@ Der öffentliche Schlüssel stammt aus dem Referenzmanifest. Für einen neuen In
 | `vm.ssh` | Benutzer `ubuntu` und mindestens ein öffentlicher Ed25519-Schlüssel im OpenSSH-Format |
 | `vm.testService` | HTTP auf Gastport 8080, Pfad `/`, Status 200 und Antwort `lernumgebung bereit` |
 
-Der Adapter ermittelt den tatsächlichen Prüfendpunkt. In der Definition stehen Gastport und erwarteter Inhalt. Dadurch bleibt dieselbe fachliche Eingabe für einen NodePort-Service und den vorgesehenen AWS-Endpunkt verwendbar.
+Der Adapter ermittelt den tatsächlichen Prüfendpunkt. In der Definition stehen Gastport und erwarteter Inhalt. Dadurch bleibt dieselbe fachliche Eingabe für einen NodePort-Service und den öffentlichen AWS-Endpunkt verwendbar.
 
 Höhere Kapazitäten als die Mindestwerte sind zulässig. Die Modellprüfung bestätigt jedoch keine verfügbare Host- oder Cloud-Kapazität. Auf KubeVirt entscheidet die Plattform über die tatsächliche Bereitstellung; Kontorechte, Quotas und verfügbare Instanztypen lassen sich durch das Schema allein nicht prüfen.
 
@@ -1305,7 +1308,7 @@ Automatisierte Modelltests prüfen Pflichtfelder, Mindestkapazitäten, Datentype
 
 ### 4.3 Agent und Kommandozeile
 
-Der Agent verbindet die Modellprüfung mit der Zustandsführung und dem Plattformadapter. Der Einstieg erfolgt über `python -m agent`. Die Lebenszyklussteuerung liegt in `agent/lebenszyklus.py`; die CLI nimmt die Argumente entgegen und gibt Ergebnisse sowie Fehler zurück. Die verfügbaren Operationen hängen von der gewählten Plattform ab.
+Der Agent verbindet die Modellprüfung mit der Zustandsführung und dem Plattformadapter. Der Einstieg erfolgt über `python -m agent`. Die Lebenszyklussteuerung liegt in `agent/lebenszyklus.py`; die CLI nimmt die Argumente entgegen und gibt Ergebnisse sowie Fehler zurück. Beide Plattformen bieten dieselben Operationen; die erzeugten Ressourcen unterscheiden sich.
 
 | Operation | KubeVirt | AWS EC2 |
 | --- | --- | --- |
@@ -1564,7 +1567,7 @@ Bei einem behandelten Adapterfehler oder Ctrl+C speichert der Agent `error` und 
 | Alter laufender Auftrag ohne Prozessschutz | Automatische Übernahme wird abgewiesen; eine fehlende alte Prozesssperre bestätigt kein Prozessende |
 | Fremde UID, unpassende Kennzeichnung oder unklare Speicherzuordnung | Fehler prüfen; der Adapter übernimmt oder entfernt das widersprüchliche Objekt nicht ungeprüft |
 
-Die Prozesssperre und die Sitzungsprüfung schützen die lokalen Agenten- und Adapterprozesse. Ein bereits von Kubernetes angenommener Auftrag kann unabhängig vom Ende des aufrufenden Prozesses weiterlaufen. Deshalb bestätigt erst der anschliessende Ressourcenabgleich den erreichten Plattformzustand. Die auf KubeVirt geprüften Abbruch- und Timeout-Fälle stehen in Kapitel 5.5. Der auf AWS ausgeführte Normalablauf ist in Kapitel 5.6 belegt.
+Die Prozesssperre und die Sitzungsprüfung schützen die lokalen Agenten- und Adapterprozesse. Ein bereits von Kubernetes angenommener Auftrag kann unabhängig vom Ende des aufrufenden Prozesses weiterlaufen. Deshalb bestätigt erst der anschliessende Ressourcenabgleich den erreichten Plattformzustand. Die auf KubeVirt geprüften Abbruch- und Timeout-Fälle stehen in Kapitel 5.5. Der auf AWS ausgeführte Ablauf einschliesslich Reset und Wiederaufnahme nach Ctrl+C ist in Kapitel 5.6 belegt.
 
 ### 4.8 Bedienung auf der lokalen Plattform
 
@@ -1680,7 +1683,7 @@ Nach bestätigter Erstellung fragt der Agent den Instanzzustand und den HTTP-Tes
 
 Vor einem schreibenden Werkzeugaufruf bestätigt der Adapter seine Prozesssitzung und gleicht das AWS-Konto über STS mit der Konfiguration ab. Für delete prüft er die gefundenen Ressourcen gegen Laufkennung, Modell-Hash und Region. Bekannte IDs, die in der Tag-Suche fehlen, werden zusätzlich über ihren ID-Filter gesucht. Widersprüchliche Besitzkennzeichnungen führen zu einem Fehler.
 
-Der Abbau beendet zuerst die Instanz. Verbliebene EBS-Datenträger werden nur im Zustand `available`, Netzwerkschnittstellen nur im Zustand `available` gelöscht. Die Security Group wird nach dem Verschwinden der laufbezogenen Netzwerkschnittstellen entfernt. Neu entdeckte IDs meldet der Adapter zuerst an den Agenten zurück, damit sie vor einem Löschaufruf gespeichert sind. Eine erfolgreiche Löschanforderung gilt erst bei einer nachfolgenden Bestandsabfrage als bestätigte Entfernung. Der Agent trägt die IDs einzeln aus und setzt den Lauf nach leerer Abschlusskontrolle auf `absent`.
+Der Abbau beendet zuerst die Instanz. Verbliebene EBS-Datenträger und Netzwerkschnittstellen werden nur im Zustand `available` gelöscht. Die Security Group wird nach dem Verschwinden der laufbezogenen Netzwerkschnittstellen entfernt. Neu entdeckte IDs meldet der Adapter zuerst an den Agenten zurück, damit sie vor einem Löschaufruf gespeichert sind. Eine erfolgreiche Löschanforderung gilt erst bei einer nachfolgenden Bestandsabfrage als bestätigte Entfernung. Der Agent trägt die IDs einzeln aus und setzt den Lauf nach leerer Abschlusskontrolle auf `absent`.
 
 #### Verwendete Betriebskonfiguration
 
@@ -1948,7 +1951,7 @@ bash -n scripts/create-issues.sh scripts/update-issues.sh
 python -m mkdocs build --strict
 ```
 
-Auf der echten Plattform sind folgende Abläufe anhand der übermittelten Terminalausgaben geprüft:
+Auf der echten Plattform sind folgende Abläufe anhand der Terminalausgaben vom Zielsystem geprüft:
 
 | Ablauf | Beobachtetes Ergebnis |
 | --- | --- |
@@ -1972,12 +1975,12 @@ Die [Nachweisauszüge zur Fehlerbehandlung](nachweise/agent-fehlerbehandlung.txt
 
 Diese Ergebnisse sind Funktionsprüfungen während der Entwicklung. Sie beruhen auf Konsolenausgaben vom Zielsystem; ein vollständiger versionierter Agenten-Laufdatensatz für eine formale Messserie liegt noch nicht vor. Die Entwicklungsläufe werden deshalb weder als die drei vorgesehenen PoC-Messläufe gezählt noch zur Berechnung einer Verbesserung gegenüber LernMAAS verwendet.
 
-Der Timeout-Nachweis betrifft eine gezielte Antwortverzögerung nach einem bestätigten VM-Löschaufruf. Ein beliebiger Netzwerkausfall oder das harte Ende eines noch laufenden kubectl-Unterprozesses ist damit nicht geprüft. Der harte Agentenabbruch wurde auf dem Cluster in der Abbauphase geprüft; der Schutz bei verloren gegangener Erstellungsantwort und in beiden Reset-Phasen ist zusätzlich automatisiert mit Testbeständen abgedeckt. Der AWS-Normalablauf ist separat in Kapitel 5.6 dokumentiert. Für 30 gleichzeitig nutzbare VMs und eine automatisierte SSH-Anmeldung im Gast liegt kein Last- beziehungsweise Funktionsnachweis vor.
+Der Timeout-Nachweis betrifft eine gezielte Antwortverzögerung nach einem bestätigten VM-Löschaufruf. Ein beliebiger Netzwerkausfall oder das harte Ende eines noch laufenden kubectl-Unterprozesses ist damit nicht geprüft. Der harte Agentenabbruch wurde auf dem Cluster in der Abbauphase geprüft; der Schutz bei verloren gegangener Erstellungsantwort und in beiden Reset-Phasen ist zusätzlich automatisiert mit Testbeständen abgedeckt. Die AWS-Läufe sind separat in Kapitel 5.6 dokumentiert. Für 30 gleichzeitig nutzbare VMs und eine automatisierte SSH-Anmeldung im Gast liegt kein Last- beziehungsweise Funktionsnachweis vor.
 
 
 ### 5.6 Funktionsprüfung des AWS-Agenten
 
-Der Lauf `aws-s2-01` wurde vom Agenten auf `dl380-01` gegen das AWS Academy Learner Lab in `us-east-1` ausgeführt. Eingabe war dieselbe `modell/beispiele/referenz.yaml` wie auf KubeVirt. Die Prüfung umfasst die Verbindung über MCP und Boto3, den Aufbau einer einzelnen EC2-VM, die aktuelle HTTP-Bereitschaft und den vollständigen Abbau. Die [Nachweisauszüge](nachweise/aws-agent-durchstich.txt) enthalten die vom Diplomanden übermittelten Terminalausgaben.
+Der Lauf `aws-s2-01` wurde vom Agenten auf `dl380-01` gegen das AWS Academy Learner Lab in `us-east-1` ausgeführt. Eingabe war dieselbe `modell/beispiele/referenz.yaml` wie auf KubeVirt. Die Prüfung umfasst die Verbindung über MCP und Boto3, den Aufbau einer einzelnen EC2-VM, die aktuelle HTTP-Bereitschaft und den vollständigen Abbau. Die [Nachweisauszüge](nachweise/aws-agent-durchstich.txt) enthalten die Terminalausgaben dieses Laufs.
 
 | Prüfung | Beobachtetes Ergebnis |
 | --- | --- |
@@ -2007,7 +2010,7 @@ Die automatisierte Prüfung des implementierten Codes umfasst 108 erfolgreiche T
 | --- | --- |
 | Automatisierter Plattformbetrieb | Ein erfolgreicher AWS-Lauf mit create, status, HTTP-Prüfung und delete |
 | Direkte Nachkontrolle | Leerer Bestand der fünf abgefragten Ressourcenarten in `us-east-1` |
-| Ressourcen-IDs | Im Agenten verwendet und geprüft, in den übermittelten Textausgaben nicht einzeln enthalten |
+| Ressourcen-IDs | Im Agenten verwendet und geprüft, in den abgelegten Textausgaben nicht einzeln enthalten |
 | Zeitmessung | Fortschrittsausgaben ohne vollständige Start- und Endzeitstempel, keine daraus berechnete Aufbaudauer |
 | SSH | HTTP-Freigabe im Agentenlauf, SSH-Nachweis im manuellen Smoke-Test aus Kapitel 5.3 |
 
@@ -2031,22 +2034,22 @@ Der Live-Test der Wiederaufnahme deckt Ctrl+C während des Abbaus ab. Die Fortse
 
 | Begriff | Bedeutung |
 | --- | --- |
-| Agent | In dieser Arbeit ein Programm, das Operationen anhand festgelegter Regeln und gespeicherter Zustände steuert |
 | ADR | Architectural Decision Record; hält Kontext, Entscheid, Alternativen und Folgen einer Architekturentscheidung fest |
-| cloud-init | Erstkonfiguration einer Maschine beim ersten Start, beispielsweise für SSH-Schlüssel und Dienststart |
+| Agent | In dieser Arbeit ein Programm, das Operationen anhand festgelegter Regeln und gespeicherter Zustände steuert |
 | CDI | Containerized Data Importer; unterstützt unter anderem den Import eines VM-Abbilds in den Kubernetes-Speicher |
+| cloud-init | Erstkonfiguration einer Maschine beim ersten Start, beispielsweise für SSH-Schlüssel und Dienststart |
 | DataVolume | Von CDI verwendetes Objekt zur Verwaltung der Befüllung eines Volumes |
 | KubeVirt | Kubernetes-Erweiterung für den Betrieb virtueller Maschinen als Kubernetes-Ressourcen |
-| MAAS | Metal as a Service; Grundlage der heutigen Maschinenverwaltung und Bereitstellung |
 | LernMAAS | TBZ-Umsetzung von Lernumgebungen mit MAAS, Modulprofilen und Hilfsskripten |
+| MAAS | Metal as a Service; Grundlage der heutigen Maschinenverwaltung und Bereitstellung |
 | MCP | Model Context Protocol; verbindet den Agenten mit dem lokal gestarteten Plattformadapter |
 | Modell-Snapshot | Unveränderte Kopie der für einen Lauf verwendeten fachlichen Definition |
 | NodePort | Kubernetes-Service, der einen Dienst über einen Port auf dem Knoten erreichbar macht |
 | PV und PVC | PersistentVolume als clusterweite Speicherressource und PersistentVolumeClaim als Speicheranforderung im Namespace |
 | Readiness | Geprüfte Nutzbarkeit: VM läuft, HTTP-Status und Antwortinhalt entsprechen der Definition |
 | Reset | Vollständiger Abbau und Neuerstellung aus derselben gespeicherten Definition |
-| Teardown | Abbau aller laufbezogenen Ressourcen bis zum festgelegten Endzustand |
 | Story Point | Relative Schätzgrösse für Aufwand, Komplexität und Unsicherheit |
+| Teardown | Abbau aller laufbezogenen Ressourcen bis zum festgelegten Endzustand |
 | Velocity | In einem Sprint tatsächlich abgeschlossene Story Points; keine feste Umrechnung in Stunden |
 
 ### Quellenverzeichnis
@@ -2065,7 +2068,7 @@ Der Live-Test der Wiederaufnahme deckt Ctrl+C während des Abbaus ab. Die Fortse
 | [CDI: Scratch-Speicherklasse](https://github.com/kubevirt/containerized-data-importer/blob/main/pkg/controller/util.go) | Auswahl der Scratch-Klasse und Rückgriff auf die Klasse des Ziel-PVC |
 | [jsonschema: Schema Validation](https://python-jsonschema.readthedocs.io/en/stable/validate/) | Draft202012Validator und explizite Formatprüfung; verwendete Bibliotheksversion 4.26.0 |
 | [AWS Academy Learner Lab](https://awsacademy.instructure.com/courses/182558/modules/items/18005637), Readme Stand 24.06.2025 | Konkrete Lab-Bedingungen zu Regionen, Ressourcen, Sitzungen und Budget, siehe Kapitel 3.6 |
-| Eigene Board- und Milestone-Screenshots sowie Meetingübersicht | Statusspalten, Sprintzuordnung und Issue-Zahlen für Kapitel 2; Reviewtermine vom Diplomanden bereitgestellt |
+| Eigene Board- und Milestone-Screenshots sowie Meetingübersicht | Statusspalten, Sprintzuordnung und Issue-Zahlen für Kapitel 2; Reviewtermine aus der Meetingübersicht |
 | Eigene Netzwerkaufnahme, Efekan Demirci | Zuordnung der Geräte, Adressvergabe, aktuelles VLAN und reserviertes Ausweichnetz; Zusammenfassung in Kapitel 3.1.2 |
 | [Netplan: YAML-Konfiguration](https://netplan.readthedocs.io/en/stable/netplan-yaml/) | DHCP-Client-Kennung beim networkd-Backend |
 | [AWS T3](https://aws.amazon.com/ec2/instance-types/t3/), [gp3](https://docs.aws.amazon.com/prescriptive-guidance/latest/optimize-costs-microsoft-workloads/ebs-migrate-gp2-gp3.html), [EBS-Abrechnung](https://aws.amazon.com/ebs/pricing/), [öffentliche IPv4](https://aws.amazon.com/vpc/pricing/) | Veröffentlichte Rechenansätze der Preisabschätzung |
@@ -2075,7 +2078,7 @@ Der Live-Test der Wiederaufnahme deckt Ctrl+C während des Abbaus ab. Die Fortse
 | [Boto3 DeleteSecurityGroup](https://docs.aws.amazon.com/boto3/latest/reference/services/ec2/client/delete_security_group.html) | Abbauabhängigkeit zwischen Security Group und Netzwerkschnittstellen |
 | [Scrum Guide](https://scrumguides.org/scrum-guide.html) | Abgrenzung des angepassten Vorgehens |
 
-Interne Betriebsunterlagen und die Reservationsliste sind in der IST-Analyse benannt. Die Rohprotokolle sind eigene Erhebungen des Diplomanden.
+Interne Betriebsunterlagen und die Reservationsliste sind in der IST-Analyse benannt. Die Rohprotokolle sind eigene Erhebungen.
 
 ### Nachweise und Aussagegrenzen
 
