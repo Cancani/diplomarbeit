@@ -332,6 +332,7 @@ Der [Dokumentationsworkflow](https://github.com/Cancani/diplomarbeit/blob/main/.
 Den fachlichen Abschluss einer Story halte ich fest, wenn ihre Akzeptanzkriterien erfüllt und die Ergebnisse dokumentiert sind. Für Infrastrukturarbeiten gehören dazu Protokolle vom Zielsystem. Die lokalen Tests prüfen den Code ohne Bereitstellung einer VM. Die Expertenbeurteilung und die noch abzustimmende Form der Abnahme stehen in Kapitel 2.2.
 
 Die Agententests decken unter anderem Timeouts, behandelte Abbrüche und verbleibende Ressourcen ab. Funktionsumfang und offene Nachweise stehen in Kapitel 5.5. Die sechs vollständigen PoC-Läufe werden anschliessend auf den Zielplattformen protokolliert. Für ein Review bereite ich die Präsentation der Ergebnisse und die passenden Nachweise vor; Rückmeldungen und daraus folgende Aufgaben werden nach dem Meeting festgehalten.
+
 ### 2.7 Projektstand und Berichte
 
 Gemäss Rückmeldung von Thanam Pangri ist ein regelmässiges Wochenjournal nicht erforderlich. Zusätzliche Berichte können verlangt werden, wenn der Fortschritt zu gering oder nicht ausreichend nachvollziehbar ist. US05 wurde entsprechend [gestrichen](https://github.com/Cancani/diplomarbeit/issues/5). Der Projektverlauf bleibt über die folgenden Ablagen nachvollziehbar:
@@ -2117,9 +2118,11 @@ Die Bestätigung des aktiven Budgetempfängers ist kein Test einer tatsächlich 
 | 11 | [Systemkontext der Bereitstellungslösung](#abb-11) | KubeVirt und AWS umgesetzt |
 | 12 | [Aufbau von CLI, Agent und Adaptern](#abb-12) | CLI, SQLite und beide MCP-Adapter implementiert |
 
+## Hilfsmittel
+
+- **ChatGPT** für Codevorschläge und Formulierungshilfe in der Dokumentation.
+
 ## Kontakt
 
 Efekan Demirci, ITCNE24, TBZ Höhere Fachschule
 efekan.demirci@tbz.ch
-
-*ChatGPT habe ich beim Programmieren und beim Formulieren der Dokumentation als Hilfsmittel genutzt.*
