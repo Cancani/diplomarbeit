@@ -1,0 +1,113 @@
+AWS-Reset und Wiederaufnahme im Learner Lab
+
+Auszüge aus den übermittelten Terminalausgaben von dl380-01.
+AWS-Profil diplomarbeit, Region us-east-1, Modell modell/beispiele/referenz.yaml.
+Die JSON-Statuszeilen sind auf Auftragskennung, UTC-Zeitstempel, Modell-Hash,
+Ressourcen-IDs und Bereitschaft reduziert. Öffentliche Adressen sind ausgelassen.
+Die Zeitstempel bezeichnen Statusabfragen.
+
+Regulärer Reset aws-reset-01
+
+Status nach create
+
+timeUtc: 2026-11-11T15:02:58.460472+00:00
+runId: aws-reset-01
+operationId: create-aws-reset-01
+storedPhase: ready
+serviceReady: True
+modelHash: fd7913058f88d79722af1f7ca7806684da7b373eb09ff0538b962a7094181b35
+EC2Instance: i-00ebcbbdfb90ce23d
+EBSVolume: vol-088af97eb5c61d661
+NetworkInterface: eni-05a0d7b78a45e45d7
+SecurityGroup: sg-0b7272e4a112cc84a
+
+Der Agent meldete beim Reset:
+Abbau vollständig bestätigt. Umgebung wird aus dem gespeicherten Modell neu erstellt.
+VM und HTTP-Dienst sind bereit.
+Lernumgebung erfolgreich zurückgesetzt.
+
+Status nach reset
+
+timeUtc: 2026-11-11T15:07:52.691025+00:00
+runId: aws-reset-01
+operationId: reset-aws-reset-01
+storedPhase: ready
+serviceReady: True
+modelHash: fd7913058f88d79722af1f7ca7806684da7b373eb09ff0538b962a7094181b35
+EC2Instance: i-09470fd210f1361a9
+EBSVolume: vol-04bfae89a8b35c050
+NetworkInterface: eni-025aaf89b48859c35
+SecurityGroup: sg-060dac7d42e331441
+
+Endstatus nach delete
+Gespeicherter Zustand: Nicht vorhanden
+Aktuell beobachtete Ressourcen: 0
+
+Direkte AWS-Nachkontrolle anhand der IDs beider Generationen
+describe-instances: i-00ebcbbdfb90ce23d und i-09470fd210f1361a9 jeweils terminated
+describe-volumes: vol-088af97eb5c61d661, vol-04bfae89a8b35c050 → []
+describe-network-interfaces: eni-05a0d7b78a45e45d7, eni-025aaf89b48859c35 → []
+describe-security-groups: sg-0b7272e4a112cc84a, sg-060dac7d42e331441 → []
+
+Unterbrochener Reset aws-reset-abbruch-01
+
+Auftrag: reset-aws-reset-abbruch-01
+Lernumgebung wird zurückgesetzt.
+Bestehende Ressourcen entfernen.
+^CGespeicherter Zustand: Fehler
+Bekannte Ressourcen zur weiteren Prüfung: 4
+Operation unterbrochen; gespeicherten Zustand prüfen.
+
+Status nach Ctrl+C
+Gespeicherter Zustand: Fehler
+VM: Wird entfernt
+VM-Instanz: Wird entfernt
+VM-Bereitschaft: Nein
+HTTP-Dienst: Nicht bestätigt
+Aktuell beobachtete Ressourcen: 4
+
+Wiederaufnahme mit unveränderter Operationskennung
+Auftrag: reset-aws-reset-abbruch-01
+Bestehende Ressourcen entfernen.
+Abbau vollständig bestätigt. Umgebung wird aus dem gespeicherten Modell neu erstellt.
+VM und HTTP-Dienst sind bereit.
+Lernumgebung erfolgreich zurückgesetzt.
+
+Status nach Wiederaufnahme
+
+timeUtc: 2026-11-11T15:21:17.668478+00:00
+runId: aws-reset-abbruch-01
+operationId: reset-aws-reset-abbruch-01
+storedPhase: ready
+serviceReady: True
+modelHash: fd7913058f88d79722af1f7ca7806684da7b373eb09ff0538b962a7094181b35
+EC2Instance: i-030b8eb441d10bb4b
+EBSVolume: vol-0b4e069d0de934fa5
+NetworkInterface: eni-0301d2b288bab93b7
+SecurityGroup: sg-088fc6166a94ca434
+
+Status bei erneutem Aufruf der abgeschlossenen Reset-Kennung
+
+timeUtc: 2026-11-11T15:21:22.457899+00:00
+runId: aws-reset-abbruch-01
+operationId: reset-aws-reset-abbruch-01
+storedPhase: ready
+serviceReady: True
+modelHash: fd7913058f88d79722af1f7ca7806684da7b373eb09ff0538b962a7094181b35
+EC2Instance: i-030b8eb441d10bb4b
+EBSVolume: vol-0b4e069d0de934fa5
+NetworkInterface: eni-0301d2b288bab93b7
+SecurityGroup: sg-088fc6166a94ca434
+
+Endstatus nach delete
+Gespeicherter Zustand: Nicht vorhanden
+Aktuell beobachtete Ressourcen: 0
+
+Direkte AWS-Nachkontrolle anhand der IDs der neu erstellten Umgebung
+describe-instances: i-030b8eb441d10bb4b → ["terminated"]
+describe-volumes: vol-0b4e069d0de934fa5 → []
+describe-network-interfaces: eni-0301d2b288bab93b7 → []
+describe-security-groups: sg-088fc6166a94ca434 → []
+
+Die ursprünglichen IDs des Abbruchlaufs sind in den Textausgaben nicht enthalten.
+Ihr Abbau vor der Neuerstellung ist durch die Agentenausgabe belegt.

@@ -1,7 +1,7 @@
 # Diplomarbeit: Agentenbasierte Hybrid-Cloud-Bereitstellung von Lernumgebungen mit Kubernetes, KubeVirt und MCP
 
 !!! info "Umgesetzte Bereitstellung auf KubeVirt und AWS"
-    Der Python-Agent verbindet YAML-Modellprüfung, SQLite und MCP mit beiden Plattformadaptern. Auf KubeVirt sind create, status, reset und delete einschliesslich der dokumentierten Wiederholungs- und Fehlerfälle geprüft. Auf AWS sind create, status und delete mit derselben Referenz-YAML im Learner Lab ausgeführt. Der HTTP-Dienst war bereit und eine direkte AWS-Abfrage bestätigte nach dem Abbau den leeren Ressourcenbestand in us-east-1.
+    Der Python-Agent verbindet YAML-Modellprüfung, SQLite und MCP mit beiden Plattformadaptern. Create, status, reset und delete sind mit derselben Referenz-YAML auf KubeVirt und im AWS Learner Lab geprüft. Auf AWS wurde der Reset nach Ctrl+C erfolgreich fortgesetzt. Direkte AWS-Abfragen bestätigten den Abbau anhand der Ressourcen-IDs.
 
 | | |
 | --- | --- |
@@ -11,7 +11,7 @@
 | Schulexperte | Thanam Pangri, HF-Lehrgangsleitung |
 | Bewilligter Zeitraum | 11.09.2026 bis 18.12.2026 |
 | Arbeitsplanung | 14.09.2026 bis 18.12.2026 |
-| Version | 0.23, Agentenbetrieb auf KubeVirt und AWS |
+| Version | 0.24, AWS-Reset und Wiederaufnahme |
 | Grundlage | Bewilligte Projektbeschreibung vom 10.09.2026; schulische Vorgaben gemäss gültigem Merkblatt |
 
 ---
@@ -22,7 +22,7 @@ Die Grundlagen für den Proof of Concept sind erarbeitet. Die bestehende LernMAA
 
 Das plattformneutrale YAML-Modell mit JSON-Schema wird vom Python-Agenten eingelesen und geprüft. Der Agent speichert Modell-Snapshot, Aufträge und Ressourcen in SQLite und steuert die Plattformadapter über MCP. Der lokale Ablauf umfasst Erstellung, aktuelle Status- und HTTP-Prüfung, Reset aus dem gespeicherten Modell und vollständigen Abbau. Wiederholte Aufträge erzeugen im geprüften Ablauf keine Dubletten. Eine gemeinsame Prozesssperre verhindert konkurrierende Schreibbefehle auf denselben Lauf. Abbruch und Timeout erhalten das Inventar für die Fortsetzung; die Wiederaufnahme nach hartem Agentenabbruch und nach verzögerter MCP-Antwort auf einen bestätigten Löschaufruf ist auf KubeVirt geprüft. Diese Funktionsprüfungen ersetzen weder die vorgesehenen Messserien noch die Bewertung gegenüber LernMAAS.
 
-Auf AWS sind create, status und delete über denselben Agenten umgesetzt. Im Learner Lab wurde die Referenz-YAML als einzelne EC2-VM mit Datenträger, Netzwerkschnittstelle und eigener Security Group bereitgestellt. Der Agent bestätigte die HTTP-Bereitschaft und entfernte die vier Ressourcen. Eine anschliessende direkte AWS-Abfrage ohne Agent-Tag-Filter zeigte weder aktive oder gestoppte Instanzen noch EBS-Datenträger, Netzwerkschnittstellen, zusätzliche Security Groups oder Elastic IPs in der geprüften Region. Der Ablauf ist in Kapitel 5.6 mit den übermittelten Terminalausgaben belegt.
+Auf AWS sind create, status, reset und delete über denselben Agenten umgesetzt. Der Reset erstellt aus dem gespeicherten Modell eine neue EC2-Instanz samt Datenträger, Netzwerkschnittstelle und Security Group. Im Learner Lab wurden die erneute HTTP-Bereitschaft, die Wiederaufnahme nach Ctrl+C und der Abbau anhand der Ressourcen-IDs geprüft. Kapitel 5.6 enthält die Ergebnisse des ersten AWS-Durchstichs und der beiden Reset-Läufe.
 
 Vor dem ersten Review waren aus der ursprünglichen Sprint-1-Planung 14 fachliche Stories mit 34 Story Points abgeschlossen. US05 ist entfallen; die Abschlussprüfung von US16 mit drei Punkten steht nach der Reviewnachbereitung noch aus. Das erste Review fand am 23.10.2026 statt. Die Experten gaben eine positive Rückmeldung zum bisherigen Arbeitsstand und zur Präsentation. Die eigene Retrospektive und die Vereinbarungen stehen in Kapitel 2.10. Der im Review priorisierte lokale Lebenszyklus und der ergänzende AWS-Durchstich sind umgesetzt. Kapitel 2.11 enthält die zugehörige Sprintplanung. Die dokumentierten Entwicklungsläufe belegen die Funktion der Komponenten. Die vergleichende Messauswertung ist in Kapitel 3.4 methodisch festgelegt.
 
@@ -1115,7 +1115,7 @@ Das Lab-Budget von USD 50 entspricht mit dieser Rechenbasis CHF 40,39. Das priva
 
 ### 3.7 Zielarchitektur
 
-Die Zielarchitektur trennt die fachliche Definition, die Steuerung des Lebenszyklus und die konkreten Plattformaufrufe. Modell, Agent, SQLite und beide MCP-Adapter sind verbunden. KubeVirt unterstützt create, status, reset und delete. Der AWS-Adapter unterstützt create, status und delete.
+Die Zielarchitektur trennt die fachliche Definition, die Steuerung des Lebenszyklus und die konkreten Plattformaufrufe. Modell, Agent, SQLite und beide MCP-Adapter sind verbunden. Der Agent bietet create, status, reset und delete auf KubeVirt und AWS an.
 
 #### 3.7.1 Systemkontext
 
@@ -1137,7 +1137,7 @@ flowchart TD
     Definition -->|"Anforderungen an VM und Testdienst"| System
     System -->|"Status, Ergebnisse und Fehler"| Person
     System <-->|"VM-Lebenszyklus und Zustandsabfragen"| Lokal
-    System <-->|"create, status, delete"| Cloud
+    System <-->|"create, status, reset, delete"| Cloud
 ```
 
 <small id="abb-11"><em>Abbildung 11: Systemkontext der Bereitstellungslösung</em></small>
@@ -1166,7 +1166,7 @@ SQLite speichert Modell-Snapshot, Laufkennung, Operationskennung, Phase und Ress
 | --- | --- | --- |
 | Nicht vorhanden | Keine laufbezogenen Ressourcen vorhanden | create |
 | Wird erstellt | Aufbau begonnen, Dienst noch nicht bereit | status; laufenden Auftrag abwarten |
-| Bereit | VM läuft und Dienstprüfung ist erfolgreich | status oder delete, auf KubeVirt auch reset |
+| Bereit | VM läuft und Dienstprüfung ist erfolgreich | status, reset oder delete |
 | Wird gelöscht | Abbau begonnen, Endkontrolle läuft | status; laufenden Auftrag abwarten |
 | Fehler | Aufbau, Dienstprüfung oder Abbau fehlgeschlagen | status; behandelten Reset oder Abbau fortsetzen beziehungsweise bereinigen |
 
@@ -1312,7 +1312,7 @@ Der Agent verbindet die Modellprüfung mit der Zustandsführung und dem Plattfor
 | `platform-status` | Knoten, KubeVirt und VM-/VMI-Bestand | Region und gekennzeichnete EC2-Instanzen |
 | `create` | VM, Datenträger und NodePort-Service | EC2-Instanz, EBS-Datenträger, Netzwerkschnittstelle und Security Group |
 | `status` | Aktueller Bestand sowie VM- und HTTP-Bereitschaft | Aktueller Bestand sowie Instanz- und HTTP-Bereitschaft |
-| `reset` | Abbau und Neuerstellung aus dem gespeicherten Modell | Aufruf wird vom Agenten abgewiesen |
+| `reset` | Abbau und Neuerstellung aus dem gespeicherten Modell | Abbau und Neuerstellung aus dem gespeicherten Modell |
 | `delete` | Laufbezogener Abbau mit Speicherabschluss | Laufbezogener Abbau mit Kontrolle der gespeicherten AWS-IDs |
 
 | Bestandteil | Aufgabe |
@@ -1458,7 +1458,7 @@ Die direkten Abhängigkeiten stehen festgeschrieben in `requirements.txt`: PyYAM
 
 `adapter/aws.py` bietet ebenfalls `platform_status`, `process_guard`, `create`, `status` und `delete` an. Sein Löschaufruf erhält zusätzlich den gespeicherten `model_hash`, gegen den das gefundene Inventar geprüft wird. Der AWS-Plattformstatus enthält die Region und die gekennzeichneten EC2-Instanzen. Beim laufbezogenen Status bezeichnet `vmiPhase` den auf den gemeinsamen Vertrag abgebildeten EC2-Zustand.
 
-Reset wird für KubeVirt im Agenten aus delete und create zusammengesetzt. Für AWS weist der Agent den Reset-Befehl ab.
+Der Agent setzt Reset auf beiden Plattformen aus delete und create zusammen. Bei AWS ruft er zuvor das lesende Werkzeug `check_reset` auf. Dieses prüft die Startkonfiguration, die Subnetzzuordnung und die Verfügbarkeit des AMI.
 
 Ein Lebenszykluswerkzeug antwortet mit `{ok: true, data: ...}` oder `{ok: false, error: ...}`. `platform_status` verwendet bei Erfolg das Feld `status`. Das technische Hilfswerkzeug `process_guard` bestätigt die Sitzung separat mit `{session: ...}`; eine fehlende oder abweichende Bestätigung verhindert den anschliessenden Werkzeugaufruf. Der Server liefert diese Objekte als strukturierte MCP-Inhalte. `adapter/vertrag.py` prüft die fachlichen Antworten mit JSON-Schemas; unbekannte Felder oder unpassende Typen führen zu einem Fehler.
 
@@ -1477,6 +1477,7 @@ Ein Ressourceneintrag enthält `kind`, `name`, `resource_id` und `scope`. `resou
 | `aws_query_failed` | AWS-Aufruf fehlgeschlagen, beispielsweise wegen Profil, Lab-Sitzung oder Berechtigung |
 | `aws_launch_unconfigured` | Erforderliche Angaben für den EC2-Start fehlen |
 | `aws_model_unsupported` | Modell überschreitet den vom EC2-Adapter unterstützten Umfang |
+| `aws_image_unavailable` | AMI für die Neuerstellung ist nicht verfügbar |
 
 Der Agent gibt begrenzte Fehlermeldungen aus. Freie Kubernetes- und AWS-Fehlertexte werden nicht als Ergebnis durchgereicht oder in SQLite gespeichert. Dort stehen die zusammengefassten Fehlercodes `timeout`, `platform_error` und `interrupted`. Die Werkzeuge sind entsprechend ihrer Wirkung als lesend oder schreibend gekennzeichnet; Löschung ist als destruktiv markiert.
 
@@ -1532,9 +1533,9 @@ Wird create für eine bereits als bereit gespeicherte Umgebung mit demselben Mod
 
 #### reset und delete
 
-Auf KubeVirt startet reset für eine bereite Umgebung einen Abbau. Erst nach bestätigter Entfernung des gesamten bekannten Bestands wechselt die gespeicherte Ablaufphase von `deleting` nach `creating`. Danach wird aus dem unveränderten Snapshot neu erstellt und erneut auf HTTP-Bereitschaft gewartet. Der Ressourcenname kann gleich bleiben; die UID bezeichnet die neu erzeugte VM.
+Reset startet für eine bereite Umgebung einen Abbau. Erst nach bestätigter Entfernung des gesamten bekannten Bestands wechselt die gespeicherte Ablaufphase von `deleting` nach `creating`. Danach erstellt der Agent die Umgebung aus dem unveränderten Snapshot neu und wartet erneut auf HTTP-Bereitschaft. Die neue VM hat auf KubeVirt eine neue UID und auf AWS eine neue Instanz-ID.
 
-Eine bereits erfolgreich abgeschlossene Reset-Kennung löst nur eine Statusprüfung aus. Eine neue Reset-Kennung startet einen neuen Reset. Nach einem behandelten Reset-Fehler setzt dieselbe Kennung die gespeicherte Phase fort. Scheitert der Abbau, wird keine zweite Umgebung erstellt.
+Eine bereits erfolgreich abgeschlossene Reset-Kennung löst nur eine Statusprüfung aus. Eine neue Reset-Kennung startet einen neuen Reset. Nach einem behandelten Reset-Fehler setzt dieselbe Kennung die gespeicherte Phase fort. Auf AWS bildet diese Kennung zusammen mit der Laufkennung den EC2-ClientToken für die Neuerstellung.
 
 delete verwendet dieselbe Abbaukontrolle und schliesst den Lauf mit `absent` ab. Bei einer Wiederholung prüft es die tatsächliche Abwesenheit und meldet `alreadyAbsent: true`. Auf KubeVirt bleiben gemeinsamer Namespace und Quota bestehen. Auf AWS gehört die für den Lauf angelegte Security Group zum Abbau.
 
@@ -1719,6 +1720,7 @@ Die Prüfungen haben unterschiedliche Zwecke. Automatisierte Tests sichern die R
 | LernMAAS-Basisserie | Drei technische Abläufe abgeschlossen; abweichende Erfassung der Bedienzeit bei den Ergebnissen ausgewiesen |
 | AWS-Smoke-Test | Manuelle Erstellung, HTTP, SSH und Abbau erfolgreich; manueller Referenzversuch vor der Adapterumsetzung |
 | AWS-Agentenlauf | create, status, HTTP-Bereitschaft und delete erfolgreich, direkte AWS-Nachkontrolle ohne Treffer in us-east-1, siehe Kapitel 5.6 |
+| AWS-Reset und Wiederaufnahme | Neuerstellung aus demselben Modell, Fortsetzung nach Ctrl+C, Wiederholung derselben Operationskennung und direkter Abbaunachweis anhand der IDs |
 | Formale PoC-Serien | Kein vollständiger versionierter Datensatz mit je drei Messläufen pro Plattform vorhanden |
 
 ### 5.1 Messplan
@@ -2008,7 +2010,20 @@ Die automatisierte Prüfung des implementierten Codes umfasst 108 erfolgreiche T
 | Ressourcen-IDs | Im Agenten verwendet und geprüft, in den übermittelten Textausgaben nicht einzeln enthalten |
 | Zeitmessung | Fortschrittsausgaben ohne vollständige Start- und Endzeitstempel, keine daraus berechnete Aufbaudauer |
 | SSH | HTTP-Freigabe im Agentenlauf, SSH-Nachweis im manuellen Smoke-Test aus Kapitel 5.3 |
-| Reset und Unterbrechungsfälle | In diesem AWS-Lauf nicht ausgeführt, Reset wird im AWS-Befehlspfad abgewiesen |
+
+#### AWS-Reset und Wiederaufnahme
+
+Im Learner Lab wurden mit derselben Referenz-YAML zwei weitere Funktionsläufe auf `dl380-01` ausgeführt. Die [Nachweisauszüge](nachweise/aws-agent-reset.txt) enthalten die gespeicherten Statuswerte, Ressourcen-IDs und die Ergebnisse der direkten AWS-Abfragen.
+
+| Lauf | Beobachtetes Ergebnis |
+| --- | --- |
+| `aws-reset-01` | Der Agent bestätigte den Abbau vor der Neuerstellung. EC2-Instanz, EBS-Volume, Netzwerkschnittstelle und Security Group erhielten neue IDs. Modell-Hash und Laufkennung blieben gleich. Der HTTP-Dienst wurde erneut bereit. |
+| `aws-reset-abbruch-01` | Ctrl+C während des Abbaus hinterliess den gespeicherten Zustand `error` und vier bekannte Ressourcen. Der Status zeigte eine Instanz im Abbau. Dieselbe Operationskennung setzte den Abbau fort und erreichte nach der Neuerstellung erneut HTTP-Bereitschaft. |
+| Wiederholung von `reset-aws-reset-abbruch-01` | Der abgeschlossene Auftrag lieferte den aktuellen Status. Alle vier IDs und der Modell-Hash stimmten mit dem vorherigen Status überein. |
+
+Nach dem abschliessenden delete meldete der Agent für beide Läufe `absent` und null beobachtete Ressourcen. Die direkte AWS-Abfrage nach IDs bestätigte für den regulären Reset beide Instanzgenerationen als `terminated`. Für die jeweiligen EBS-Volumes, Netzwerkschnittstellen und Security Groups gab es keine Treffer. Beim Abbruchlauf bestätigte die direkte Abfrage die IDs der nach der Wiederaufnahme erstellten Umgebung. Der Agent bestätigte den Abbau der ursprünglichen Ressourcen vor der Neuerstellung.
+
+Der Live-Test der Wiederaufnahme deckt Ctrl+C während des Abbaus ab. Die Fortsetzung nach Timeouts in der Abbau- und Erstellungsphase ist zusätzlich automatisiert geprüft. Beide Läufe dienen als Funktionsnachweise. Ihre Terminalausgaben enthalten keine durchgängigen Messmarker für die vergleichende PoC-Serie.
 
 ## Verzeichnisse
 
@@ -2074,6 +2089,7 @@ Die Rohprotokolle und verwendeten Eingaben bleiben in den ursprünglichen Laufor
 | [LernMAAS-Basisserie](#lernmaas-basisserie) | Drei technische Läufe, Zeitstempel, Eingaben und MAAS-Ressourcenvergleich; Herkunft der Bedienzeiten dort ausgewiesen |
 | [AWS-Smoke-Test](#aws-smoke-test) | EC2-Aufbau, HTTP, SSH und API-Abbauprüfung; S3-Transfer-Bucket nach dem Download gelöscht |
 | [AWS-Agentenlauf](#56-funktionsprufung-des-aws-agenten), [Terminalauszüge](nachweise/aws-agent-durchstich.txt) | create, status, HTTP-Bereitschaft, delete und direkte regionale AWS-Nachkontrolle |
+| [AWS-Reset und Wiederaufnahme](#aws-reset-und-wiederaufnahme), [Terminalauszüge](nachweise/aws-agent-reset.txt) | Reset, Fortsetzung nach Ctrl+C, Wiederholung derselben Operationskennung und Abbauprüfung anhand der IDs |
 | [AWS-Budget](#363-budgetwarnungen-und-kostenstand) | CSV-Export, Warnschwellen und bestätigter aktiver Empfänger; historische Erfassungsnotiz bleibt unverändert |
 | [LernMAAS-Lernlauf](nachweise/lernlauf-lernmaas-00-20260916.txt), [mess01](messungen/messprotokoll-mess01.txt), [parallel01](messungen/messprotokoll-parallel01.txt) | Frühe Ablaufanalyse; Einordnung der unvollständigen Mess- und Abbaudaten in Kapitel 3.5 |
 | [Erster KubeVirt-Versuch](nachweise/nachweis-testvm-20260914.txt), [damaliges Manifest](nachweise/testvm.yaml), [frühe Cloud-init-Vorlage](messungen/cloud-init-messlauf.yaml) | Historische Vorbereitung; das bearbeitete Manifest und die frühe Vorlage sind keine unveränderten Definitionen der späteren Serie |
