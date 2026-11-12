@@ -74,7 +74,7 @@ def _recover(store, adapter, record):
     return store.get(record['run_id'])
 
 
-def _read(store, adapter, record, timeout=None):
+def _platform_status(adapter, record, timeout=None):
     settings = dict(adapter)
     if timeout is not None:
         if timeout <= 0:
@@ -83,8 +83,24 @@ def _read(store, adapter, record, timeout=None):
     actual = call_tool(settings, 'status', {'run_id': record['run_id']}, RUN_STATUS_SCHEMA)
     if actual['modelHash'] is not None and actual['modelHash'] != record['model_hash']:
         raise AdapterError('resource_conflict')
+    return actual
+
+
+def _read(store, adapter, record, timeout=None):
+    actual = _platform_status(adapter, record, timeout)
     store.observe_resources(record['run_id'], record['operation']['operation_id'], actual['resources'])
     return actual
+
+
+def _is_ready(actual, model):
+    return (actual['vmReady'] and actual['vmiPhase'] == 'Running'
+            and service_ready(actual['httpUrl'], model))
+
+
+def inspect_status(config, record, timeout=5):
+    """Plattform und HTTP-Dienst prüfen, ohne das Inventar zu ändern."""
+    actual = _platform_status(_adapter(config, record['platform']), record, timeout)
+    return actual, _is_ready(actual, record['model_snapshot'])
 
 
 def status(config, run_id):
@@ -94,8 +110,7 @@ def status(config, run_id):
     store = StateStore(config['stateFile'])
     record = store.get(run_id)
     actual = _read(store, _adapter(config, record['platform']), record)
-    ready = (actual['vmReady'] and actual['vmiPhase'] == 'Running'
-             and service_ready(actual['httpUrl'], record['model_snapshot']))
+    ready = _is_ready(actual, record['model_snapshot'])
     emit('status', run_id, record['operation']['operation_id'], storedPhase=record['phase'],
          serviceReady=ready, **actual)
     return actual, ready
