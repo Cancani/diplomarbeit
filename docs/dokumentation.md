@@ -566,7 +566,13 @@ gantt
 
 #### Sprint 2 Retrospektive
 
+![Starfish-Retrospektive zu Sprint 2](bilder/projektmanagement/sprint2-retrospektive.png)
 
+<small id="abb-11"><em>Abbildung 11: Starfish-Retrospektive zu Sprint 2</em></small>
+
+Im wöchentlichen 1:1 mit Kuno habe ich den Projektstand und offene Fragen besprochen. Den gemeinsamen Teams-Kanal habe ich in Sprint 2 kaum genutzt. Fragen und Entscheide, die auch Thanam betreffen, halte ich künftig dort fest.
+
+Mit derselben Referenzdefinition konnte ich den AWS-Adapter anhand eines Testfalls prüfen, den ich von KubeVirt bereits kannte. Das behalte ich für die Messläufe in Sprint 3 bei. Startzeit, HTTP-Bereitschaft und Abbaukontrolle erfasse ich direkt in einem gemeinsamen Protokoll. So muss ich die Angaben später seltener aus langen Terminalausgaben zusammensuchen. Bei Zusatztests prüfe ich vorab, welchen vereinbarten Nachweis sie ergänzen.
 
 #### Sprint 2 Review mit den Experten
 
@@ -1046,7 +1052,7 @@ flowchart TD
     System <-->|"create, status, reset, delete"| Cloud
 ```
 
-<small id="abb-11"><em>Abbildung 11: Systemkontext der Bereitstellungslösung</em></small>
+<small id="abb-12"><em>Abbildung 12: Systemkontext der Bereitstellungslösung</em></small>
 
 Die Systemgrenze umfasst die CLI, den Agenten, SQLite und die Adapter. Der lesende Statusserver und das Dashboard greifen auf denselben gespeicherten Zustand zu. Kubernetes mit KubeVirt sowie AWS liegen ausserhalb dieser Grenze. Pro Lernumgebung wird eine der beiden Zielplattformen verwendet. Die YAML-Definition beschreibt die fachlichen Anforderungen; die Zuordnung zu konkreten Plattformressourcen übernimmt die Lösung.
 
@@ -1063,7 +1069,7 @@ flowchart TD
     AWSAdapter -->|Boto3| AWS["AWS EC2 und STS"]
 ```
 
-<small id="abb-12"><em>Abbildung 12: Aufbau von CLI, Agent und Adaptern</em></small>
+<small id="abb-13"><em>Abbildung 13: Aufbau von CLI, Agent und Adaptern</em></small>
 
 Die Kommandozeilenschnittstelle nimmt Definition und Zielplattform entgegen. Der Agent validiert die Eingabe und steuert den Auftrag. Mit Agent ist hier ein Programm mit festen Regeln gemeint: Es entscheidet anhand der Operation und des gespeicherten Zustands über den nächsten Schritt. Eine Sprachmodellentscheidung ist dafür nicht vorgesehen.
 
@@ -1617,6 +1623,12 @@ Der MCP-Statusserver `agent.mcp_server` bietet genau ein Werkzeug an. `lernumgeb
 
 Die beiden MCP-Verbindungen haben unterschiedliche Endpunkte. Ein externer Client wie Claude Code ruft den Statusserver auf. Für die Plattformabfrage spricht der Agent den KubeVirt- oder AWS-Adapter separat über MCP stdio an. In den automatisierten Tests ruft ein MCP-Client das Statuswerkzeug über stdio auf. Ein Test vergleicht dabei die SQLite-Datei vor und nach der Abfrage. Ein weiterer prüft die Antwort auf eine unbekannte Laufkennung.
 
+Ich habe den lesenden Zugriff mit Claude Code am KubeVirt-Lauf `s2-kv-01` geprüft. Der aufgeklappte Werkzeugaufruf zeigt die Laufkennung und die Antwort des MCP-Servers. Die VM meldete `Running`, der HTTP-Dienst war bereit (`httpReady: true`).
+
+![Claude Code ruft den MCP-Status für s2-kv-01 auf. Die Antwort zeigt Running und httpReady: true.](bilder/claude-code-mcp-status.png)
+
+<small id="abb-14"><em>Abbildung 14: Lesende MCP-Statusabfrage mit Claude Code</em></small>
+
 Das Dashboard zeigt die gespeicherten Läufe und prüft auf Anfrage den Status eines ausgewählten Laufs. Es lauscht standardmässig auf `127.0.0.1:8765`. Der Statusserver nutzt derzeit die SQLite-Lesefunktion `read_runs` aus dem Dashboard-Modul. Für einen MCP-Aufruf muss der HTTP-Server des Dashboards nicht laufen.
 
 ## 5 Tests und Messungen
@@ -2028,8 +2040,10 @@ Die Bestätigung des aktiven Budgetempfängers ist kein Test einer tatsächlich 
 | 8 | [Starfish-Retrospektive zu Sprint 1](#abb-08) | Eigene Rückschau und Verbesserungen |
 | 9 | [Milestone Sprint 2 mit offenen und vorgezogenen Stories](#abb-09) | Grundlage für die Sprintplanung |
 | 10 | [Ursprüngliche Zeitplanung für Sprint 2 und Review](#abb-10) | Plantermine der verbleibenden Aufgaben |
-| 11 | [Systemkontext der Bereitstellungslösung](#abb-11) | KubeVirt und AWS umgesetzt |
-| 12 | [Aufbau von CLI, Agent und Adaptern](#abb-12) | CLI, SQLite und beide MCP-Adapter implementiert |
+| 11 | [Starfish-Retrospektive zu Sprint 2](#abb-11) | Rückschau und Anpassungen für Sprint 3 |
+| 12 | [Systemkontext der Bereitstellungslösung](#abb-12) | KubeVirt und AWS umgesetzt |
+| 13 | [Aufbau von CLI, Agent und Adaptern](#abb-13) | CLI, SQLite und beide MCP-Adapter implementiert |
+| 14 | [Lesende MCP-Statusabfrage mit Claude Code](#abb-14) | Werkzeugaufruf und Statusantwort für einen KubeVirt-Lauf |
 
 ## Hilfsmittel
 
