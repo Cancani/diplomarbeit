@@ -1,0 +1,35 @@
+KubeVirt-Normalablauf kv-normal-20261113-091803
+13. November 2026, dl380-01, Namespace diplomarbeit-agent
+Eingabe: modell/beispiele/referenz.yaml
+
+Auszug aus den JSON-Ereignissen des Agenten. Zeitstempel in UTC.
+Felder auf das Ergebnis, den VM-Wechsel und den Ressourcenabschluss gekürzt.
+
+2026-11-13T09:18:04.833267+00:00  create_started
+2026-11-13T09:23:29.152295+00:00  ready, serviceReady=true
+2026-11-13T09:23:33.486115+00:00  status, storedPhase=ready, serviceReady=true
+2026-11-13T09:24:10.809558+00:00  reset_started
+2026-11-13T09:30:27.916083+00:00  ready, serviceReady=true
+2026-11-13T09:30:27.916290+00:00  reset_completed
+2026-11-13T09:30:32.318093+00:00  status, storedPhase=ready, serviceReady=true
+2026-11-13T09:33:21.157403+00:00  delete_started
+2026-11-13T09:34:18.497334+00:00  deleted, alreadyAbsent=false
+2026-11-13T09:34:22.070840+00:00  status, storedPhase=absent, resources=[]
+
+VM-UID vor Reset:  fc6929c3-5af2-4309-a5b5-46a4942cee3a
+VM-UID nach Reset: 61a8e815-7c48-4fc8-b492-2b176791a189
+Modell-Hash vor und nach Reset: fd7913058f88d79722af1f7ca7806684da7b373eb09ff0538b962a7094181b35
+
+Aus den Ereigniszeitstempeln berechnet:
+create_started bis ready: 324,319 s
+reset_started bis reset_completed: 377,107 s
+delete_started bis deleted: 57,340 s
+
+Direkte Nachkontrolle nach delete:
+Die Abfrage im Namespace prüfte VM, VMI, DataVolume, PVC, Service,
+Pods und EndpointSlices anhand des VM-Namens. Die PV-Abfrage prüfte
+clusterweit die vier in reset und delete protokollierten PV-Namen.
+Auf dl380-01 wurde jeder der vier zugehörigen Speicherpfade mit lstat geprüft.
+
+Nachkontrolle OK: Keine laufbezogenen Kubernetes-Objekte gefunden.
+Alle 4 protokollierten PVs und ihre Speicherpfade sind entfernt.

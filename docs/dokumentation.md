@@ -1857,16 +1857,15 @@ bash -n scripts/create-issues.sh scripts/update-issues.sh
 python -m mkdocs build --strict
 ```
 
-Auf der echten Plattform sind folgende Abläufe anhand der Terminalausgaben vom Zielsystem geprüft:
+Am 13. November 2026 habe ich auf `dl380-01` einen vollständigen KubeVirt-Lauf mit der Referenz-YAML ausgeführt. Nach `create` und nach `reset` bestätigte ein separater `status` die HTTP-Bereitschaft. Beim Reset wechselte die VM-UID, der Modell-Hash blieb gleich. Nach `delete` meldete der Agent `absent` und ein leeres Ressourceninventar. Bei der anschliessenden direkten Nachkontrolle fand ich keine Objekte des Laufs mehr. Auch die vier protokollierten PersistentVolumes und ihre Speicherpfade aus beiden VM-Generationen waren entfernt. Der [Laufauszug](messungen/laeufe/kv-normal-20261113-091803/normalablauf.txt) enthält die Ereignisse und das Ergebnis der Nachkontrolle.
+
+Weitere Funktionsprüfungen auf KubeVirt:
 
 | Ablauf | Beobachtetes Ergebnis |
 | --- | --- |
 | Plattformstatus über MCP | Knoten bereit, KubeVirt verfügbar, VM-/VMI-Bestand lesbar |
-| create und anschliessendes status | VM und VMI laufen; der Agent wartet zusätzlich auf den erwarteten HTTP-Inhalt. Ein neuer CLI-Prozess bestätigt die Bereitschaft |
 | Wiederholtes create | Status der bestehenden Umgebung; die direkte Kubernetes-Abfrage zeigt eine VM mit unveränderter UID |
-| delete und Abschlusskontrolle | Agent meldet `absent`. Separate Kubernetes-Abfragen finden keine laufbezogenen Objekte oder bekannten PVs; beide gesicherten Datenverzeichnisse fehlen |
 | Wiederholtes delete | `alreadyAbsent: true`, ohne weitere Ressourcenänderung |
-| reset | Alte Ressourcen einschliesslich PVs werden vor der Neuerstellung als entfernt bestätigt. Neue VM-UID bei unverändertem Modell-Hash; anschliessend HTTP-Bereitschaft |
 | Wiederholung derselben abgeschlossenen Reset-Kennung | Nur eine Statusmeldung; die direkte Kubernetes-Abfrage bestätigt dieselbe VM-UID |
 | Neue Reset-Kennung und Ctrl+C während des Abbaus | Neuer Auftrag beginnt. Der Abbruch hinterlässt `error` mit `interrupted` und bekanntem Inventar. Derselbe Auftrag setzt bei `deleting` fort und schliesst erfolgreich ab |
 | Timeout bei der Abfrage vor dem Abbau | Die absichtlich kurze Zeitgrenze führt zu `timeout` und erhaltenem Inventar. Mit derselben Kennung und normaler Zeitgrenze gelingt der vollständige Reset |
