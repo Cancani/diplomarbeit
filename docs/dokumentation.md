@@ -570,9 +570,19 @@ gantt
 
 <small id="abb-11"><em>Abbildung 11: Starfish-Retrospektive zu Sprint 2</em></small>
 
-Im wöchentlichen 1:1 mit Kuno habe ich den Projektstand und offene Fragen besprochen. Den gemeinsamen Teams-Kanal habe ich in Sprint 2 kaum genutzt. Fragen und Entscheide, die auch Thanam betreffen, halte ich künftig dort fest.
+##### Was gut funktioniert hat
 
-Mit derselben Referenzdefinition konnte ich den AWS-Adapter anhand eines Testfalls prüfen, den ich von KubeVirt bereits kannte. Das behalte ich für die Messläufe in Sprint 3 bei. Startzeit, HTTP-Bereitschaft und Abbaukontrolle erfasse ich direkt in einem gemeinsamen Protokoll. So muss ich die Angaben später seltener aus langen Terminalausgaben zusammensuchen. Bei Zusatztests prüfe ich vorab, welchen vereinbarten Nachweis sie ergänzen.
+Den Projektstand habe ich im wöchentlichen 1:1 mit Kuno besprochen. Für den gemeinsamen Teams-Kanal gab es in Sprint 2 keine offenen Fragen. Eine zusätzliche Zwischenrückmeldung war deshalb nicht nötig.
+
+Für die Funktionsprüfungen auf KubeVirt und AWS habe ich dieselbe Referenzdefinition verwendet.
+
+##### Was schwierig war
+
+Für die Dokumentation musste ich die relevanten Angaben nachträglich aus langen Terminalausgaben heraussuchen.
+
+##### Verbesserungen für Sprint 3
+
+Für die Messläufe in Sprint 3 erstelle ich ein gemeinsames Messprotokoll für KubeVirt und AWS. In Sprint 2 habe ich auf beiden Plattformen Funktionsprüfungen durchgeführt.
 
 #### Sprint 2 Review mit den Experten
 
