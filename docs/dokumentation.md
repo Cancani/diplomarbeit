@@ -15,7 +15,7 @@
 
 ## Zusammenfassung des bisherigen Projektstands
 
-Ich habe eine Referenzumgebung mit derselben YAML-Datei auf KubeVirt und AWS EC2 bereitgestellt. Der Python-Agent prüft die Datei mit einem JSON-Schema und speichert die Definition sowie die Ressourcen-IDs in SQLite. Er spricht die Plattformadapter über MCP an. Auf beiden Plattformen habe ich die VM erstellt, den HTTP-Testdienst geprüft, die Umgebung aus der gespeicherten Definition neu aufgebaut und die Testressourcen entfernt.
+Ich habe eine Referenzumgebung mit derselben YAML-Datei auf KubeVirt und AWS EC2 bereitgestellt. Der Python-Agent prüft die Datei mit einem JSON-Schema und speichert die Definition sowie die Ressourcen-IDs in SQLite, die Plattformadapter spricht er über MCP an. Auf beiden Plattformen habe ich die VM erstellt, den HTTP-Testdienst geprüft, die Umgebung aus der gespeicherten Definition neu aufgebaut und die Testressourcen entfernt.
 
 Auf KubeVirt habe ich unter anderem geprüft, wie sich ein hart beendeter Agentenprozess und eine verzögerte Adapterantwort auf einen Reset auswirken. Im AWS Learner Lab habe ich einen Reset nach Ctrl+C mit derselben Operationskennung fortgesetzt. Die Nachweise stehen bei den jeweiligen [KubeVirt-](#55-funktionsprufung-des-lokalen-agenten) und [AWS-Funktionsprüfungen](#56-funktionsprufung-des-aws-agenten).
 
@@ -33,14 +33,14 @@ Das Verfahren ist auf die bekannte lokale Infrastruktur abgestimmt. Für eine Be
 
 ### 1.2 Problemstellung
 
-Im untersuchten LernMAAS-Ablauf legt `createvms` die Maschinen anhand eines Modulprofils an. Danach löst die Bedienperson das Deployment separat aus. Auch der Abbau umfasst mehrere Bedienhandlungen. Die Diplomarbeit untersucht zwei Fragen.
+Im untersuchten LernMAAS-Ablauf legt `createvms` die Maschinen anhand eines Modulprofils an, das Deployment löst die Bedienperson danach separat aus. Auch der Abbau umfasst mehrere Bedienhandlungen. Die Diplomarbeit untersucht zwei Fragen.
 
 1. Lässt sich eine reduzierte Lernumgebung mit derselben Definition auf KubeVirt und AWS bereitstellen?
 2. Welchen Nutzen und welchen zusätzlichen Aufwand bringt MCP gegenüber direkten Aufrufen der Plattformadapter?
 
 ### 1.3 Zielbild
 
-Die Bedienperson übergibt dem Agenten eine YAML-Datei und wählt die Zielplattform. Der Agent prüft das Modell. Die Adapter setzen es in die Ressourcen der jeweiligen Plattform um. Im Referenztest gilt die Umgebung als bereit, wenn die VM läuft und der HTTP-Testdienst mit dem erwarteten Inhalt antwortet. Beim Abbau prüft der Agent, ob die zum Lauf gehörenden Ressourcen ihren Endzustand erreicht haben.
+Die Bedienperson übergibt dem Agenten eine YAML-Datei und wählt die Zielplattform. Der Agent prüft das Modell, und der Adapter setzt es in die Ressourcen der gewählten Plattform um. Im Referenztest gilt die Umgebung als bereit, wenn die VM läuft und der HTTP-Testdienst mit dem erwarteten Inhalt antwortet. Beim Abbau prüft der Agent, ob die zum Lauf gehörenden Ressourcen ihren Endzustand erreicht haben.
 
 ### 1.4 Zielsetzungen und Erfolgskriterien
 
@@ -94,7 +94,7 @@ Die Arbeit behandelt Cloud Engineering und Automatisierung anhand von VM-Bereits
 
 ### 2.1 Vorgehensmodell
 
-Ich teile die Arbeit in drei Abschnitte. Sprint 1 umfasste die LernMAAS-Basisläufe, die manuellen Referenzversuche und den Architekturentwurf. In Sprint 2 setzte ich den Agenten und die Plattformadapter um. Sprint 3 umfasst die Messung und Bewertung.
+Ich teile die Arbeit in drei Abschnitte. Sprint 1 umfasste die LernMAAS-Basisläufe, die manuellen Referenzversuche und den Architekturentwurf. In Sprint 2 setzte ich den Agenten und die Plattformadapter um, in Sprint 3 folgen Messung und Bewertung.
 
 Ich führe die Aufgaben im GitHub Project Board. Im Review bespreche ich mit den Experten die gezeigten Ergebnisse und die Prioritäten. In der Retrospektive halte ich fest, was ich an meiner Arbeitsweise ändere. Backlog, Review und Retrospektive lehnen sich an den [Scrum Guide](https://scrumguides.org/scrum-guide.html) an. Die längeren Zeitabschnitte und die Durchführung als Einzelprojekt sind Anpassungen an diese Arbeit.
 
@@ -110,7 +110,7 @@ flowchart TD
 
 <small id="abb-01"><em>Abbildung 1: Projektorganisation und Berichtswege</em></small>
 
-Die Arbeit wird als Einzelprojekt durchgeführt. Die bewilligte Projektbeschreibung überträgt mir die technischen Entscheide und die Umsetzung. Die folgende Tabelle ordnet die Aufgaben und Entscheidungsbefugnisse zu.
+Die Arbeit wird als Einzelprojekt durchgeführt. Die bewilligte Projektbeschreibung überträgt mir die technischen Entscheide und die Umsetzung.
 
 | Person und Rolle | Aufgaben | Entscheidungsbefugnisse und Abstimmung |
 | --- | --- | --- |
@@ -132,7 +132,7 @@ Mit Kuno Vogt bespreche ich den Projektstand im wöchentlichen 1:1. Für Fragen 
 
 Der bewilligte Projektzeitraum beginnt am 11.09.2026. Die operative Wochenplanung beginnt am Montag, 14.09.2026, und umfasst 14 Wochen bis zur Abgabe am 18.12.2026. Für die drei Reviews liegen konkrete Termine vor. Der Kolloquiumstermin ist noch mit der Schule zu bestätigen.
 
-Die GitHub-Milestones bündeln die User Stories nach Sprint. Die folgende Übersicht zeigt diese Gliederung. Die Bearbeitungsstände werden in den jeweiligen Sprintkapiteln erläutert.
+Die GitHub-Milestones bündeln die User Stories nach Sprint. Die Bearbeitungsstände werden in den jeweiligen Sprintkapiteln erläutert.
 
 ![Milestone-Übersicht der drei Sprints](bilder/projektmanagement/milestones.png)
 
@@ -154,7 +154,7 @@ Die GitHub-Milestones bündeln die User Stories nach Sprint. Die folgende Übers
 | M5 | Abgabe | 18.12.2026 | Dokumentation, Management Summary, Ehrenwort und vereinbarte Abgabeunterlagen fertig |
 | M6 | Kolloquium | Mit Schule bestätigen | Präsentation, kurze Demo und vorbereitete Ersatznachweise verfügbar |
 
-Die Reviewtermine sind fest vereinbart. Alle Uhrzeiten gelten für Zürich. Die Aufgaben mit ihren Start- und Enddaten stehen im [GitHub-Zeitplan](https://github.com/users/Cancani/projects/7/views/2). Die Sprintplanungen stehen in Kapitel 2.10 bis 2.12.
+Die Reviewtermine sind fest vereinbart, alle Uhrzeiten gelten für Zürich. Die Aufgaben mit ihren Start- und Enddaten stehen im [GitHub-Zeitplan](https://github.com/users/Cancani/projects/7/views/2), die Sprintplanungen in Kapitel 2.10 bis 2.12.
 
 | Review | Termin | Durchführung |
 | --- | --- | --- |
@@ -166,7 +166,7 @@ Die Sprintzeiträume geben die ursprüngliche Planung wieder. Das erste Review f
 
 ### 2.4 Backlog und Prioritäten
 
-Das öffentliche [Project Board](https://github.com/users/Cancani/projects/7) dient der laufenden Aufgabensteuerung. Die [Milestones](https://github.com/Cancani/diplomarbeit/milestones) bündeln die Issues nach Sprint und führen die jeweiligen Endtermine. Die Karten enthalten Sprint, Story Points, Priorität, Epic sowie Start- und Enddatum. Die Statusspalten werden wie folgt verwendet:
+Die laufenden Aufgaben steuere ich über das öffentliche [Project Board](https://github.com/users/Cancani/projects/7). Die [Milestones](https://github.com/Cancani/diplomarbeit/milestones) bündeln die Issues nach Sprint und führen die jeweiligen Endtermine. Die Karten enthalten Sprint, Story Points, Priorität, Epic sowie Start- und Enddatum. Die Statusspalten werden wie folgt verwendet:
 
 | Status | Bedeutung und Übergang |
 | --- | --- |
@@ -249,7 +249,7 @@ Die Epics bündeln Initialisierung (E1), IST-Aufnahme (E2), lokale Plattform (E3
 | US37 | Kolloquiumspräsentation und Demo-Skript | E11 | 3 | Must |
 
 
-Must bezeichnet die verbindlichen Ergebnisse und ihre notwendigen Arbeitsschritte. US35 ist als ergänzende Einführung ein Should. Das Runbook bleibt auch bei Zeitdruck vollständig und enthält Aufbau, Bedienung, Fehleranalyse und Abbau. Eine knappe Beurteilung der Produktivübertragbarkeit bleibt ebenfalls bestehen. Zusätzliche Workshops, doppelte Grafiken und ausführliche Wiederholungen werden zuerst gekürzt. Änderungen an verbindlichen Ergebnissen werden mit den Experten abgestimmt.
+Must bezeichnet die verbindlichen Ergebnisse und ihre notwendigen Arbeitsschritte. US35 ist als ergänzende Einführung ein Should. Das Runbook bleibt auch bei Zeitdruck vollständig und enthält Aufbau, Bedienung, Fehleranalyse und Abbau. Eine knappe Beurteilung der Produktivübertragbarkeit bleibt ebenfalls bestehen. Zusätzliche Workshops, doppelte Grafiken und ausführliche Wiederholungen werden zuerst gekürzt.
 
 ### 2.5 Aufwand und Kapazität
 
@@ -293,7 +293,7 @@ Der [Dokumentationsworkflow](https://github.com/Cancani/diplomarbeit/blob/main/.
 
 ### 2.7 Projektstand und Berichte
 
-Gemäss Rückmeldung von Thanam Pangri ist ein regelmässiges Wochenjournal nicht erforderlich. Deshalb habe ich [US05 gestrichen](https://github.com/Cancani/diplomarbeit/issues/5). Die Issues enthalten Aufgaben und Abschlussnachweise. In Git und CI sind Änderungen und automatische Prüfungen nachvollziehbar. Die Fachkapitel ordnen die Laufprotokolle den jeweiligen Versuchen zu.
+Gemäss Rückmeldung von Thanam Pangri ist ein regelmässiges Wochenjournal nicht erforderlich. Deshalb habe ich [US05 gestrichen](https://github.com/Cancani/diplomarbeit/issues/5). Die Issues enthalten Aufgaben und Abschlussnachweise, Git und CI machen Änderungen und automatische Prüfungen nachvollziehbar. Die Fachkapitel ordnen die Laufprotokolle den jeweiligen Versuchen zu.
 
 ### 2.8 Änderungen und Risiken
 
@@ -352,7 +352,7 @@ Die ursprüngliche Planung umfasst 16 Stories mit 38 Story Points. Die vollstän
 | Public Cloud | US14 und US15 | Begründete AWS-Auswahl, geprüfter Zugang, Kostenkontrolle und erfolgreicher Smoke-Test |
 | Architektur und Zwischenpräsentation | US16 | Systemkontext, Komponentensicht, Architekturentscheide und erstes Review mit Rückmeldungen |
 
-US06 ist als entfallenes Kickoff nicht Teil des aktiven Backlogs. US05 wurde im Verlauf gestrichen; eine feste wöchentliche Berichtspflicht wird nicht weitergeführt. Die ursprüngliche Planung bleibt für den Vergleich sichtbar. Die bereits umgesetzten Stories US17 und US18 gehören weiterhin zur ursprünglichen Sprint-2-Planung.
+US06 ist als entfallenes Kickoff nicht Teil des aktiven Backlogs, US05 wurde im Verlauf gestrichen (Kapitel 2.7). Die bereits umgesetzten Stories US17 und US18 gehören weiterhin zur ursprünglichen Sprint-2-Planung.
 
 ##### Zeitplan der User Stories
 
@@ -396,7 +396,7 @@ gantt
 
 <small id="abb-05"><em>Abbildung 5: Zeitplan der User Stories für Sprint 1 mit anschliessendem Review</em></small>
 
-US05 entfällt und erhält keinen Zeitbalken. US17 und US18 sind aus Sprint 2 vorgezogen. US16 ist in Architekturarbeit, Reviewvorbereitung und Nachbereitung aufgeteilt. Im GitHub-Zeitplan umfasst die Story deshalb den Zeitraum vom 15.10. bis 25.10.2026.
+US05 entfällt und erhält keinen Zeitbalken, US17 und US18 sind aus Sprint 2 vorgezogen. US16 ist in Architekturarbeit, Reviewvorbereitung und Nachbereitung aufgeteilt und umfasst im GitHub-Zeitplan deshalb den Zeitraum vom 15.10. bis 25.10.2026.
 
 ??? info "Plantermine der User Stories in Sprint 1"
 
@@ -436,7 +436,7 @@ US05 entfällt und erhält keinen Zeitbalken. US17 und US18 sind aus Sprint 2 vo
 | Architektur | Systemkontext, Komponentensicht und vier ADRs vorhanden |
 | Vorgezogene Arbeiten | Fachmodell und Modellprüfung mit JSON-Schema aus US17 und US18 umgesetzt |
 
-Vor dem Review waren 14 der ursprünglichen Sprint-1-Stories fachlich abgeschlossen. US05 war entfallen und US16 in Bearbeitung. Die abgebildete Milestone-Detailansicht zeigt entsprechend einen offenen und 15 geschlossene Issues. Im abgebildeten Board steht US16 auf In Progress. Die geschlossene US05 zählt nicht als fachlich erbrachte Leistung.
+Vor dem Review waren 14 der ursprünglichen Sprint-1-Stories fachlich abgeschlossen, US05 war entfallen und US16 in Bearbeitung. Die abgebildete Milestone-Detailansicht zeigt entsprechend einen offenen und 15 geschlossene Issues, im Board steht US16 auf In Progress. Die geschlossene US05 zählt nicht als fachlich erbrachte Leistung.
 
 Die damalige Board-Aufnahme zeigt 16 Karten in Done. Dazu gehören 14 Stories aus Sprint 1 sowie US17 und US18 aus Sprint 2.
 
@@ -444,7 +444,7 @@ Die damalige Board-Aufnahme zeigt 16 Karten in Done. Dazu gehören 14 Stories au
 
 <small id="abb-06"><em>Abbildung 6: Project Board mit Bearbeitungsstand und US16 in Bearbeitung</em></small>
 
-Die Detailansicht zeigt den Stand vor dem Review mit US16 als einzigem offenen Issue. Das Review ist inzwischen durchgeführt und die Rückmeldungen sind nachfolgend dokumentiert. US16 ist nach der Nachführung der Reviewrückmeldungen abgeschlossen.
+Die Detailansicht zeigt den Stand vor dem Review mit US16 als einzigem offenen Issue.
 
 ![Milestone Sprint 1 mit offener US16](bilder/projektmanagement/sprint1-us16-offen.png)
 
@@ -456,7 +456,7 @@ Die Detailansicht zeigt den Stand vor dem Review mit US16 als einzigem offenen I
 | Sprint 2 | 9 Stories, 35 SP | US17 und US18, zusammen 8 SP, vorgezogen | Keine | 7 Stories, 27 SP |
 | Sprint 3 | 13 Stories, 38 SP | Keine | Keine | 13 Stories, 38 SP |
 
-Die Tabelle hält die Zwischenbilanz vor dem Review fest. Die Zwischenpräsentation ist inzwischen durchgeführt und die Rückmeldungen stehen im folgenden Reviewabschnitt. Mit dem Abschluss von US16 sind in Sprint 1 insgesamt 15 Stories mit 37 Story Points fachlich abgeschlossen. Für die weitere Umsetzung hat der vollständige lokale Lebenszyklus erste Priorität.
+Die Tabelle hält die Zwischenbilanz vor dem Review fest. Das Review ist inzwischen durchgeführt, die Rückmeldungen stehen im folgenden Reviewabschnitt. Mit dem Abschluss von US16 nach der Nachführung dieser Rückmeldungen sind in Sprint 1 insgesamt 15 Stories mit 37 Story Points fachlich abgeschlossen. Für die weitere Umsetzung hat der vollständige lokale Lebenszyklus erste Priorität.
 
 #### Sprint 1 Retrospektive
 
@@ -486,7 +486,7 @@ Die Prioritäten für Sprint 2 wurden im ersten Review gemeinsam mit den Experte
 
 Das erste Review fand gemeinsam mit den Experten statt. Ich stellte die Planung und die Ergebnisse von Sprint 1, meine Retrospektive sowie die vorgesehene Umsetzung für Sprint 2 vor. Die Experten gaben eine positive Rückmeldung zum bisherigen Arbeitsstand und zur Präsentation.
 
-Im Gespräch wurden die Prioritäten für die weitere Umsetzung festgelegt. Bis zum Ende von Sprint 2 muss der Agent die Grundfunktionen ausführen können. Diese bilden die Voraussetzung für die Messungen und Auswertung in Sprint 3.
+Im Gespräch wurden die Prioritäten für die weitere Umsetzung festgelegt. Bis zum Ende von Sprint 2 muss der Agent die Grundfunktionen ausführen können. Sie sind Voraussetzung für die Messungen und die Auswertung in Sprint 3.
 
 ##### Rückmeldungen und Vereinbarungen
 
@@ -572,7 +572,7 @@ gantt
 
 ##### Was gut funktioniert hat
 
-Den Projektstand habe ich im wöchentlichen 1:1 mit Kuno besprochen. Für den gemeinsamen Teams-Kanal gab es in Sprint 2 keine offenen Fragen. Eine zusätzliche Zwischenrückmeldung war deshalb nicht nötig.
+Den Projektstand habe ich im wöchentlichen 1:1 mit Kuno besprochen. Für den gemeinsamen Teams-Kanal gab es in Sprint 2 keine offenen Fragen, eine zusätzliche Zwischenrückmeldung war deshalb nicht nötig.
 
 Für die Funktionsprüfungen auf KubeVirt und AWS habe ich dieselbe Referenzdefinition verwendet.
 
@@ -582,7 +582,7 @@ Für die Dokumentation musste ich die relevanten Angaben nachträglich aus lange
 
 ##### Verbesserungen für Sprint 3
 
-Für die Messläufe in Sprint 3 erstelle ich ein gemeinsames Messprotokoll für KubeVirt und AWS. In Sprint 2 habe ich auf beiden Plattformen Funktionsprüfungen durchgeführt.
+In Sprint 2 habe ich auf beiden Plattformen Funktionsprüfungen durchgeführt. Für die Messläufe in Sprint 3 erstelle ich ein gemeinsames Messprotokoll für KubeVirt und AWS.
 
 #### Sprint 2 Review mit den Experten
 
@@ -614,7 +614,7 @@ Der ursprüngliche Sprint-3-Backlog umfasst 13 Stories mit 38 SP. US25 wurde vor
 | US36 | Dokumentation finalisieren, Management Summary, Ehrenwort | 3 |
 | US37 | Kolloquiumspräsentation und Demo-Skript | 3 |
 
-US35 bleibt eine ergänzende Aufgabe bei freier Kapazität. Der Scope-Freeze ist am 04.12.2026, die Abgabe am 18.12.2026. Änderungen an verbindlichen Ergebnissen werden mit beiden Experten abgestimmt.
+US35 bleibt eine ergänzende Aufgabe bei freier Kapazität. Der Scope-Freeze ist am 04.12.2026, die Abgabe am 18.12.2026.
 
 #### Sprint 3 Review mit den Experten
 
@@ -624,11 +624,11 @@ US35 bleibt eine ergänzende Aufgabe bei freier Kapazität. Der Scope-Freeze ist
 
 ### 3.1 Ausgangslage der Infrastruktur
 
-Ich habe die beiden vorgesehenen KubeVirt-Systeme lesend untersucht. Entscheidend waren Virtualisierungsunterstützung, erreichbarer Cluster und verfügbarer Speicher. Die [Systemausgaben](#nachweise-und-aussagegrenzen) halten diesen Ausgangszustand fest. Die getrennte LernMAAS-Anlage bildet die Vergleichsbasis; für die dortigen Messläufe wurden Konfiguration und installiertes Erstellungsskript gesichert.
+Ich habe die beiden vorgesehenen KubeVirt-Systeme lesend untersucht und dabei auf Virtualisierungsunterstützung, erreichbaren Cluster und verfügbaren Speicher geachtet. Die [Systemausgaben](#nachweise-und-aussagegrenzen) halten diesen Ausgangszustand fest. Die getrennte LernMAAS-Anlage ist die Vergleichsbasis. Für die dortigen Messläufe habe ich Konfiguration und installiertes Erstellungsskript gesichert.
 
 #### 3.1.1 Freigegebene Hardware
 
-Der DL380 und alle Terra-Rechner stehen mir für die Diplomarbeit exklusiv und vollständig zur Verfügung. Es gibt keine parallele Nutzung dieser Geräte durch den Unterricht oder andere Projekte. Für die Versuche auf diesen Geräten ist keine zusätzliche Nutzungsfreigabe nötig. Die gemeinsam genutzte Netzinfrastruktur wird davon getrennt betrachtet.
+Der DL380 und alle Terra-Rechner stehen mir für die Diplomarbeit exklusiv zur Verfügung. Es gibt keine parallele Nutzung dieser Geräte durch den Unterricht oder andere Projekte. Für die Versuche auf diesen Geräten ist keine zusätzliche Nutzungsfreigabe nötig. Die gemeinsam genutzte Netzinfrastruktur wird davon getrennt betrachtet.
 
 Die Systemaufnahme ergab folgende Werte:
 
@@ -642,7 +642,7 @@ Beide Systeme liefen bei der Erhebung unter Ubuntu 24.04.4 LTS. Der praktische E
 
 #### 3.1.2 Zugang und Netzwerk
 
-Die folgende Beschreibung verbindet System- und Netzwerkaufnahme. Die Geräte stehen im HF-Labor AU70-U069a und sind am Switch `nau-as-u70-01` im VLAN 21 angeschlossen. Das Netz lautet `10.0.21.0/24`, das Gateway `10.0.21.1`. Routing und DHCP liegen auf `nau-as-e014-01` im Serverraum; der Internetzugang führt über die dortige Firewall zum Init7-Anschluss.
+Die Geräte stehen im HF-Labor AU70-U069a und sind am Switch `nau-as-u70-01` im VLAN 21 angeschlossen. Das Netz lautet `10.0.21.0/24`, das Gateway `10.0.21.1`. Routing und DHCP liegen auf `nau-as-e014-01` im Serverraum; der Internetzugang führt über die dortige Firewall zum Init7-Anschluss.
 
 | Gerät | LAN-Adresse | Adressvergabe | Verwendung im PoC |
 | --- | --- | --- | --- |
@@ -685,7 +685,7 @@ Nicht vorhanden sind ein Ingress-Controller und ein Load-Balancer. Die Erreichba
 
 Auf `kvcontrol` läuft ein eigenständiges MicroK8s derselben Version. KubeVirt und CDI sind vorhanden; cert-manager, Export-Proxy und Vorlagenverwaltung fehlen gegenüber `dl380-01`. Bei der Erhebung liefen dort keine Test-VMs.
 
-`kvcontrol` dient als möglicher Ersatz. Vor seiner Nutzung ist ein eigener Referenzlauf einschliesslich Abbau erforderlich.
+`kvcontrol` ist der mögliche Ersatz. Vor seiner Nutzung ist ein eigener Referenzlauf einschliesslich Abbau erforderlich.
 
 #### 3.1.5 Einordnung der übernommenen Vorarbeit
 
@@ -699,7 +699,7 @@ Die Eigenleistung dieser Arbeit beginnt oberhalb dieser Plattform und umfasst:
 - die MCP-basierte Adapterschicht für beide Zielplattformen
 - die Messung, den Vergleich und die Bewertung
 
-Der Umstand, dass die Plattform bereitstand, verändert den Umfang der Arbeit gegenüber der bewilligten Projektbeschreibung nicht. Er verschiebt lediglich Aufwand von der Einrichtung zur Verifikation. US12 und US13 umfassen jeweils zwei Story Points für Verifikation und Dokumentation. US38 deckt den vollständigen Referenzlauf ab.
+Weil die Plattform bereitstand, verschob sich Aufwand von der Einrichtung zur Verifikation. Der Umfang der Arbeit gegenüber der bewilligten Projektbeschreibung bleibt gleich. US12 und US13 umfassen jeweils zwei Story Points für Verifikation und Dokumentation. US38 deckt den vollständigen Referenzlauf ab.
 
 #### 3.1.6 Architekturentscheide aus der Erhebung
 
@@ -863,7 +863,7 @@ Im beobachteten Ablauf wird der Abbau über drei getrennte Vorgänge ausgeführt
 
 Nach dem Freigeben waren die VM und der Resource Pool `m254-da01` weiterhin vorhanden. Die Gesamtzahl blieb bei 31 Maschinen. Erst das Löschen der Maschine gab die Ressourcen des Virtualisierungshosts zurück, nachweisbar an den Werten von 10 auf 8 Kernen, von 10240 auf 8192 MB und von 60 auf 48 GB. Der Resource Pool blieb auch danach bestehen und musste getrennt entfernt werden.
 
-Eine weitere Beobachtung betrifft die Nachweisführung selbst: Die Ereignisabfrage von MAAS löst über den Hostnamen auf. Nach dem Löschen der Maschine lieferte sie keine Daten mehr. Nachweise müssen deshalb erhoben werden, solange die Objekte bestehen. Diese Regel wurde in die Messprotokollvorlage übernommen.
+Die Ereignisabfrage von MAAS löst über den Hostnamen auf und lieferte nach dem Löschen der Maschine keine Daten mehr. Nachweise müssen deshalb erhoben werden, solange die Objekte bestehen. Diese Regel wurde in die Messprotokollvorlage übernommen.
 
 #### 3.2.7 Zusammenfassung der Befunde
 
@@ -913,11 +913,11 @@ Die technische Gesamtdauer und der notwendige Bedienaufwand beantworten untersch
 
 #### 3.4.1 Vergleich und Messgrenzen
 
-Vor jedem Lauf sind Zugang, Werkzeuge und Basisinfrastruktur vorbereitet. Einmalige Einrichtung und Reservation liegen ausserhalb der Zeitmessung. Für die konkrete Lernumgebung bestehen noch keine Ressourcen. Abbildversion, Hardware und bekannte Cache- oder Lastbedingungen werden festgehalten.
+Vor jedem Lauf sind Zugang, Werkzeuge und Basisinfrastruktur vorbereitet, für die konkrete Lernumgebung bestehen aber noch keine Ressourcen. Einmalige Einrichtung und Reservation liegen ausserhalb der Zeitmessung. Abbildversion, Hardware und bekannte Cache- oder Lastbedingungen werden festgehalten.
 
 Die Aufbaudauer beginnt unmittelbar vor der ersten wiederkehrenden Bedienhandlung und endet bei der ersten beobachteten erfolgreichen HTTP-Antwort. Erwartet werden Status 200 und `lernumgebung bereit`; ein abschliessender Zeilenumbruch ist zulässig. Die VM muss zusätzlich laufen. Gastport 8080 und der tatsächlich erreichbare Prüfendpunkt werden getrennt erfasst, beispielsweise bei einem NodePort-Service.
 
-Der HTTP-Beobachter prüft standardmässig alle zwei Sekunden mit begrenzter Anfragezeit. Die Bereitschaft kann zwischen zwei Prüfungen eintreten. Die angegebenen Zeitstempel bezeichnen daher den Beobachtungszeitpunkt. Abweichende Intervalle historischer Versuche stehen beim jeweiligen Ergebnis.
+Der HTTP-Beobachter prüft standardmässig alle zwei Sekunden mit begrenzter Anfragezeit. Weil die Bereitschaft zwischen zwei Prüfungen eintreten kann, bezeichnen die angegebenen Zeitstempel den Beobachtungszeitpunkt. Abweichende Intervalle historischer Versuche stehen beim jeweiligen Ergebnis.
 
 #### 3.4.2 Bedienhandlungen und Zeit
 
@@ -951,7 +951,7 @@ Fehlende Berechtigung, eine fehlgeschlagene Abfrage und ein Timeout werden als F
 
 ### 3.5 Ausgangsaufnahme des heutigen Verfahrens
 
-Die ersten Versuche dienten dazu, Ablauf und Fehlerfälle zu verstehen. Daraus wurden die spätere Referenzdefinition und die gemeinsamen Messgrenzen entwickelt.
+Die ersten Versuche dienten dazu, Ablauf und Fehlerfälle zu verstehen. Daraus habe ich die spätere Referenzdefinition und die gemeinsamen Messgrenzen entwickelt.
 
 | Versuch | Beobachtung | Verwendung in der Arbeit |
 | --- | --- | --- |
@@ -976,7 +976,7 @@ Der bewilligte Antrag nennt einen Student-Account. Tatsächlich wird das AWS Aca
 
 #### 3.6.2 Kontobedingungen und Kostenkontrolle
 
-Die Lab-Bedingungen wurden anhand der bereitgestellten Readme, Stand 24.06.2025, geprüft. Der praktische Test bestätigt die für eine einzelne Referenz-VM benötigten Rechte.
+Die Lab-Bedingungen habe ich anhand der bereitgestellten Readme, Stand 24.06.2025, geprüft. Der praktische Test bestätigt die für eine einzelne Referenz-VM benötigten Rechte.
 
 | Bedingung | Verwendeter Stand |
 | --- | --- |
@@ -990,7 +990,7 @@ Die Lab-Bedingungen wurden anhand der bereitgestellten Readme, Stand 24.06.2025,
 
 Beim ersten CLI-Aufruf wurde die Infrastrukturrolle des Webterminals verwendet. Ein eigenes Zugangsprofil und die Prüfung der Konto-ID stellten anschliessend den richtigen Zugang sicher. Temporäre Zugangsdaten und private SSH-Schlüssel sind ausserhalb der veröffentlichten Nachweise abgelegt.
 
-Das konkrete Ablaufdatum des Lab-Zugangs beziehungsweise Guthabens ist nicht bekannt. Sitzungstimer und Kostenbudget geben darüber keine Auskunft. Dieser Prüfstand ist in US14 und US15 festgehalten; beide Stories sind abgeschlossen.
+Das konkrete Ablaufdatum des Lab-Zugangs beziehungsweise Guthabens ist nicht bekannt. Sitzungstimer und Kostenbudget geben darüber keine Auskunft. Dieser Prüfstand ist in US14 und US15 festgehalten. Beide Stories sind abgeschlossen.
 
 #### 3.6.3 Budgetwarnungen und Kostenstand
 
@@ -1004,7 +1004,7 @@ Ich habe das Budget `diplomarbeit-gesamt` eingerichtet. Der [CSV-Export](nachwei
 | Automatische Aktionen | Keine automatische Abschaltung eingerichtet |
 | Historische Kontokosten | USD 0,92 für 29.06. bis 15.10.2026; keine eindeutige Zuordnung zum einzelnen Smoke-Test |
 
-Die Einrichtung und der aktive Empfänger sind bestätigt. Eine tatsächlich ausgelöste Warnzustellung wurde nicht getestet. Budgetwarnungen sind keine harte Kostensperre. Laut Lab-Anleitung führt dagegen eine Überschreitung des Lab-Guthabens zur Deaktivierung des Kontos.
+Die Einrichtung und der aktive Empfänger sind bestätigt, eine tatsächlich ausgelöste Warnzustellung wurde nicht getestet. Budgetwarnungen sind keine harte Kostensperre. Laut Lab-Anleitung führt dagegen eine Überschreitung des Lab-Guthabens zur Deaktivierung des Kontos.
 
 Direkt nach dem Smoke-Test zeigte das Lab noch USD 0 an. Laut Anleitung wird die Verbrauchsanzeige typischerweise erst nach acht bis zwölf Stunden aktualisiert. Für die Bewertung verwende ich deshalb die folgende Preisabschätzung und den separat bezeichneten historischen Kontokostenstand.
 
@@ -1023,7 +1023,7 @@ Die folgende Planungsrechnung verwendet die veröffentlichten Preisangaben der a
 
 Quellen: [AWS T3](https://aws.amazon.com/ec2/instance-types/t3/), [AWS gp3-Speicherpreis](https://docs.aws.amazon.com/prescriptive-guidance/latest/optimize-costs-microsoft-workloads/ebs-migrate-gp2-gp3.html), [EBS-Abrechnung](https://aws.amazon.com/ebs/pricing/) und [IPv4-Preis](https://aws.amazon.com/vpc/pricing/). Die EBS-Umrechnung mit 30 Tagen ist eine einheitliche Rechenannahme; abgerechnet werden die tatsächlichen Nutzungszeiträume der einzelnen Ressourcen.
 
-Für die CHF-Einordnung dient das auf dem [SNB-Datenportal](https://data.snb.ch/en) veröffentlichte Monatsmittel August 2026: **1 USD = CHF 0,8078**. Die Umrechnung ist damit historisch nachvollziehbar; die tatsächliche Abrechnung kann einen anderen Kurs verwenden.
+Für die CHF-Einordnung dient das auf dem [SNB-Datenportal](https://data.snb.ch/en) veröffentlichte Monatsmittel August 2026: 1 USD = CHF 0,8078. Die Umrechnung ist damit historisch nachvollziehbar; die tatsächliche Abrechnung kann einen anderen Kurs verwenden.
 
 | Planungsszenario | Angenommene VM-Zeit | Geschätzte USD | CHF mit dieser Umrechnungsbasis |
 | --- | ---: | ---: | ---: |
@@ -1123,7 +1123,7 @@ Beide Wege verwenden dieselbe Adapterlogik. Der Vergleich untersucht damit, was 
 
 ### 3.9 Entscheidungsübersicht der ADRs
 
-Die Architekturentscheide wurden von mir als Diplomand im Rahmen der bewilligten technischen Entscheidungsbefugnisse getroffen. Die Übersicht verbindet die Auswahl mit ihrer Begründung und den Folgen für den PoC. Die ausführlichen Herleitungen stehen in den verlinkten Fachabschnitten.
+Die Architekturentscheide habe ich innerhalb der bewilligten technischen Entscheidungsbefugnisse getroffen. Die ausführlichen Herleitungen stehen in den verlinkten Fachabschnitten.
 
 | ADR | Technischer Entscheid | Begründung und Auswirkung | Herleitung |
 | --- | --- | --- | --- |
@@ -1140,7 +1140,7 @@ Als erste Umsetzung habe ich die Referenz-VM auf der vorhandenen KubeVirt-Plattf
 
 Beim Referenzlauf erreichte ich die VM über HTTP und SSH. Nach der Namespace-Löschung blieb der PV zunächst im Zustand `Released`. Erst die Nachkontrolle bestätigte, dass der PV und das zugehörige Datenverzeichnis entfernt waren. Der automatisierte Abbau prüft deshalb beide Endzustände.
 
-Aus dem Manifest wurden die fachlichen Felder für das gemeinsame Modell abgeleitet. Abbild-URL, Namespace, StorageClass, NodePorts und Ressourcen-IDs bleiben Plattformdetails. Konfiguration, Zeiten und Belege des erfolgreichen Versuchs stehen im [Referenzlauf](#kubevirt-referenzlauf).
+Aus dem Manifest habe ich die fachlichen Felder für das gemeinsame Modell abgeleitet. Abbild-URL, Namespace, StorageClass, NodePorts und Ressourcen-IDs bleiben Plattformdetails. Konfiguration, Zeiten und Belege des erfolgreichen Versuchs stehen im [Referenzlauf](#kubevirt-referenzlauf).
 
 ### 4.2 Plattformneutrales Fachmodell
 
@@ -1290,7 +1290,7 @@ Der Agent verwendet SQLite aus der Python-Standardbibliothek. Vor der ersten Pla
 
 Kurze Transaktionen mit `BEGIN IMMEDIATE` schützen Zustandsprüfung und Änderung. Ein eindeutiger Index erlaubt höchstens eine Operation mit Status `running` pro Lauf. Die Zustandstransaktion bleibt nicht während eines Plattformaufrufs offen. Die Datenbank ist für den lokalen Agentenbetrieb vorgesehen.
 
-Zusätzlich schützt `gemeinsam/prozessschutz.py` die gesamte schreibende Operation. Pro Lauf liegt eine separate SQLite-Sperrdatei im Verzeichnis `<Zustandsdatei>.agent-locks`. Eine neue Sitzung benötigt exklusiven Zugriff und schreibt eine zufällige Sitzungskennung. Danach halten Agent und Adapter Lesetransaktionen auf dieser Datei. Solange einer von ihnen noch arbeitet, kann kein zweiter Agent die exklusive Sitzung eröffnen. Das gilt auch für dieselbe Operationskennung. Andere Läufe verwenden eigene Sperrdateien.
+Zusätzlich schützt `gemeinsam/prozessschutz.py` die gesamte schreibende Operation. Pro Lauf liegt eine eigene SQLite-Sperrdatei im Verzeichnis `<Zustandsdatei>.agent-locks`. Eine neue Sitzung benötigt exklusiven Zugriff und schreibt eine zufällige Sitzungskennung. Danach halten Agent und Adapter Lesetransaktionen auf dieser Datei. Solange einer von ihnen noch arbeitet, kann kein zweiter Agent die exklusive Sitzung eröffnen, auch nicht mit derselben Operationskennung.
 
 Der Adapter hält den Schutz sowohl während seines Prozesses als auch innerhalb der Werkzeugausführung. Vor einem Werkzeugaufruf prüft er die Sitzungskennung. Ein verspätet gestarteter Adapter einer abgelösten Sitzung wird dadurch abgewiesen. Der Client verlangt zusätzlich die Bestätigung des Adapters über MCP. Die Sperrdateien sind von Git ausgeschlossen und dürfen zur Freigabe eines Auftrags nicht gelöscht werden: Ein neuer Dateipfad würde die Sperre noch aktiver Prozesse umgehen.
 
@@ -1355,13 +1355,13 @@ Modellversion 1.0 beschreibt genau eine VM pro Lauf. Eine Schülerzahl oder eine
 - Prüfung und Reservierung erfolgen atomar beim Erstellungsauftrag. Zwei gleichzeitige Aufträge können denselben freien Platz nicht beide erhalten.
 - Auf KubeVirt begrenzt eine ResourceQuota im verwalteten Namespace zusätzlich die Anzahl der VM- und VMI-Objekte auf jeweils 30.
 
-Die Quota schützt den lokalen Namespace auch bei konkurrierenden API-Aufrufen. Der Adapter prüft ihren beobachteten Zustand, bevor er eine VM erstellt. Gemeinsame Basisressourcen ausserhalb des verwalteten Namespace gehören nicht zu dieser Quota. Ein Reset behält seine bestehende Reservierung und erstellt erst nach dem Abbau neu.
+Die Quota schützt den lokalen Namespace auch bei konkurrierenden API-Aufrufen. Der Adapter prüft ihren beobachteten Zustand, bevor er eine VM erstellt. Gemeinsame Basisressourcen ausserhalb des verwalteten Namespace gehören nicht zu dieser Quota. Ein Reset behält seine bestehende Reservierung.
 
 Die Zahl 30 ist eine festgelegte Obergrenze, keine nachgewiesene Kapazität des Hosts. Es wurde kein Lastversuch mit 30 gleichzeitig nutzbaren VMs durchgeführt. Die Ressourcenanforderungen einer einzelnen VM werden weiterhin durch Modell und Plattform geprüft.
 
 ### 4.5 MCP-Vertrag und Adapterkommunikation
 
-Der Agent startet den konfigurierten Adapter als lokalen Unterprozess und kommuniziert über MCP mit stdio. Für jeden Werkzeugaufruf werden Verbindung und Prozess im SDK-Kontext verwaltet. stdout ist dem Protokoll vorbehalten; Diagnosen werden davon getrennt ausgegeben. Der KubeVirt-Provider führt die Kubernetes-Aufrufe aus. Der AWS-Adapter ruft EC2 und STS über Boto3 auf. Der Agent verwendet für beide denselben MCP-Client.
+Der Agent startet den konfigurierten Adapter als lokalen Unterprozess und kommuniziert über MCP mit stdio. Für jeden Werkzeugaufruf werden Verbindung und Prozess im SDK-Kontext verwaltet. stdout ist dem Protokoll vorbehalten; Diagnosen werden davon getrennt ausgegeben. Der KubeVirt-Provider führt die Kubernetes-Aufrufe aus, der AWS-Adapter ruft EC2 und STS über Boto3 auf. Für beide verwendet der Agent denselben MCP-Client.
 
 Die direkten Abhängigkeiten stehen festgeschrieben in `requirements.txt`: PyYAML 6.0.3, jsonschema 4.26.0, MCP-Python-SDK 2.3.0, AnyIO 4.15.1, httpx2 2.16.0 und Boto3 1.43.123. Grundlage der Client- und Server-Anbindung ist das [MCP-Python-SDK](https://github.com/modelcontextprotocol/python-sdk/tree/v2.3.0). Client und Server handeln beim Verbindungsaufbau die Protokollversion aus. Der lokale Durchstich verwendete `2026-07-28`; dies ist keine im eigenen Client fest eingetragene Protokollversion.
 
@@ -1581,7 +1581,7 @@ Die unterstützten Mindestanforderungen sind durch `t3.small` begrenzt. Mehr als
 
 Vor dem ersten Plattformaufruf sichert der Agent das Modell und den Auftrag. Der Adapter prüft die Subnetzzuordnung zur konfigurierten VPC und legt eine deterministisch benannte Security Group an. In einem weiteren Schritt bestätigt er die einzelne HTTP-Regel. Danach startet er genau eine Instanz mit öffentlicher IPv4, Systemdatenträger und Netzwerkschnittstelle. Der Start verlangt IMDSv2 und verwendet die CPU-Credit-Einstellung `standard`.
 
-Ein aus Lauf- und Operationskennung berechneter `ClientToken` kennzeichnet den EC2-Start. Vorhandene Ressourcen werden auf Modell, Auftrag und Startkonfiguration geprüft. Ein bereits sichtbarer passender Instanzbestand wird wiederverwendet. Die Funktionsprüfung dieses Wiederholungsfalls erfolgt automatisiert über die SDK-Schnittstelle. Der Live-Nachweis in Kapitel 5.6 umfasst einen regulären Start.
+Ein aus Lauf- und Operationskennung berechneter `ClientToken` kennzeichnet den EC2-Start. Vorhandene Ressourcen werden auf Modell, Auftrag und Startkonfiguration geprüft, und ein bereits sichtbarer passender Instanzbestand wird wiederverwendet. Diesen Wiederholungsfall prüfen die automatisierten Tests über die SDK-Schnittstelle, während der Live-Nachweis in Kapitel 5.6 einen regulären Start umfasst.
 
 | Kennzeichnung | Zuordnung |
 | --- | --- |
@@ -1595,7 +1595,7 @@ Die Tags werden beim Anlegen von Security Group, Instanz, EBS-Volume und Netzwer
 
 #### Status und Abbau
 
-Nach bestätigter Erstellung fragt der Agent den Instanzzustand und den HTTP-Testdienst ab. Erst eine laufende Instanz zusammen mit der erwarteten HTTP-Antwort führt zur gespeicherten Phase `ready`. Ein separater Statusaufruf fragt AWS und den Dienst erneut ab. Der ausgeführte Durchstich verwendet ausschliesslich die HTTP-Freigabe. Die Security Group enthält keine eingehende SSH-Regel.
+Nach bestätigter Erstellung fragt der Agent den Instanzzustand und den HTTP-Testdienst ab. Erst eine laufende Instanz zusammen mit der erwarteten HTTP-Antwort führt zur gespeicherten Phase `ready`. Ein separater Statusaufruf fragt AWS und den Dienst erneut ab. Der ausgeführte Durchstich verwendet ausschliesslich die HTTP-Freigabe, die Security Group enthält keine eingehende SSH-Regel.
 
 Vor einem schreibenden Werkzeugaufruf bestätigt der Adapter seine Prozesssitzung und gleicht das AWS-Konto über STS mit der Konfiguration ab. Für delete prüft er die gefundenen Ressourcen gegen Laufkennung, Modell-Hash und Region. Bekannte IDs, die in der Tag-Suche fehlen, werden zusätzlich über ihren ID-Filter gesucht. Widersprüchliche Besitzkennzeichnungen führen zu einem Fehler.
 
@@ -1629,7 +1629,7 @@ Diese Befehle zeigen die im Durchstich verwendeten Kennungen. Die Datenbank enth
 
 ### 4.10 Lesender Statuszugriff
 
-Der MCP-Statusserver `agent.mcp_server` bietet genau ein Werkzeug an. `lernumgebung_status` erhält die Laufkennung und liefert die gespeicherte Phase, den aktuellen VM-Zustand sowie die HTTP-Bereitschaft zurück. Der Server öffnet die SQLite-Datei im Lesemodus. Für die Live-Abfrage nutzt er `inspect_status`. Erstellung, Reset und Löschung stehen über die CLI zur Verfügung.
+Der MCP-Statusserver `agent.mcp_server` bietet genau ein Werkzeug an: `lernumgebung_status` erhält die Laufkennung und liefert die gespeicherte Phase, den aktuellen VM-Zustand sowie die HTTP-Bereitschaft zurück. Der Server öffnet die SQLite-Datei im Lesemodus und nutzt für die Live-Abfrage `inspect_status`. Erstellung, Reset und Löschung stehen über die CLI zur Verfügung.
 
 Die beiden MCP-Verbindungen haben unterschiedliche Endpunkte. Ein externer Client wie Claude Code ruft den Statusserver auf. Für die Plattformabfrage spricht der Agent den KubeVirt- oder AWS-Adapter separat über MCP stdio an. In den automatisierten Tests ruft ein MCP-Client das Statuswerkzeug über stdio auf. Ein Test vergleicht dabei die SQLite-Datei vor und nach der Abfrage. Ein weiterer prüft die Antwort auf eine unbekannte Laufkennung.
 
@@ -1694,11 +1694,11 @@ Ein Laufprotokoll enthält die folgenden Angaben. Fehlende Daten werden als fehl
 
 ### 5.3 Messläufe
 
-Die folgenden Abschnitte dokumentieren die ausgeführten Versuche. Ihre Ergebnisse werden entsprechend dem jeweiligen Zweck verwendet: technische Machbarkeit, Vorbereitung der Messung oder Vergleichsbasis.
+Die Ergebnisse der ausgeführten Versuche werden entsprechend dem jeweiligen Zweck verwendet: technische Machbarkeit, Vorbereitung der Messung oder Vergleichsbasis.
 
 #### KubeVirt-Referenzlauf
 
-Der Lauf `kv-ref-20260922-01` auf `dl380-01` bestätigte die manuelle Erstellung und Entfernung der Referenzumgebung. VM, HTTP-Dienst und SSH funktionierten; US38 ist abgeschlossen.
+Der Lauf `kv-ref-20260922-01` auf `dl380-01` bestätigte die manuelle Erstellung und Entfernung der Referenzumgebung. VM, HTTP-Dienst und SSH funktionierten. US38 ist abgeschlossen.
 
 | Merkmal | Konfiguration |
 | --- | --- |
@@ -1716,7 +1716,7 @@ Der Lauf `kv-ref-20260922-01` auf `dl380-01` bestätigte die manuelle Erstellung
 | Namespace-Abbau | Namespace entfernt, Test-PV zunächst noch `Released` |
 | Storage-Nachkontrolle | PV und zugeordnetes Datenverzeichnis entfernt |
 
-Die Nachkontrolle bezog sich auf den vorher gesicherten PV `pvc-af106e61-e080-46c8-8b38-4ba46f59b092` und seinen HostPath. Der bestehende PV `rwm-volume` blieb erhalten. Der Speicherabschluss wurde rund 163 Sekunden nach Abbaustart festgestellt. Eine Namespace-Löschung allein wäre dafür kein ausreichendes Endkriterium gewesen.
+Die Nachkontrolle bezog sich auf den vorher gesicherten PV `pvc-af106e61-e080-46c8-8b38-4ba46f59b092` und seinen HostPath. Der bestehende PV `rwm-volume` blieb erhalten. Der Speicherabschluss wurde rund 163 Sekunden nach Abbaustart festgestellt. Als Endkriterium hätte die Namespace-Löschung also nicht genügt.
 
 Das HTTP-Polling begann nach dem Erstellungsaufruf und lief selbst 234,367 Sekunden. Als beobachtete Aufbaudauer werden die 302,922 Sekunden ab Startmarker verwendet. Bedienzeit, Handlungszahl, Zugriff vom Laptop und Reset wurden in diesem Referenzlauf nicht gemessen beziehungsweise geprüft.
 
@@ -1740,7 +1740,7 @@ Belege: [Referenzprofil](messungen/laeufe/lernmaas-basis-20260930/config-referen
 
 #### LernMAAS-Basisserie
 
-Die drei Basisläufe wurden auf `cloud-au-30` durchgeführt. Sie verwendeten dieselbe reduzierte Referenzdefinition. Jeder Lauf umfasste Erstellung, manuelles Deployment, HTTP, SSH und anschliessenden Abbau. Alle drei technischen Abläufe waren erfolgreich.
+Die drei Basisläufe auf `cloud-au-30` verwendeten dieselbe reduzierte Referenzdefinition und umfassten jeweils Erstellung, manuelles Deployment, HTTP, SSH und anschliessenden Abbau. Alle drei technischen Abläufe waren erfolgreich.
 
 **Gemeinsame Eingaben**
 
@@ -1754,7 +1754,7 @@ Die drei Basisläufe wurden auf `cloud-au-30` durchgeführt. Sie verwendeten die
 | Zeitführung | UTC; vor jedem Lauf `NTPSynchronized=yes` |
 | Zeitgrenzen | 1800 s Aufbau, HTTP höchstens 900 s darin; Sollintervall und Anfrage-Timeout je 2 s. Löschaufruf höchstens 300 s, MAAS-Inventarabfrage höchstens 30 s. |
 
-Referenzprofil, Cloud-init, Erstellungsskript, öffentlicher Schlüssel und Beobachter sind in den drei Laufordnern identisch. Name, Architektur und Abbildsätze stimmen überein. Das veränderliche Feld `last_deployed` zählt nicht zur Abbildversion. Cache und Hintergrundlast wurden nicht separat gemessen.
+Referenzprofil, Cloud-init, Erstellungsskript, öffentlicher Schlüssel und Beobachter sind in den drei Laufordnern identisch, ebenso Name, Architektur und Abbildsätze. Das veränderliche Feld `last_deployed` zählt nicht zur Abbildversion. Cache und Hintergrundlast wurden nicht separat gemessen.
 
 | Lauf | VM-Name | Maschinen-ID | Pool-ID | Deployment-IP |
 | --- | --- | --- | ---: | --- |
@@ -1867,7 +1867,7 @@ Die Funktionsprüfung verbindet automatisierte Tests mit Aufrufen auf der lokale
 | Reset und Abbau | Bestätigter Abbau vor Neuerstellung, gleiche und neue Operationskennungen, verlorene Antworten, historische UIDs und Prüfung des Speicherabschlusses |
 | Bestehende Hilfswerkzeuge | Messproben, Issue-Verarbeitung und Repository-Konsistenz |
 
-Die vollständige automatisierte Prüfung läuft unter Python 3.12 ohne Clusterzugriff. Sie ist auch auf dem lokalen Zielsystem erfolgreich ausgeführt worden. Die [Tests im Repository](https://github.com/Cancani/diplomarbeit/tree/main/tests) und der [Dokumentationsworkflow](https://github.com/Cancani/diplomarbeit/actions/workflows/docs.yaml) machen die Codeprüfung wiederholbar. Ein erfolgreicher Testlauf allein belegt keinen Infrastrukturaufbau.
+Die vollständige automatisierte Prüfung läuft unter Python 3.12 ohne Clusterzugriff. Sie ist auch auf dem lokalen Zielsystem erfolgreich ausgeführt worden. Die [Tests im Repository](https://github.com/Cancani/diplomarbeit/tree/main/tests) und der [Dokumentationsworkflow](https://github.com/Cancani/diplomarbeit/actions/workflows/docs.yaml) machen die Codeprüfung wiederholbar. Einen Infrastrukturaufbau belegt ein erfolgreicher Testlauf nicht.
 
 Für die lokale Prüfung aus dem Repository-Verzeichnis:
 
@@ -1919,7 +1919,7 @@ Der Lauf `aws-s2-01` wurde vom Agenten auf `dl380-01` gegen das AWS Academy Lear
 | delete | Entfernung der vier Ressourcen bestätigt und Lauf vollständig entfernt |
 | Status nach delete | Gespeicherter Zustand `Nicht vorhanden`, VM und VM-Instanz nicht vorhanden, VM-Bereitschaft nein und null aktuell beobachtete Ressourcen |
 
-Zusätzlich wurde nach delete direkt mit der AWS CLI geprüft. Die Abfragen verwendeten das Profil `diplomarbeit` und die Region `us-east-1`. Sie waren unabhängig von den Agent-Tags.
+Nach delete habe ich den Bestand zusätzlich direkt mit der AWS CLI abgefragt. Die Abfragen verwendeten das Profil `diplomarbeit` und die Region `us-east-1` und waren unabhängig von den Agent-Tags.
 
 | Direkte AWS-Abfrage | Umfang | Ergebnis |
 | --- | --- | --- |
@@ -1929,7 +1929,7 @@ Zusätzlich wurde nach delete direkt mit der AWS CLI geprüft. Die Abfragen verw
 | `describe-security-groups` | Alle Security Groups ausser `default` | `[]` |
 | `describe-addresses` | Alle Elastic IPs | `[]` |
 
-Damit sind der automatische Aufbau, die Dienstbereitschaft und der Abbau im geprüften Konto und in der geprüften Region durch den Plattformbetrieb belegt. Die direkte Nachkontrolle bestätigte auch ausserhalb der Agent-Tags den leeren Bestand der abgefragten Ressourcenarten.
+Damit sind der automatische Aufbau, die Dienstbereitschaft und der Abbau im geprüften Konto und in der geprüften Region an einem echten Lauf belegt. Die direkte Nachkontrolle bestätigte auch ausserhalb der Agent-Tags den leeren Bestand der abgefragten Ressourcenarten.
 
 Die AWS-Tests prüfen die erwarteten Boto3-Aufrufe mit `botocore.stub.Stubber`. Dazu gehören Profil und Region, Ressourceninventar, der Start mit ClientToken und eingeschränkter HTTP-Regel sowie die Löschreihenfolge und Besitzprüfung. Die Aufrufe gegen das echte Learner Lab sind in den Laufnachweisen dokumentiert.
 
@@ -1943,7 +1943,7 @@ Die AWS-Tests prüfen die erwarteten Boto3-Aufrufe mit `botocore.stub.Stubber`. 
 
 #### AWS-Reset und Wiederaufnahme
 
-Im Learner Lab wurden mit derselben Referenz-YAML zwei weitere Funktionsläufe auf `dl380-01` ausgeführt. Die [Nachweisauszüge](nachweise/aws-agent-reset.txt) enthalten die gespeicherten Statuswerte, Ressourcen-IDs und die Ergebnisse der direkten AWS-Abfragen.
+Im Learner Lab habe ich mit derselben Referenz-YAML zwei weitere Funktionsläufe auf `dl380-01` ausgeführt. Die [Nachweisauszüge](nachweise/aws-agent-reset.txt) enthalten die gespeicherten Statuswerte, Ressourcen-IDs und die Ergebnisse der direkten AWS-Abfragen.
 
 | Lauf | Beobachtetes Ergebnis |
 | --- | --- |
@@ -1953,13 +1953,13 @@ Im Learner Lab wurden mit derselben Referenz-YAML zwei weitere Funktionsläufe a
 
 Nach dem abschliessenden delete meldete der Agent für beide Läufe `absent` und null beobachtete Ressourcen. Die direkte AWS-Abfrage nach IDs bestätigte für den regulären Reset beide Instanzgenerationen als `terminated`. Für die jeweiligen EBS-Volumes, Netzwerkschnittstellen und Security Groups gab es keine Treffer. Beim Abbruchlauf bestätigte die direkte Abfrage die IDs der nach der Wiederaufnahme erstellten Umgebung. Der Agent bestätigte den Abbau der ursprünglichen Ressourcen vor der Neuerstellung.
 
-Der Live-Test der Wiederaufnahme deckt Ctrl+C während des Abbaus ab. Die Fortsetzung nach Timeouts in der Abbau- und Erstellungsphase ist zusätzlich automatisiert geprüft. Beide Läufe dienen als Funktionsnachweise. Ihre Terminalausgaben enthalten keine durchgängigen Messmarker für die vergleichende PoC-Serie.
+Der Live-Test der Wiederaufnahme deckt Ctrl+C während des Abbaus ab. Die Fortsetzung nach Timeouts in der Abbau- und Erstellungsphase ist zusätzlich automatisiert geprüft. Beide Läufe sind Funktionsnachweise. Ihre Terminalausgaben enthalten keine durchgängigen Messmarker für die vergleichende PoC-Serie.
 
 ## 6 Diskussion des bisherigen Ergebnisses
 
-Die Funktionsläufe beantworten die erste Forschungsfrage für den gewählten Testfall. Dieselbe YAML-Datei beschreibt eine Ubuntu-VM mit HTTP-Testdienst auf KubeVirt und AWS EC2. Der Agent hat die Umgebung auf beiden Plattformen erstellt und aus der gespeicherten Definition neu aufgebaut. Die Prüfung umfasst eine VM pro Lauf und den festgelegten Testdienst. Vollständige Unterrichtsmodule und Klassensätze lagen ausserhalb des Versuchs.
+Die Funktionsläufe beantworten die erste Forschungsfrage für den gewählten Testfall. Dieselbe YAML-Datei beschreibt eine Ubuntu-VM mit HTTP-Testdienst auf KubeVirt und AWS EC2, und der Agent hat die Umgebung auf beiden Plattformen erstellt und aus der gespeicherten Definition neu aufgebaut. Die Prüfung umfasst eine VM pro Lauf und den festgelegten Testdienst. Vollständige Unterrichtsmodule und Klassensätze lagen ausserhalb des Versuchs.
 
-Für die zweite Forschungsfrage liegen Beobachtungen zur MCP-Anbindung vor. Beide Plattformadapter verwenden denselben Werkzeugvertrag. Der lesende Statusserver stellt die Statusprüfung zusätzlich einem externen MCP-Client bereit. Die Adapteranbindung benötigt pro Werkzeugaufruf einen Unterprozess und einen Verbindungsaufbau. Eine Gegenüberstellung mit direkten Aufrufen liegt im bisherigen Stand noch nicht vor. Der Zusatznutzen von MCP für die interne Adapteranbindung bleibt damit offen.
+Für die zweite Forschungsfrage liegen Beobachtungen zur MCP-Anbindung vor. Beide Plattformadapter verwenden denselben Werkzeugvertrag, und der lesende Statusserver stellt die Statusprüfung zusätzlich einem externen MCP-Client bereit. Die Adapteranbindung benötigt pro Werkzeugaufruf einen Unterprozess und einen Verbindungsaufbau. Weil eine Gegenüberstellung mit direkten Aufrufen im bisherigen Stand noch fehlt, bleibt der Zusatznutzen von MCP für die interne Adapteranbindung offen.
 
 Die LernMAAS-Basisserie liefert drei Aufbaudauern und drei Abbauzeiten. Auf KubeVirt und AWS dokumentieren die vorhandenen Funktionsläufe den Ablauf und die geprüften Fehlerfälle. Für einen Zeitvergleich fehlen die formalen Serien unter den festgelegten Messbedingungen. Die Versuche belegen die Machbarkeit für die Referenzumgebung. Für einen Entscheid über die Ablösung von LernMAAS fehlen unter anderem Erfahrungen mit Klassensätzen und dem Unterrichtsbetrieb.
 
@@ -2017,7 +2017,7 @@ Interne Betriebsunterlagen und die Reservationsliste sind in der IST-Analyse ben
 
 ### Nachweise und Aussagegrenzen
 
-Die Rohprotokolle und verwendeten Eingaben bleiben in den ursprünglichen Laufordnern erhalten. Die Versuchskapitel verlinken die für ihre Ergebnisse massgeblichen Dateien. Die Übersicht erleichtert die Zuordnung:
+Die Rohprotokolle und verwendeten Eingaben bleiben in den ursprünglichen Laufordnern erhalten. Die Versuchskapitel verlinken die für ihre Ergebnisse massgeblichen Dateien, die Übersicht ordnet sie zu:
 
 | Nachweis | Inhalt und Verwendung |
 | --- | --- |
