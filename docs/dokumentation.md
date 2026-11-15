@@ -2058,6 +2058,7 @@ Die Bestätigung des aktiven Budgetempfängers ist kein Test einer tatsächlich 
 ## Hilfsmittel
 
 - **ChatGPT** für Codevorschläge und Formulierungshilfe in der Dokumentation.
+- **Claude Code** für die Implementierung des MCP-Statusservers.
 
 ## Kontakt
 
