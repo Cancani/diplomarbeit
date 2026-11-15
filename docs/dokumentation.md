@@ -1257,7 +1257,7 @@ adapters:
 
 `stateFile` bezeichnet die lokale SQLite-Datei. Relative Pfade beziehen sich auf den Ordner der Konfigurationsdatei, nicht auf das aktuelle Arbeitsverzeichnis. Bei dieser Vorlage liegt die Datenbank deshalb unter `agent/beispiele/zustand.sqlite3`. `~` wird als Benutzerverzeichnis aufgelöst. Das Einlesen der Konfiguration erzeugt weder eine Datenbank noch einen Adapterprozess.
 
-`command` und `args` bestimmen den Adapterprozess, `timeoutSeconds` begrenzt einen MCP-Aufruf einschliesslich Verbindungsaufbau. Der Adapter wird mit dem Repository als Arbeitsverzeichnis gestartet. Bei `command: python` muss das virtuelle Python-Umfeld aktiviert sein.
+`command` und `args` bestimmen den Adapterprozess, `timeoutSeconds` begrenzt einen MCP-Aufruf einschliesslich Verbindungsaufbau. Der Adapter wird mit dem Repository als Arbeitsverzeichnis gestartet. Bei `command: python` startet der Agent den Adapter mit seinem eigenen Python-Interpreter. Das virtuelle Python-Umfeld muss dafür nicht aktiviert sein, solange der Agent selbst mit dessen Interpreter läuft.
 
 Der Konfigurationsleser verwendet denselben strikten YAML-Lader wie die Modellprüfung. Er weist unbekannte Felder, fehlende Pflichtangaben, falsche Datentypen und nicht positive Zeitgrenzen zurück. Fehlerausgaben nennen den Feldpfad, ohne eingegebene Konfigurationswerte auszugeben. Eigene Einstellungen können in `agent.local.yaml` liegen. Diese Datei sowie SQLite-Dateien und ihre Journaldateien sind von Git ausgeschlossen. Zugangsdaten und private Schlüssel gehören ausserhalb des Repositorys.
 

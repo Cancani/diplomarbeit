@@ -1,6 +1,7 @@
 """Konfigurierten MCP-Prozess starten und eine lesende Abfrage ausführen."""
 import asyncio
 from pathlib import Path
+import sys
 
 import anyio
 from mcp import Client, StdioServerParameters
@@ -18,9 +19,16 @@ def _leaves(error):
     return [error]
 
 
+def _command(adapter_config):
+    # 'python' meint den Interpreter des Agenten. So findet der Adapter dieselben
+    # Pakete, auch wenn das virtuelle Umfeld nicht aktiviert ist (SSH ohne Login-Shell).
+    command = adapter_config['command']
+    return sys.executable if command == 'python' and sys.executable else command
+
+
 async def _call(adapter_config, tool, arguments, reader):
     parameters = StdioServerParameters(
-        command=adapter_config['command'], args=adapter_config['args'], cwd=ROOT,
+        command=_command(adapter_config), args=adapter_config['args'], cwd=ROOT,
         env={'PYTHONIOENCODING': 'utf-8', 'PYTHONUTF8': '1',
              **adapter_config.get('_processGuard', {})})
     timeout = adapter_config['timeoutSeconds']

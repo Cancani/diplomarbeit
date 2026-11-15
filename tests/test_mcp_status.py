@@ -152,6 +152,11 @@ with Stubber(client) as stubber, patch('boto3.Session') as session:
             platform_status({'command': str(ROOT/'missing-program'), 'args': [], 'timeoutSeconds': 2})
         self.assertEqual(caught.exception.code, 'transport_error')
 
+    def test_python_command_uses_the_running_interpreter_without_activated_environment(self):
+        with tempfile.TemporaryDirectory() as folder, patch.dict(os.environ, {'PATH': folder}):
+            result = platform_status({**self.config('success'), 'command': 'python'})
+        self.assertEqual(result['status']['kubevirtPhase'], 'Deployed')
+
     def test_timeout_during_handshake_stops_the_child_process(self):
         with tempfile.TemporaryDirectory() as folder:
             heartbeat = Path(folder)/'heartbeat.txt'
