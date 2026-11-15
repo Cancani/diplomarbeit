@@ -1,3 +1,5 @@
+from contextlib import redirect_stderr
+from io import StringIO
 import json
 import os
 from pathlib import Path
@@ -5,12 +7,15 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 import yaml
 
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
-from agent.zustand import StateStore
+from agent.cli import build_parser, run
+from agent.zustand import StateError, StateStore
+from gemeinsam import MAX_VMS
 from modell.validierung import load_model
 
 
@@ -53,6 +58,56 @@ class AgentCliTests(unittest.TestCase):
                 self.assertEqual(result.returncode, 1)
                 self.assertIn(message, result.stderr)
                 self.assertNotIn('noch nicht implementiert', result.stderr)
+
+    def test_batch_uses_numbered_run_ids_for_create_status_and_delete(self):
+        config = ROOT/'agent/beispiele/konfiguration.yaml'
+        common = ['--run-id', 'gruppe', '--count', '5']
+        model = str(ROOT/'modell/beispiele/referenz.yaml')
+        counts = [f'gruppe-{index}' for index in range(1, 6)]
+        for operation, extra in (
+            ('create', [model, '--platform', 'kubevirt', '--operation-id', 'auftrag']),
+            ('status', []),
+            ('delete', ['--operation-id', 'abbau']),
+        ):
+            with self.subTest(operation=operation), patch(f'agent.lebenszyklus.{operation}') as command:
+                args = build_parser().parse_args(['--config', str(config), operation, *common, *extra])
+                self.assertEqual(run(args), 0)
+                self.assertEqual([call.args[1] for call in command.call_args_list], counts)
+                if operation != 'status':
+                    prefix = 'auftrag' if operation == 'create' else 'abbau'
+                    self.assertEqual([call.args[2] for call in command.call_args_list],
+                                     [f'{prefix}-{index}' for index in range(1, 6)])
+
+    def test_create_batch_stops_at_existing_vm_capacity_limit(self):
+        model_path = ROOT/'modell/beispiele/referenz.yaml'
+        model = load_model(model_path)
+        config = ROOT/'agent/beispiele/konfiguration.yaml'
+        args = build_parser().parse_args([
+            '--config', str(config), 'create', str(model_path), '--platform', 'kubevirt',
+            '--run-id', 'gruppe', '--count', '5', '--operation-id', 'auftrag',
+        ])
+        with tempfile.TemporaryDirectory() as folder:
+            store = StateStore(Path(folder)/'state.sqlite3')
+            for index in range(MAX_VMS - 1):
+                store.start_create(f'belegt-{index}', f'create-belegt-{index}', 'kubevirt', model)
+
+            def reserve_vm(config, run_id, operation_id, platform, definition, timeout):
+                store.start_create(run_id, operation_id, platform, definition)
+
+            stderr = StringIO()
+            with patch('agent.lebenszyklus.create', side_effect=reserve_vm) as create, redirect_stderr(stderr):
+                self.assertEqual(run(args), 1)
+            self.assertEqual([call.args[1] for call in create.call_args_list], ['gruppe-1', 'gruppe-2'])
+            self.assertIn('gruppe-2', stderr.getvalue())
+            self.assertIn(f'Obergrenze von {MAX_VMS}', stderr.getvalue())
+            self.assertEqual(store.get('gruppe-1')['phase'], 'creating')
+            with self.assertRaises(StateError):
+                store.get('gruppe-2')
+
+    def test_count_above_limit_is_rejected(self):
+        result = self.invoke(['status', '--run-id', 'gruppe', '--count', str(MAX_VMS + 1)])
+        self.assertEqual(result.returncode, 2)
+        self.assertIn(f'zwischen 1 und {MAX_VMS}', result.stderr)
 
     def test_valid_create_reports_adapter_start_failure(self):
         with tempfile.TemporaryDirectory() as folder:

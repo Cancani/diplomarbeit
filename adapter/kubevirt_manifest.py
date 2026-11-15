@@ -5,12 +5,12 @@ from copy import deepcopy
 
 from adapter.cloud_init import cloud_init
 from adapter.vertrag import AdapterError
+from gemeinsam import MAX_VMS
 from modell.snapshot import encode_snapshot
 
 
 NAMESPACE = 'diplomarbeit-agent'
 MANAGER = 'diplomarbeit-agent'
-MAX_VMS = 30
 IMAGE_URL = 'https://cloud-images.ubuntu.com/noble/20260911/noble-server-cloudimg-amd64.img'
 IMAGE_SHA256 = '612b2c0cc1bc413a6cb8c38fd611794caf0f2b436c50013d8b3794db12ad7354'
 

@@ -7,6 +7,7 @@ import uuid
 from modell.validierung import load_model, ModelValidationError
 from agent.konfiguration import ConfigurationError, load_config
 from agent.ausgabe import output_mode, platform_result
+from gemeinsam import MAX_VMS
 
 
 JSON_HELP = 'Vollständige JSON-Ausgabe für Skripte und Protokolle'
@@ -19,12 +20,20 @@ def positive_seconds(value):
     return number
 
 
+def vm_count(value):
+    number = int(value)
+    if not 1 <= number <= MAX_VMS:
+        raise argparse.ArgumentTypeError(f'Die Anzahl muss zwischen 1 und {MAX_VMS} liegen.')
+    return number
+
+
 def build_parser():
     parser = argparse.ArgumentParser(
         description='Lernumgebungen erstellen, prüfen, zurücksetzen und löschen.')
     parser.add_argument('--config', type=Path, required=True,
                         help='YAML-Datei der Agent-Konfiguration')
     parser.add_argument('--json', action='store_true', help=JSON_HELP)
+    parser.set_defaults(count=1)
     commands = parser.add_subparsers(dest='operation', required=True)
     probe = commands.add_parser('platform-status', help='Plattform über MCP lesend prüfen')
     probe.add_argument('--json', action='store_true', default=argparse.SUPPRESS,
@@ -41,6 +50,9 @@ def build_parser():
         command.add_argument('--json', action='store_true', default=argparse.SUPPRESS,
                              help=JSON_HELP)
         command.add_argument('--run-id', required=True, help='Kennung des Laufs')
+        if name in ('create', 'status', 'delete'):
+            command.add_argument('--count', type=vm_count, default=1,
+                                 help='Bei mehreren VMs Laufkennungen mit -1, -2 usw. bilden.')
         if name == 'create':
             command.add_argument('definition', type=Path, help='YAML-Datei der Lernumgebung')
             command.add_argument('--platform', required=True, choices=('kubevirt', 'aws'),
@@ -94,26 +106,46 @@ def run(args):
                 print(f'Ungültig: {message}', file=sys.stderr)
             return 1
 
+    from adapter.kubevirt_manifest import validate_id
     from adapter.vertrag import AdapterError
     from agent.lebenszyklus import create, status, reset, delete
     from agent.zustand import StateError
 
-    try:
-        if args.operation == 'status':
-            status(config, args.run_id)
-            return 0
-        operation_id = args.operation_id or uuid.uuid4().hex
-        if args.operation == 'create':
-            create(config, args.run_id, operation_id, args.platform, model, args.timeout_seconds)
-        elif args.operation == 'delete':
-            delete(config, args.run_id, operation_id, args.timeout_seconds)
-        else:
-            reset(config, args.run_id, operation_id, args.timeout_seconds)
-    except (AdapterError, StateError) as error:
-        label = f'Fehler ({error.code})' if isinstance(error, AdapterError) else 'Fehler'
-        print(f'{label}: {error}', file=sys.stderr)
-        return 1
-    except KeyboardInterrupt:
-        print('Operation unterbrochen; gespeicherten Zustand prüfen.', file=sys.stderr)
-        return 130
-    return 0
+    count = args.count
+    operation_prefix = getattr(args, 'operation_id', None)
+    suffixes = [''] if count == 1 else [f'-{index}' for index in range(1, count + 1)]
+    if count > 1:
+        try:
+            validate_id(args.run_id + suffixes[-1])
+            if operation_prefix:
+                validate_id(operation_prefix + suffixes[-1])
+        except AdapterError as error:
+            print(f'Ungültige Lauf- oder Operationskennung mit Nummernzusatz: {error}', file=sys.stderr)
+            return 1
+
+    result = 0
+    for suffix in suffixes:
+        run_id = args.run_id + suffix
+        try:
+            if args.operation == 'status':
+                status(config, run_id)
+                continue
+            operation_id = operation_prefix + suffix if operation_prefix else uuid.uuid4().hex
+            if args.operation == 'create':
+                create(config, run_id, operation_id, args.platform, model, args.timeout_seconds)
+            elif args.operation == 'delete':
+                delete(config, run_id, operation_id, args.timeout_seconds)
+            else:
+                reset(config, run_id, operation_id, args.timeout_seconds)
+        except (AdapterError, StateError) as error:
+            label = f'Fehler ({error.code})' if isinstance(error, AdapterError) else 'Fehler'
+            if count > 1:
+                label = f'{label} für {run_id}'
+            print(f'{label}: {error}', file=sys.stderr)
+            result = 1
+            if args.operation == 'create':
+                break
+        except KeyboardInterrupt:
+            print('Operation unterbrochen; gespeicherten Zustand prüfen.', file=sys.stderr)
+            return 130
+    return result

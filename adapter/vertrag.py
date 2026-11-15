@@ -6,6 +6,8 @@ Ein Plattformstatus bestätigt keine HTTP-Bereitschaft einer Lernumgebung.
 """
 from jsonschema import Draft202012Validator
 
+from gemeinsam import MAX_VMS
+
 
 ERRORS = {
     'command_not_found': 'Das Kubernetes-Werkzeug wurde nicht gefunden.',
@@ -20,7 +22,7 @@ ERRORS = {
     'transport_error': 'Der MCP-Adapter konnte nicht gestartet oder erreicht werden.',
     'invalid_request': 'Modell oder Auftragskennungen sind ungültig.',
     'resource_conflict': 'Vorhandene Ressourcen oder ihre Kennzeichnungen widersprechen dem Auftrag.',
-    'capacity_limit': 'Die Obergrenze von 30 verwalteten VMs ist erreicht.',
+    'capacity_limit': f'Die Obergrenze von {MAX_VMS} verwalteten VMs ist erreicht.',
     'storage_unverified': 'Die Zuordnung oder Entfernung des lokalen Datenträgers ist nicht bestätigt.',
 }
 

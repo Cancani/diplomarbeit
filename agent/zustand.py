@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 import sqlite3
 
+from gemeinsam import MAX_VMS
 from modell.snapshot import encode_snapshot
 
 
@@ -146,8 +147,8 @@ class StateStore:
         if run['phase'] not in allowed[kind]:
             raise StateError('Die Operation ist in der gespeicherten Phase nicht zulässig.')
         if kind == 'create' and connection.execute(
-                "SELECT COUNT(*) FROM runs WHERE phase <> 'absent'").fetchone()[0] >= 30:
-            raise StateError('Die Obergrenze von 30 reservierten oder vorhandenen VMs ist erreicht.')
+                "SELECT COUNT(*) FROM runs WHERE phase <> 'absent'").fetchone()[0] >= MAX_VMS:
+            raise StateError(f'Die Obergrenze von {MAX_VMS} reservierten oder vorhandenen VMs ist erreicht.')
         stage = 'creating' if kind == 'create' else 'deleting'
         phase, status = stage, 'running'
         if kind == 'delete' and run['phase'] == 'absent':
