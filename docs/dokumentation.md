@@ -1202,7 +1202,7 @@ Der Adapter ermittelt den tatsächlichen Prüfendpunkt. In der Definition stehen
 
 Höhere Kapazitäten als die Mindestwerte sind zulässig. Die Modellprüfung bestätigt jedoch keine verfügbare Host- oder Cloud-Kapazität. Auf KubeVirt entscheidet die Plattform über die tatsächliche Bereitstellung; Kontorechte, Quotas und verfügbare Instanztypen lassen sich durch das Schema allein nicht prüfen.
 
-Das Schema weist unbekannte Felder auf jeder Ebene zurück. Dadurch werden sowohl Schreibfehler als auch Plattformfelder wie `amiId`, `storageClass` und `nodePort` erkannt. Weitere Betriebssysteme oder mehrere VMs erfordern eine neue Festlegung des Modells und passende Tests.
+Das Schema weist unbekannte Felder auf jeder Ebene zurück. Dadurch werden sowohl Schreibfehler als auch Plattformfelder wie `amiId`, `storageClass` und `nodePort` erkannt. Für mehrere VMs kann dieselbe Definition in mehreren Läufen verwendet werden. Weitere Betriebssysteme oder mehrere VMs innerhalb derselben Lernumgebung erfordern eine Erweiterung des Modells.
 
 #### Lokale Validierung
 
@@ -1539,7 +1539,7 @@ python -m agent --config agent/beispiele/konfiguration.yaml delete \
   --operation-id delete-demo-01
 ```
 
-Jeder Befehl wird einzeln ausgeführt und sein Ergebnis geprüft. create endet bei erfolgreicher Erstellung mit `ready`. reset meldet den bestätigten Phasenwechsel über `reset_recreating` und schliesst mit `reset_completed`. delete meldet `deleted`. Zugangsadresse und vergebene Ports stehen in der jeweiligen Statusausgabe und können sich nach einem Reset ändern.
+Nach jedem Befehl wird das Ergebnis geprüft. Im JSON-Modus meldet der Agent den erfolgreichen Abschluss mit `ready` bei create, `reset_completed` bei reset und `deleted` bei delete. Zugangsadresse und vergebene Ports stehen in der Statusausgabe und können sich nach einem Reset ändern.
 
 Die Laufkennung bezeichnet die Umgebung, die Operationskennung einen einzelnen Auftrag. Beide bestehen aus Kleinbuchstaben, Ziffern und durch einzelne Bindestriche getrennten Teilen mit höchstens 63 Zeichen. Ohne `--operation-id` erzeugt die CLI eine neue Kennung. Für eine gezielte Wiederaufnahme wird die Kennung aus der Ausgabe erneut angegeben. Ein weiterer beabsichtigter Reset erhält beispielsweise `reset-demo-02`.
 
@@ -1557,6 +1557,16 @@ Für bestehende Läufe müssen Konfiguration und Zustandsdatenbank beibehalten w
 
 Für eine unabhängige Abbaukontrolle werden vor delete die UIDs und Speichermetadaten aus dem Inventar gesichert. Danach werden der laufbezogene Bestand im Namespace, die bekannten PV-Namen clusterweit und die gesicherten lokalen Datenverzeichnisse geprüft. Andere Läufe sowie gemeinsame Basisressourcen können weiterhin bestehen. Ein leerer Namespace allein ersetzt die PV- und Verzeichniskontrolle nicht.
 
+#### Mehrere Lernumgebungen erstellen
+
+Mit `--count` werden mehrere Läufe aus derselben Definition erstellt. Auf KubeVirt legt `--parallel` fest, wie viele Starts gleichzeitig laufen. Das folgende Beispiel erstellt `kv-parallel-1` und `kv-parallel-2`:
+
+```bash
+python -m agent --config agent/beispiele/konfiguration.yaml create modell/beispiele/referenz.yaml \
+  --platform kubevirt --run-id kv-parallel --count 2 --parallel 2 --operation-id create-kv-parallel
+```
+
+Mit `status` und `delete` lassen sich beide Läufe über `--run-id kv-parallel --count 2` prüfen und entfernen. Bei einem Fehler wartet der Agent auf die bereits gestarteten Aufträge und startet keine weiteren. Für die Wiederaufnahme wird derselbe Erstellungsbefehl mit derselben Operationskennung verwendet.
 
 ### 4.9 AWS-Adapter und EC2-Betrieb
 
@@ -1880,6 +1890,8 @@ python -m mkdocs build --strict
 ```
 
 Am 13. November 2026 habe ich auf `dl380-01` einen vollständigen KubeVirt-Lauf mit der Referenz-YAML ausgeführt. Nach `create` und nach `reset` bestätigte ein separater `status` die HTTP-Bereitschaft. Beim Reset wechselte die VM-UID, der Modell-Hash blieb gleich. Nach `delete` meldete der Agent `absent` und ein leeres Ressourceninventar. Bei der anschliessenden direkten Nachkontrolle fand ich keine Objekte des Laufs mehr. Auch die vier protokollierten PersistentVolumes und ihre Speicherpfade aus beiden VM-Generationen waren entfernt. Der [Laufauszug](messungen/laeufe/kv-normal-20261113-091803/normalablauf.txt) enthält die Ereignisse und das Ergebnis der Nachkontrolle.
+
+Auf KubeVirt lassen sich mehrere Lernumgebungen gleichzeitig erstellen. Ich habe zwei VMs parallel erstellt, die Testdienste geprüft und den Abbau beider VMs per Statusabfrage bestätigt.
 
 Weitere Funktionsprüfungen auf KubeVirt:
 
