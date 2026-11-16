@@ -1,4 +1,4 @@
-from contextlib import redirect_stderr
+from contextlib import redirect_stderr, redirect_stdout
 from io import StringIO
 import json
 import os
@@ -6,6 +6,7 @@ from pathlib import Path
 import subprocess
 import sys
 import tempfile
+from threading import Barrier
 import unittest
 from unittest.mock import patch
 import yaml
@@ -14,6 +15,7 @@ import yaml
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from agent.cli import build_parser, run
+from agent.ausgabe import emit
 from agent.zustand import StateError, StateStore
 from gemeinsam import MAX_VMS
 from modell.validierung import load_model
@@ -108,6 +110,50 @@ class AgentCliTests(unittest.TestCase):
         result = self.invoke(['status', '--run-id', 'gruppe', '--count', str(MAX_VMS + 1)])
         self.assertEqual(result.returncode, 2)
         self.assertIn(f'zwischen 1 und {MAX_VMS}', result.stderr)
+
+    def test_parallel_create_overlaps_and_keeps_run_ids_in_output(self):
+        config = ROOT/'agent/beispiele/konfiguration.yaml'
+        args = build_parser().parse_args([
+            '--config', str(config), 'create', str(ROOT/'modell/beispiele/referenz.yaml'),
+            '--platform', 'kubevirt', '--run-id', 'gruppe', '--count', '3', '--parallel', '2',
+        ])
+        first_pair = Barrier(2, timeout=5)
+
+        def create(config, run_id, operation_id, platform, model, timeout, *, cancel):
+            if run_id in ('gruppe-1', 'gruppe-2'):
+                first_pair.wait()
+            emit('create_started', run_id, operation_id)
+
+        output = StringIO()
+        with patch('agent.lebenszyklus.create', side_effect=create), redirect_stdout(output):
+            self.assertEqual(run(args), 0)
+        for run_id in ('gruppe-1', 'gruppe-2', 'gruppe-3'):
+            self.assertIn(f'[{run_id}] Lernumgebung wird erstellt.', output.getvalue())
+
+    def test_parallel_create_cannot_exceed_remaining_capacity(self):
+        config = ROOT/'agent/beispiele/konfiguration.yaml'
+        model_path = ROOT/'modell/beispiele/referenz.yaml'
+        model = load_model(model_path)
+        args = build_parser().parse_args([
+            '--config', str(config), 'create', str(model_path), '--platform', 'kubevirt',
+            '--run-id', 'gruppe', '--count', '2', '--parallel', '2',
+        ])
+        with tempfile.TemporaryDirectory() as folder:
+            store = StateStore(Path(folder)/'state.sqlite3')
+            for index in range(MAX_VMS - 1):
+                store.start_create(f'belegt-{index}', f'create-belegt-{index}', 'kubevirt', model)
+            ready = Barrier(2, timeout=5)
+
+            def reserve_vm(config, run_id, operation_id, platform, definition, timeout, *, cancel):
+                ready.wait()
+                store.start_create(run_id, operation_id, platform, definition)
+
+            stderr = StringIO()
+            with patch('agent.lebenszyklus.create', side_effect=reserve_vm), redirect_stderr(stderr):
+                self.assertEqual(run(args), 1)
+            self.assertEqual(stderr.getvalue().count(f'Obergrenze von {MAX_VMS}'), 1)
+            with store.connection() as connection:
+                self.assertEqual(connection.execute('SELECT COUNT(*) FROM runs').fetchone()[0], MAX_VMS)
 
     def test_valid_create_reports_adapter_start_failure(self):
         with tempfile.TemporaryDirectory() as folder:

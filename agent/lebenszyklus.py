@@ -142,7 +142,7 @@ def _failed(store, adapter, record, error):
 
 
 @_guarded
-def create(config, run_id, operation_id, platform, model, timeout_seconds=900):
+def create(config, run_id, operation_id, platform, model, timeout_seconds=900, *, cancel=None):
     validate_id(operation_id)
     snapshot, _ = encode_snapshot(model)
     adapter = _adapter(config, platform)
@@ -158,11 +158,13 @@ def create(config, run_id, operation_id, platform, model, timeout_seconds=900):
         previous = _recover(store, adapter, previous)
     if previous and previous['phase'] == 'ready':
         return _confirmed_ready(config, run_id)
+    if cancel is not None and cancel.is_set():
+        raise KeyboardInterrupt
     store.start_create(run_id, operation_id, platform, model, guarded=True)
     emit('create_started', run_id, operation_id)
     record = store.get(run_id)
     try:
-        return _create(store, adapter, record, time.monotonic() + timeout_seconds)
+        return _create(store, adapter, record, time.monotonic() + timeout_seconds, cancel=cancel)
     except (AdapterError, KeyboardInterrupt) as error:
         _failed(store, adapter, record, error)
         raise
@@ -231,10 +233,12 @@ def reset(config, run_id, operation_id, timeout_seconds=1200):
         raise
 
 
-def _create(store, adapter, record, deadline):
+def _create(store, adapter, record, deadline, *, cancel=None):
     run_id, operation_id = record['run_id'], record['operation']['operation_id']
     model = record['model_snapshot']
     while True:
+        if cancel is not None and cancel.is_set():
+            raise KeyboardInterrupt
         remaining = deadline - time.monotonic()
         if remaining <= 0:
             raise AdapterError('timeout')
@@ -250,6 +254,8 @@ def _create(store, adapter, record, deadline):
     last_state = None
     last_report = time.monotonic()
     while True:
+        if cancel is not None and cancel.is_set():
+            raise KeyboardInterrupt
         actual = _read(store, adapter, record, deadline - time.monotonic())
         remaining = deadline - time.monotonic()
         ready = (remaining > 0 and actual['vmReady'] and actual['vmiPhase'] == 'Running'

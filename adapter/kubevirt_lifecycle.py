@@ -42,7 +42,16 @@ class KubeVirtLifecycle(KubeVirtDeletion, KubeVirtProvider):
             namespace = control['metadata'].get('namespace')
             existing = self._object(control['kind'], control['metadata']['name'], deadline, namespace)
             if existing is None:
-                self._request('create', ['-f', '-'], deadline, control)
+                try:
+                    self._request('create', ['-f', '-'], deadline, control)
+                except AdapterError as error:
+                    if error.code != 'platform_error':
+                        raise
+                    # Ein paralleler Auftrag kann Namespace oder Quota inzwischen angelegt haben.
+                    existing = self._object(control['kind'], control['metadata']['name'], deadline, namespace)
+                    if existing is None:
+                        raise
+                    self._owned(existing, control)
                 return {'complete': False, 'resources': []}
             self._owned(existing, control)
             if control['kind'] == 'ResourceQuota':

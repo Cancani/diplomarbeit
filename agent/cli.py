@@ -1,7 +1,9 @@
 """Lernumgebungen mit persistentem Zustand und Plattformadaptern steuern."""
 import argparse
+from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
 from pathlib import Path
 import sys
+from threading import Event
 import uuid
 
 from modell.validierung import load_model, ModelValidationError
@@ -58,6 +60,8 @@ def build_parser():
             command.add_argument('--platform', required=True, choices=('kubevirt', 'aws'),
                                  help='Zielplattform')
             command.add_argument('--operation-id', help='Kennung des Erstellungsauftrags')
+            command.add_argument('--parallel', type=vm_count, default=1,
+                                 help='Gleichzeitige KubeVirt-Erstellungsaufträge (Standard: 1).')
             command.add_argument('--timeout-seconds', type=positive_seconds, default=900,
                                  help='Gesamte Zeitgrenze bis zur HTTP-Bereitschaft (Standard: 900)')
         if name in ('reset', 'delete'):
@@ -99,6 +103,10 @@ def run(args):
         platform_result(result, args.json)
         return 0
     if args.operation == 'create':
+        if args.parallel > args.count or (args.parallel > 1 and args.platform != 'kubevirt'):
+            print('--parallel darf bei KubeVirt höchstens --count sein und muss bei AWS 1 sein.',
+                  file=sys.stderr)
+            return 1
         try:
             model = load_model(args.definition)
         except ModelValidationError as error:
@@ -122,6 +130,9 @@ def run(args):
         except AdapterError as error:
             print(f'Ungültige Lauf- oder Operationskennung mit Nummernzusatz: {error}', file=sys.stderr)
             return 1
+
+    if args.operation == 'create' and args.parallel > 1:
+        return create_parallel(args, config, model, suffixes)
 
     result = 0
     for suffix in suffixes:
@@ -149,3 +160,46 @@ def run(args):
             print('Operation unterbrochen; gespeicherten Zustand prüfen.', file=sys.stderr)
             return 130
     return result
+
+
+def create_parallel(args, config, model, suffixes):
+    from adapter.vertrag import AdapterError
+    from agent.lebenszyklus import create
+    from agent.zustand import StateError
+
+    cancel = Event()
+
+    def create_one(suffix):
+        run_id = args.run_id + suffix
+        operation_id = args.operation_id + suffix if args.operation_id else uuid.uuid4().hex
+        with output_mode(args.json, prefix=run_id):
+            try:
+                create(config, run_id, operation_id, args.platform, model,
+                       args.timeout_seconds, cancel=cancel)
+            except (AdapterError, StateError) as error:
+                label = f'Fehler ({error.code})' if isinstance(error, AdapterError) else 'Fehler'
+                sys.stderr.write(f'{label} für {run_id}: {error}\n')
+                return False
+            except KeyboardInterrupt:
+                return False
+        return True
+
+    remaining = iter(suffixes)
+    failed = False
+    with ThreadPoolExecutor(max_workers=args.parallel) as executor:
+        try:
+            active = {executor.submit(create_one, next(remaining)) for _ in range(args.parallel)}
+            while active:
+                done, active = wait(active, return_when=FIRST_COMPLETED)
+                for future in done:
+                    if not future.result():
+                        failed = True
+                if not failed:
+                    for suffix in (next(remaining, None) for _ in done):
+                        if suffix is not None:
+                            active.add(executor.submit(create_one, suffix))
+        except KeyboardInterrupt:
+            cancel.set()
+            print('Operation unterbrochen; gespeicherten Zustand prüfen.', file=sys.stderr)
+            return 130
+    return int(failed)

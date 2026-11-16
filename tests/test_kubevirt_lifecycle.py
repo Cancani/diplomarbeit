@@ -133,6 +133,22 @@ class KubeVirtLifecycleTests(unittest.TestCase):
         self.assertTrue(cluster.create('run-01', 'operation-01', self.model)['complete'])
         self.assertEqual(len(cluster.writes), 4)
 
+    def test_parallel_bootstrap_accepts_owned_namespace_and_quota_after_create_conflict(self):
+        cluster = MemoryCluster()
+        create_object = cluster._request
+
+        def create_elsewhere(verb, arguments, deadline, document=None, allow_empty=False):
+            create_object(verb, arguments, deadline, document, allow_empty)
+            raise AdapterError('platform_error')
+
+        with patch.object(cluster, '_request', side_effect=create_elsewhere):
+            for _ in range(2):
+                self.assertEqual(cluster.create('run-01', 'operation-01', self.model),
+                                 {'complete': False, 'resources': []})
+        self.assertEqual([item['kind'] for item in cluster.writes], ['Namespace', 'ResourceQuota'])
+        self.assertEqual(cluster.create('run-01', 'operation-01', self.model)['resources'][0]['kind'],
+                         'VirtualMachine')
+
     def test_capacity_and_foreign_resource_conflicts_prevent_vm_creation(self):
         cluster = MemoryCluster()
         for _ in range(2):

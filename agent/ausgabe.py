@@ -3,10 +3,13 @@ from contextlib import contextmanager
 from contextvars import ContextVar
 from datetime import datetime, timezone
 import json
+from threading import Lock
 import time
 
 
 _renderer = ContextVar('agent_output', default=None)
+_prefix = ContextVar('agent_output_prefix', default=None)
+_output_lock = Lock()
 PHASES = {'absent': 'Nicht vorhanden', 'creating': 'Wird erstellt', 'ready': 'Bereit',
           'deleting': 'Wird gelöscht', 'error': 'Fehler'}
 VM_STATES = {'Absent': 'Nicht vorhanden', 'Provisioning': 'Wird bereitgestellt',
@@ -24,23 +27,28 @@ def emit(event, run_id, operation_id, **values):
     data = {'timeUtc': datetime.now(timezone.utc).isoformat(), 'event': event,
             'runId': run_id, 'operationId': operation_id, **values}
     renderer = _renderer.get()
-    if renderer is None:
-        print(json.dumps(data, ensure_ascii=False), flush=True)
-    else:
-        renderer(data)
+    with _output_lock:
+        if renderer is None:
+            print(json.dumps(data, ensure_ascii=False), flush=True)
+        else:
+            renderer(data)
 
 
 @contextmanager
-def output_mode(json_output=False):
+def output_mode(json_output=False, *, prefix=None):
     # Direkte Python-Aufrufe behalten JSON. Nur die CLI wählt die Textansicht.
     token = _renderer.set(None if json_output else HumanOutput())
+    prefix_token = _prefix.set(prefix)
     try:
         yield
     finally:
         _renderer.reset(token)
+        _prefix.reset(prefix_token)
 
 
 def write(message=''):
+    if prefix := _prefix.get():
+        message = f'[{prefix}] {message}'
     print(message, flush=True)
 
 
