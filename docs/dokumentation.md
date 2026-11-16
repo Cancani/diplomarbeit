@@ -976,7 +976,7 @@ Der bewilligte Antrag nennt einen Student-Account. Tatsächlich wird das AWS Aca
 
 #### 3.6.2 Kontobedingungen und Kostenkontrolle
 
-Die Lab-Bedingungen habe ich anhand der bereitgestellten Readme, Stand 24.06.2025, geprüft. Der praktische Test bestätigt die für eine einzelne Referenz-VM benötigten Rechte.
+Die Angaben zu den Lab-Bedingungen stammen aus der bereitgestellten Readme. Im praktischen Test reichten die verfügbaren Rechte für eine einzelne Referenz-VM aus.
 
 | Bedingung | Verwendeter Stand |
 | --- | --- |
@@ -1889,7 +1889,7 @@ bash -n scripts/create-issues.sh scripts/update-issues.sh
 python -m mkdocs build --strict
 ```
 
-Am 13. November 2026 habe ich auf `dl380-01` einen vollständigen KubeVirt-Lauf mit der Referenz-YAML ausgeführt. Nach `create` und nach `reset` bestätigte ein separater `status` die HTTP-Bereitschaft. Beim Reset wechselte die VM-UID, der Modell-Hash blieb gleich. Nach `delete` meldete der Agent `absent` und ein leeres Ressourceninventar. Bei der anschliessenden direkten Nachkontrolle fand ich keine Objekte des Laufs mehr. Auch die vier protokollierten PersistentVolumes und ihre Speicherpfade aus beiden VM-Generationen waren entfernt. Der [Laufauszug](messungen/laeufe/kv-normal-20261113-091803/normalablauf.txt) enthält die Ereignisse und das Ergebnis der Nachkontrolle.
+Auf `dl380-01` habe ich eine Lernumgebung aus der Referenz-YAML erstellt, zurückgesetzt und wieder entfernt. Der Testdienst war nach der Erstellung und nach dem Reset erreichbar. Beim Reset entstand eine neue VM aus derselben Definition. Nach dem Abbau fand ich keine Ressourcen des Laufs mehr. Die Nachkontrolle bestätigte auch, dass die vier protokollierten Speichervolumes und ihre Verzeichnisse entfernt waren. Die Details stehen im [Laufauszug](messungen/laeufe/kv-normal-20261113-091803/normalablauf.txt).
 
 Auf KubeVirt lassen sich mehrere Lernumgebungen gleichzeitig erstellen. Ich habe zwei VMs parallel erstellt, die Testdienste geprüft und den Abbau beider VMs per Statusabfrage bestätigt.
 
