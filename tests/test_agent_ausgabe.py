@@ -45,6 +45,12 @@ class OutputTests(unittest.TestCase):
         self.assertIn('Zeitlimit in 1 min 05 s.', text)
         self.assertNotIn('erfolgreich zurückgesetzt', text)
 
+    def test_error_names_operation_id_for_resume(self):
+        out = io.StringIO()
+        with redirect_stdout(out), output_mode():
+            emit('error', 'run-01', 'operation-01', code='interrupted', resources=[])
+        self.assertIn('denselben Befehl mit --operation-id operation-01 ausführen.', out.getvalue())
+
     def test_json_retains_full_events_and_output_context_is_restored_after_exception(self):
         out = io.StringIO()
         with redirect_stdout(out):

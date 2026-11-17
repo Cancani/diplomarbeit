@@ -132,7 +132,8 @@ class HumanOutput:
         elif event == 'error':
             write('Gespeicherter Zustand: Fehler')
             write(f'Bekannte Ressourcen zur weiteren Prüfung: {len(data["resources"])}')
-            write('Bestand mit status prüfen. Zum Fortsetzen denselben Befehl und dieselbe Operationskennung verwenden.')
+            write('Bestand mit status prüfen. Zum Fortsetzen denselben Befehl mit '
+                  f'--operation-id {data["operationId"]} ausführen.')
 
 
 def platform_result(result, json_output=False):
