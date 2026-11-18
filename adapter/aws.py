@@ -131,6 +131,7 @@ def _create_step(client, region, network, run_id, operation_id, model):
     expected = {'ManagedBy': MANAGED_BY, 'RunId': run_id, 'ModelHash': digest,
                 'OperationId': operation_id, 'LaunchConfig': launch_config}
     tags = [{'Key': key, 'Value': value} for key, value in expected.items()]
+    tags.append({'Key': 'Name', 'Value': run_id})
 
     inventory = _inventory(client, region, run_id)
     for (kind, _), (_, item, _) in inventory.items():

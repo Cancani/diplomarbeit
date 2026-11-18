@@ -125,6 +125,7 @@ class AwsCreateTests(unittest.TestCase):
             'OperationId': operation,
             'LaunchConfig': hashlib.sha256(f'{vpc}/{subnet}/{cidr}/{image}'.encode()).hexdigest(),
         }.items()]
+        tags.append({'Key': 'Name', 'Value': run})
         filters = {'Filters': [{'Name': 'tag:ManagedBy', 'Values': ['diplomarbeit-agent']},
                                {'Name': 'tag:RunId', 'Values': [run]}]}
         group = {'GroupId': 'sg-0123', 'GroupName': name, 'VpcId': vpc, 'Tags': tags, 'IpPermissions': []}
