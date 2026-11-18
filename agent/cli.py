@@ -7,7 +7,7 @@ from threading import Event
 import uuid
 
 from modell.validierung import load_model, ModelValidationError
-from agent.konfiguration import ConfigurationError, load_config
+from agent.konfiguration import ConfigurationError, default_config_path, load_config
 from agent.ausgabe import output_mode, platform_result
 from gemeinsam import MAX_VMS
 
@@ -32,8 +32,8 @@ def vm_count(value):
 def build_parser():
     parser = argparse.ArgumentParser(
         description='Lernumgebungen erstellen, prüfen, zurücksetzen und löschen.')
-    parser.add_argument('--config', type=Path, required=True,
-                        help='YAML-Datei der Agent-Konfiguration')
+    parser.add_argument('--config', type=Path,
+                        help='Agent-Konfiguration; hat Vorrang vor der Auswahl über --platform')
     parser.add_argument('--json', action='store_true', help=JSON_HELP)
     parser.set_defaults(count=1)
     commands = parser.add_subparsers(dest='operation', required=True)
@@ -52,6 +52,9 @@ def build_parser():
         command.add_argument('--json', action='store_true', default=argparse.SUPPRESS,
                              help=JSON_HELP)
         command.add_argument('--run-id', required=True, help='Kennung des Laufs')
+        if name != 'create':
+            command.add_argument('--platform', choices=('kubevirt', 'aws'),
+                                 help='Standardkonfiguration wählen und Laufplattform prüfen')
         if name in ('create', 'status', 'delete'):
             command.add_argument('--count', type=vm_count, default=1,
                                  help='Bei mehreren VMs Laufkennungen mit -1, -2 usw. bilden.')
@@ -75,16 +78,25 @@ def build_parser():
 def main(argv=None):
     sys.stdout.reconfigure(encoding='utf-8')
     sys.stderr.reconfigure(encoding='utf-8')
-    args = build_parser().parse_args(argv)
+    parser = build_parser()
+    args = parser.parse_args(argv)
+    if args.config is None and getattr(args, 'platform', None) is None:
+        parser.error('Bitte --platform oder eine Konfigurationsdatei mit --config angeben.')
     with output_mode(args.json):
         return run(args)
 
 
 def run(args):
+    source = args.config
     try:
-        config = load_config(args.config)
+        if source is None:
+            source = default_config_path(getattr(args, 'platform', None))
+        config = load_config(source)
     except ConfigurationError as error:
-        print(f'Konfigurationsfehler: {error}', file=sys.stderr)
+        hint = (f' Standardkonfiguration: {source}. '
+                'Eine andere Datei kann mit --config gewählt werden.'
+                if args.config is None and source is not None else '')
+        print(f'Konfigurationsfehler: {error}{hint}', file=sys.stderr)
         return 1
     if args.operation in ('platform-status', 'create') and args.platform not in config['adapters']:
         print(f'Für die Zielplattform {args.platform} ist kein Adapter konfiguriert.', file=sys.stderr)
@@ -117,7 +129,7 @@ def run(args):
     from adapter.kubevirt_manifest import validate_id
     from adapter.vertrag import AdapterError
     from agent.lebenszyklus import create, status, reset, delete
-    from agent.zustand import StateError
+    from agent.zustand import StateError, StateStore
 
     count = args.count
     operation_prefix = getattr(args, 'operation_id', None)
@@ -138,6 +150,13 @@ def run(args):
     for suffix in suffixes:
         run_id = args.run_id + suffix
         try:
+            platform = getattr(args, 'platform', None)
+            if args.operation != 'create' and platform:
+                if not config['stateFile'].is_file():
+                    raise StateError('Für diese Laufkennung ist keine Umgebung gespeichert.')
+                record = StateStore(config['stateFile']).get(run_id)
+                if record['platform'] != platform:
+                    raise StateError('Die gewählte Plattform passt nicht zum gespeicherten Lauf.')
             if args.operation == 'status':
                 status(config, run_id)
                 continue

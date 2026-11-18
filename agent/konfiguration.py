@@ -38,6 +38,15 @@ class ConfigurationError(ValueError):
     """Verständlicher Konfigurationsfehler ohne eingegebene Werte."""
 
 
+def default_config_path(platform):
+    """Die vorhandene Standardkonfiguration der gewählten Plattform verwenden."""
+    if platform == 'kubevirt':
+        return Path(__file__).resolve().parents[1] / 'agent/beispiele/konfiguration.yaml'
+    if platform == 'aws':
+        return Path.home() / '.config/diplomarbeit/aws.yaml'
+    raise ConfigurationError('Ohne --config muss eine Plattform mit --platform gewählt werden.')
+
+
 def load_config(path):
     try:
         source = Path(path).expanduser().resolve()

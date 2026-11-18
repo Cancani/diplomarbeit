@@ -1244,7 +1244,26 @@ Der Agent verbindet die Modellprüfung mit der Zustandsführung und dem Plattfor
 | `agent/mcp_client.py` | Konfigurierten MCP-Prozess aufrufen und Antworten prüfen |
 | `adapter/` | Werkzeugvertrag, KubeVirt- und AWS-Aufrufe sowie gemeinsame Cloud-init-Erzeugung |
 
-Die Konfiguration wird mit `--config` vor dem Befehlsnamen angegeben. Sie trennt technische Einstellungen vom fachlichen Modell. Die Vorlage in `agent/beispiele/konfiguration.yaml` lautet:
+Die Konfiguration trennt technische Einstellungen vom fachlichen Modell. Mit `--platform` wählt die CLI automatisch die passende Standarddatei:
+
+| Plattform | Standardkonfiguration |
+| --- | --- |
+| `kubevirt` | `agent/beispiele/konfiguration.yaml` im Repository, unabhängig vom Arbeitsverzeichnis |
+| `aws` | `~/.config/diplomarbeit/aws.yaml` im Benutzerverzeichnis |
+
+Eine ausdrücklich mit `--config` vor dem Befehlsnamen angegebene Datei hat Vorrang. Die Standarddateien müssen vorhanden und gültig sein; insbesondere wird die lokale AWS-Konfiguration weder erzeugt noch durch die Vorlage für reine Statusabfragen ersetzt. Fehlt eine Datei, nennt die Fehlermeldung den Standardpfad und verweist auf `--config`.
+
+```bash
+python -m agent create modell/beispiele/referenz.yaml \
+  --platform kubevirt --run-id lokal-01
+python -m agent create modell/beispiele/referenz.yaml \
+  --platform aws --run-id cloud-01
+python -m agent status --platform aws --run-id cloud-01
+```
+
+Auch `status`, `reset` und `delete` akzeptieren `--platform` zur Konfigurationsauswahl. Bei diesen Befehlen muss die Plattform zum gespeicherten Lauf passen, bevor die Lebenszyklusoperation ausgeführt wird. Ohne `--platform` bleibt `--config` erforderlich. Bestehende Aufrufe mit einer expliziten Konfiguration funktionieren unverändert.
+
+Die KubeVirt-Vorlage lautet:
 
 ```yaml
 stateFile: zustand.sqlite3

@@ -61,6 +61,15 @@ class AgentCliTests(unittest.TestCase):
                 self.assertIn(message, result.stderr)
                 self.assertNotIn('noch nicht implementiert', result.stderr)
 
+    def test_platform_selects_default_config_outside_the_repository(self):
+        result = self.invoke([
+            'create', str(ROOT/'modell/beispiele/ungueltig-ram.yaml'),
+            '--platform', 'kubevirt', '--run-id', 'default-01',
+        ], config=None)
+        self.assertEqual(result.returncode, 1)
+        self.assertIn('$.vm.resources.minMemoryMiB', result.stderr)
+        self.assertNotIn('Konfigurationsfehler', result.stderr)
+
     def test_batch_uses_numbered_run_ids_for_create_status_and_delete(self):
         config = ROOT/'agent/beispiele/konfiguration.yaml'
         common = ['--run-id', 'gruppe', '--count', '5']
@@ -233,10 +242,11 @@ class AgentCliTests(unittest.TestCase):
                 self.assertIn('keine Umgebung gespeichert', result.stderr)
                 self.assertEqual(result.stdout, '')
 
-    def test_config_option_is_required(self):
+    def test_config_or_platform_is_required(self):
         result = self.invoke(['status', '--run-id', 'lokal-01'], config=None)
         self.assertEqual(result.returncode, 2)
         self.assertIn('--config', result.stderr)
+        self.assertIn('--platform', result.stderr)
 
     def test_missing_config_file(self):
         with tempfile.TemporaryDirectory() as folder:
