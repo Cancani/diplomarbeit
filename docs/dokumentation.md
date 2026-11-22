@@ -159,7 +159,7 @@ Die Reviewtermine sind fest vereinbart, alle Uhrzeiten gelten für Zürich. Die 
 | Review | Termin | Durchführung |
 | --- | --- | --- |
 | 1 | Freitag, 23.10.2026, 11:30 bis 12:00 Uhr | Vor Ort, durchgeführt |
-| 2 | Mittwoch, 18.11.2026, 15:00 Uhr | Online |
+| 2 | Mittwoch, 18.11.2026, 16:00 bis 17:00 Uhr | Online, durchgeführt |
 | 3 | Mittwoch, 16.12.2026, 15:00 Uhr | Online |
 
 Die Sprintzeiträume geben die ursprüngliche Planung wieder. Das erste Review fand nach dem Ende von Sprint 1 statt.
@@ -249,7 +249,7 @@ Die Epics bündeln Initialisierung (E1), IST-Aufnahme (E2), lokale Plattform (E3
 | US37 | Kolloquiumspräsentation und Demo-Skript | E11 | 3 | Must |
 
 
-Must bezeichnet die verbindlichen Ergebnisse und ihre notwendigen Arbeitsschritte. US35 ist als ergänzende Einführung ein Should. Das Runbook bleibt auch bei Zeitdruck vollständig und enthält Aufbau, Bedienung, Fehleranalyse und Abbau. Eine knappe Beurteilung der Produktivübertragbarkeit bleibt ebenfalls bestehen. Zusätzliche Workshops, doppelte Grafiken und ausführliche Wiederholungen werden zuerst gekürzt.
+Must bezeichnet die verbindlichen Ergebnisse und ihre notwendigen Arbeitsschritte. Die Tabellen zeigen die ursprüngliche Priorisierung; US35 war darin als ergänzende Einführung ein Should. Nach dem zweiten Review wird die Schulung mit Durchführung und Feedbackauswertung in Sprint 3 verbindlich eingeplant (Kapitel 2.12). Das Runbook bleibt auch bei Zeitdruck vollständig und enthält Aufbau, Bedienung, Fehleranalyse und Abbau. Eine knappe Beurteilung der Produktivübertragbarkeit bleibt ebenfalls bestehen. Zusätzliche Workshops, doppelte Grafiken und ausführliche Wiederholungen werden zuerst gekürzt.
 
 ### 2.5 Aufwand und Kapazität
 
@@ -586,7 +586,23 @@ In Sprint 2 habe ich auf beiden Plattformen Funktionsprüfungen durchgeführt. F
 
 #### Sprint 2 Review mit den Experten
 
-**Termin:** Mittwoch, 18.11.2026, 15:00 Uhr, online, mit Kuno Vogt und Thanam Pangri.
+**Termin:** Mittwoch, 18.11.2026, 16:00 bis 17:00 Uhr, online, mit Kuno Vogt als Firmenexperte und Thanam Pangri als Schulexperte.
+
+Im zweiten Review stellte ich die Ziele von Sprint 1 und 2, den aktuellen Projektstand und meine Planung für Sprint 3 vor. Anhand einer aufgezeichneten Demonstration zeigte ich die Bereitstellung und Verwaltung der Referenzumgebung auf KubeVirt und AWS. Ergänzend demonstrierte ich die Statusabfrage über den MCP-Statusserver.
+
+Die Experten beurteilten die Präsentation und das strukturierte Vorgehen sehr positiv. Der Rückblick, die Einordnung des aktuellen Stands und der Ausblick machten den Projektfortschritt nachvollziehbar. Die Grundfunktionen waren demonstrierbar. Die formalen Messserien und die abschliessende Bewertung bleiben Aufgaben von Sprint 3.
+
+##### Rückmeldungen und Vereinbarungen
+
+| Thema | Ergebnis der Besprechung |
+| --- | --- |
+| Bedienung der CLI | Befehle, Parameter und Ausgaben sollen intuitiver und einheitlicher werden. Eine Statusabfrage ohne einzelne VM-Auswahl soll eine Übersicht liefern; eine gezielte Auswahl den Status der entsprechenden VM. |
+| Kennungen und VM-Anzahl | Der Zweck von Lauf- und Operationskennung sowie die Erstellung mehrerer VMs mit `--count` müssen verständlicher erklärt werden. Die YAML-Datei beschreibt die gewünschte Konfiguration. |
+| Statusausgabe | Die Anzahl beobachteter Infrastrukturressourcen ist für Nutzende nicht unmittelbar verständlich. Die Darstellung soll klarer zwischen VMs und zugehörigen Ressourcen unterscheiden. |
+| MCP und Programmaufruf | Die Funktionsweise des MCP-Statusservers und der beteiligten Komponenten soll genauer erläutert werden. Ebenso ist verständlich zu erklären, wie `python -m agent` das eigene Python-Package startet. |
+| Schulung | Eine kurze praktische Schulung mit einer Lehrperson und Beteiligung der Experten wird durchgeführt. Schulungsunterlagen, Rückmeldungen und daraus abgeleitete Verbesserungen werden dokumentiert. |
+| Zuständigkeiten | Die RASCI-Zuordnung wird mit den beteiligten Personen besprochen und fertiggestellt. |
+| Umfang und Abschluss | Der Projektantrag bleibt Grundlage des Umfangs. Der Scope-Freeze am 04.12.2026 bleibt bestehen. Messungen und Auswertung erfolgen gemäss Roadmap. |
 
 ### 2.12 Sprint 3
 
@@ -594,9 +610,9 @@ In Sprint 2 habe ich auf beiden Plattformen Funktionsprüfungen durchgeführt. F
 
 **Zeitraum:** 16.11. bis 18.12.2026.
 
-**Vorgeschlagenes Sprintziel:** Beide Plattformen vollständig prüfen, die Ergebnisse vergleichen, MCP bewerten und die Arbeit für die Abgabe abschliessen.
+**Sprintziel:** Die Referenzumgebung auf beiden Plattformen vollständig prüfen, die Ergebnisse mit dem bisherigen Verfahren vergleichen, die MCP-Architektur bewerten und die Abgabe abschliessen. Die Bedienung wird anhand der Reviewrückmeldungen und einer praktischen Schulung verbessert.
 
-Der ursprüngliche Sprint-3-Backlog umfasst 13 Stories mit 38 SP. US25 wurde vorgezogen und ist bei den Ergebnissen von Sprint 2 beschrieben. Die [Plantermine](https://github.com/users/Cancani/projects/7/views/2) stehen im Projektboard.
+Der ursprüngliche Sprint-3-Backlog umfasst 13 Stories mit 38 SP. US25 wurde vorgezogen und ist bei den Ergebnissen von Sprint 2 beschrieben. Nach dem zweiten Review wird die Planung um die verbindliche Durchführung der Schulung und die Besprechung der schulischen Vorgaben ergänzt. Die folgende Tabelle hält den ursprünglichen Planstand fest; die anschliessenden Arbeitspakete beschreiben die Ergänzungen aus dem Review. Die [Plantermine](https://github.com/users/Cancani/projects/7/views/2) stehen im Projektboard.
 
 | User Story | Aufgabe | SP |
 | --- | --- | --- |
@@ -614,7 +630,25 @@ Der ursprüngliche Sprint-3-Backlog umfasst 13 Stories mit 38 SP. US25 wurde vor
 | US36 | Dokumentation finalisieren, Management Summary, Ehrenwort | 3 |
 | US37 | Kolloquiumspräsentation und Demo-Skript | 3 |
 
-US35 bleibt eine ergänzende Aufgabe bei freier Kapazität. Der Scope-Freeze ist am 04.12.2026, die Abgabe am 18.12.2026.
+##### Arbeitspakete und vorgesehene Reihenfolge
+
+| Arbeitspaket | Zuordnung | Erwartetes Ergebnis |
+| --- | --- | --- |
+| Handbuch und Bewertungskriterien besprechen | Abschlussplanung, US36 | Mit Kuno Vogt und Thanam Pangri klären, welche Unterlagen und Nachweise erforderlich sind. Vereinbarungen dokumentieren. |
+| Bedienung verständlicher gestalten | Reviewnacharbeit zu US19 und US21 | Einheitliche Statusübersicht, gezielte Einzelabfrage und verständliche Bezeichnungen und Hilfetexte. |
+| Schulung vorbereiten und durchführen | US35 | Zielgruppe und Vorwissen klären, Zugänge und Anleitung vorbereiten sowie die wichtigsten Anwendungsfälle praktisch durchführen lassen. |
+| Schulungsfeedback einarbeiten | US35 und US34 | Rückmeldungen auswerten, umgesetzte beziehungsweise zurückgestellte Verbesserungen begründen und Anleitung nachführen. |
+| Formale Messserien durchführen | US26 bis US29 | Je drei vollständige Durchläufe auf KubeVirt und AWS mit Readiness- und Abbaunachweisen. |
+| Ergebnisse vergleichen und bewerten | US30 bis US33 | Vorher-Nachher-Vergleich, MCP-Bewertung, Wirtschaftlichkeit und Grenzen der Übertragbarkeit dokumentieren. |
+| Betriebsunterlagen und Abgabe abschliessen | US34, US36 und US37 | Runbook, Projektdokumentation und Präsentationsunterlagen fertigstellen; RASCI-Abstimmung dokumentieren. |
+
+##### Schulung und Feedbackrückfluss
+
+Die Schulung richtet sich an eine Lehrperson mit Erfahrung in der bestehenden MAAS-Umgebung. Vorgesehen sind 30 bis 60 Minuten. Nach einer Einführung führt die teilnehmende Person Erstellung, Statusprüfung, Reset und Abbau selbst aus. Die benötigten Zugänge werden vorbereitet; der Termin und die Teilnahme der Experten werden abgestimmt.
+
+Ich dokumentiere Schwierigkeiten, Rückfragen und Verbesserungsvorschläge. Anschliessend halte ich fest, welche Anpassungen daraus entstehen und welche Vorschläge mit Begründung zurückgestellt werden.
+
+US35 wird damit von einer optionalen Einführung zu einer verbindlich eingeplanten Schulung mit Feedbackauswertung. Die ursprüngliche Schätzung von 38 SP wird als Planstand beibehalten; eine Neubewertung des ergänzten Aufwands ist damit noch nicht vorgenommen. Der Scope-Freeze bleibt am 04.12.2026, die Abgabe am 18.12.2026.
 
 #### Sprint 3 Review mit den Experten
 
