@@ -42,7 +42,7 @@ class AgentCliTests(unittest.TestCase):
                 self.assertNotIn('__main__', result.stdout)
                 self.assertEqual(result.stderr, '')
         result = self.invoke(['--help'], config=None)
-        for expected in ['Laufkennung (--run-id)', 'Operationskennung (--operation-id)', 'Beispiele:']:
+        for expected in ['Name (--name)', '--run-id', 'Operationskennung (--operation-id)', 'Beispiele:']:
             self.assertIn(expected, result.stdout)
 
     def test_missing_and_unknown_arguments(self):
@@ -297,7 +297,7 @@ class AgentCliTests(unittest.TestCase):
                 self.assertEqual(result.returncode, 1)
                 self.assertIn('keine Umgebung gespeichert', result.stderr)
                 self.assertIn('"lokal-01"', result.stderr)
-                self.assertIn('status ohne --run-id', result.stderr)
+                self.assertIn('status ohne --name', result.stderr)
                 self.assertEqual(result.stdout, '')
 
     def test_invalid_ids_name_the_rule_before_any_state_access(self):
@@ -306,12 +306,12 @@ class AgentCliTests(unittest.TestCase):
         existed = state.exists()
         for arguments, expected in [
                 (['create', model, '--platform', 'kubevirt', '--run-id', 'Demo_01'],
-                 'Ungültige Laufkennung "Demo_01"'),
-                (['status', '--run-id', 'Demo_01'], 'Ungültige Laufkennung "Demo_01"'),
+                 'Ungültiger Name "Demo_01"'),
+                (['status', '--name', 'Demo_01'], 'Ungültiger Name "Demo_01"'),
                 (['reset', '--run-id', 'demo-01', '--operation-id', 'Reset 1'],
                  'Ungültige Operationskennung "Reset 1"'),
                 (['delete', '--run-id', 'a' * 62, '--count', '2'],
-                 'Ungültige Laufkennung mit Nummernzusatz')]:
+                 'Ungültiger Name mit Nummernzusatz')]:
             with self.subTest(arguments=arguments):
                 result = self.invoke(arguments)
                 self.assertEqual(result.returncode, 1)

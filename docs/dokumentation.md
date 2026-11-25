@@ -648,8 +648,8 @@ Die Rückmeldungen zur Bedienung aus dem zweiten Review habe ich vor der Schulun
 
 | Rückmeldung | Umsetzung | Beschrieben in |
 | --- | --- | --- |
-| Bedienung der CLI | `status` ohne `--run-id` listet die gespeicherten Lernumgebungen mit Plattform, gespeichertem Zustand und letzter Änderung. Mit `--run-id` folgt der aktuelle Status einer einzelnen Lernumgebung. Die Plattform wird nur beim Erstellen angegeben; die übrigen Befehle lesen sie aus dem gespeicherten Lauf. | Kapitel 4.3 und 4.8 |
-| Kennungen und VM-Anzahl | Die Hilfe erklärt Laufkennung, Operationskennung und `--count`. Die Beispielbefehle kommen ohne Operationskennung aus; sie wird nur angegeben, um einen unterbrochenen Auftrag fortzusetzen. | Kapitel 4.3 und 4.8 |
+| Bedienung der CLI | `status` ohne `--name` listet die vorhandenen Lernumgebungen mit Plattform, gespeichertem Zustand und letzter Änderung. Mit `--name` folgt der aktuelle Status einer einzelnen Lernumgebung. Die Plattform wird nur beim Erstellen angegeben; die übrigen Befehle lesen sie aus dem gespeicherten Lauf. | Kapitel 4.3 und 4.8 |
+| Kennungen und VM-Anzahl | Die Laufkennung wird in der CLI als frei gewählter Name mit `--name` angegeben. Die Hilfe erklärt Name, Operationskennung und `--count`. Die Beispielbefehle kommen ohne Operationskennung aus; sie wird nur angegeben, um einen unterbrochenen Auftrag fortzusetzen. | Kapitel 4.3 und 4.8 |
 | Statusausgabe | Die Statusansicht nennt die Zahl der virtuellen Maschinen getrennt von den zugehörigen Ressourcen und gliedert diese nach Ausführung, Speicher und Netzwerk. | Kapitel 4.3 |
 | MCP und Programmaufruf | Der Start über `python -m agent`, die Stationen eines Befehls und die beiden MCP-Verbindungen sind beschrieben. Die Hilfe zeigt den Programmnamen und Beispielbefehle. | Kapitel 4.3 und 4.10 |
 
@@ -1325,11 +1325,11 @@ Drei Angaben kommen in fast jedem Befehl vor. Die Hilfe `python -m agent --help`
 
 | Angabe | Bedeutung | Beispiel |
 | --- | --- | --- |
-| Laufkennung, `--run-id` | Name der Lernumgebung. Sie bleibt für create, status, reset und delete gleich. | `demo-01` |
+| Name, `--name` | Frei gewählter Name der Maschine. Er bleibt für create, status, reset und delete gleich. Intern heisst er Laufkennung; die frühere Schreibweise `--run-id` gilt weiter. | `demo-01` |
 | Operationskennung, `--operation-id` | Kennung eines einzelnen Auftrags. Der Agent erzeugt sie selbst. Sie wird nur angegeben, um einen unterbrochenen Auftrag fortzusetzen. | `reset-demo-01` |
-| Anzahl, `--count` | Mehrere gleiche Lernumgebungen aus derselben Definition. Die Laufkennungen erhalten die Endungen `-1`, `-2` und so weiter. | `--run-id demo --count 2` ergibt `demo-1` und `demo-2` |
+| Anzahl, `--count` | Mehrere gleiche Lernumgebungen aus derselben Definition. Die Namen erhalten die Endungen `-1`, `-2` und so weiter. | `--name demo --count 2` ergibt `demo-1` und `demo-2` |
 
-Für den normalen Ablauf genügt die Laufkennung. Nach einem Fehler nennt die Ausgabe die Operationskennung, mit der sich der Auftrag fortsetzen lässt. Eine ungültig geschriebene Kennung weist die CLI mit der Schreibregel und einem Beispiel zurück. Bei einer unbekannten Laufkennung nennt die Meldung die Kennung und verweist auf die Übersicht.
+Für den normalen Ablauf genügt der Name. Nach einem Fehler nennt die Ausgabe die Operationskennung, mit der sich der Auftrag fortsetzen lässt. Eine ungültig geschriebene Kennung weist die CLI mit der Schreibregel und einem Beispiel zurück. Bei einer unbekannten Laufkennung nennt die Meldung die Kennung und verweist auf die Übersicht.
 
 #### Konfiguration
 
@@ -1344,23 +1344,23 @@ Eine ausdrücklich mit `--config` vor dem Befehlsnamen angegebene Datei hat Vorr
 
 ```bash
 python -m agent create modell/beispiele/referenz.yaml \
-  --platform kubevirt --run-id lokal-01
+  --platform kubevirt --name lokal-01
 python -m agent create modell/beispiele/referenz.yaml \
-  --platform aws --run-id cloud-01
-python -m agent status --run-id cloud-01
+  --platform aws --name cloud-01
+python -m agent status --name cloud-01
 ```
 
 Die Plattform wird nur bei `create` gewählt. `status`, `reset` und `delete` lesen sie aus dem gespeicherten Lauf und verwenden die Standardkonfiguration dieser Plattform. Ausgangspunkt ist die Zustandsdatei der KubeVirt-Standardkonfiguration. `--platform` bleibt bei diesen Befehlen erlaubt; die Angabe muss dann zum gespeicherten Lauf passen. Bestehende Aufrufe mit `--platform` oder einer expliziten Konfiguration funktionieren unverändert.
 
-Ohne `--run-id` zeigt `status` eine Übersicht der vorhandenen Lernumgebungen mit Laufkennung, Plattform, gespeichertem Zustand und Zeitpunkt der letzten Änderung. Abgebaute Lernumgebungen nennt die Übersicht nur als Zahl; mit `--all` erscheinen auch sie. Mit `--platform` erscheinen nur die Läufe dieser Plattform.
+Ohne `--name` zeigt `status` eine Übersicht der vorhandenen Lernumgebungen mit Laufkennung, Plattform, gespeichertem Zustand und Zeitpunkt der letzten Änderung. Abgebaute Lernumgebungen nennt die Übersicht nur als Zahl; mit `--all` erscheinen auch sie. Mit `--platform` erscheinen nur die Läufe dieser Plattform.
 
 ```bash
 python -m agent status
 python -m agent status --all
-python -m agent status --run-id lokal-01
+python -m agent status --name lokal-01
 ```
 
-Die Übersicht liest die SQLite-Datei nur lesend und ruft keine Plattform auf. Sie bestätigt deshalb weder den VM-Zustand noch die HTTP-Bereitschaft. Den aktuellen Zustand einer einzelnen Lernumgebung liefert `status --run-id`. Im JSON-Modus erscheint die Übersicht als ein Objekt mit dem Ereignis `overview` und der Liste `runs`; sie enthält dort immer alle gespeicherten Läufe.
+Die Übersicht liest die SQLite-Datei nur lesend und ruft keine Plattform auf. Sie bestätigt deshalb weder den VM-Zustand noch die HTTP-Bereitschaft. Den aktuellen Zustand einer einzelnen Lernumgebung liefert `status --name`. Im JSON-Modus erscheint die Übersicht als ein Objekt mit dem Ereignis `overview` und der Liste `runs`; sie enthält dort immer alle gespeicherten Läufe.
 
 Die KubeVirt-Vorlage lautet:
 
@@ -1388,7 +1388,7 @@ Die Hilfe funktioniert ohne Konfigurationsdatei. Die CLI verwendet folgende Exit
 | 2 | Ungültige oder fehlende Kommandozeilenargumente |
 | 130 | Operation mit Ctrl+C unterbrochen |
 
-Standardausgabe und Fehlerausgabe verwenden UTF-8. Die CLI zeigt standardmässig lesbare Meldungen mit Lauf und Auftrag, aktuellem Fortschritt und einer Ergebnisübersicht. Bei Erstellung und Reset wird ausdrücklich zwischen laufender VM und bestätigtem HTTP-Dienst unterschieden. Die Statusansicht trennt gespeicherte Phase, VM-Zustand, VM-Bereitschaft und HTTP-Bereitschaft. Den Ressourcenbestand zeigt sie in zwei Zeilen: die Zahl der virtuellen Maschinen und die Zahl der zugehörigen Ressourcen, gegliedert nach Ausführung, Speicher und Netzwerk. Eine Lernumgebung mit einer VM umfasst auf KubeVirt deshalb mehrere Ressourcen, etwa Datenträger und Netzwerkdienst. Der Zustand der VM-Instanz erscheint nur, wenn er vom VM-Zustand abweicht. Verfügbare HTTP- und SSH-Zugangsangaben erscheinen beim Ergebnis. Beim Abbau werden bestätigte Entfernungen und die verbleibende Anzahl bekannter Ressourcen angezeigt. Unveränderte Abbaumeldungen erscheinen höchstens alle 30 Sekunden.
+Standardausgabe und Fehlerausgabe verwenden UTF-8. Die CLI zeigt standardmässig lesbare Meldungen mit dem Namen in der Zeile `Maschine`, dem Auftrag, aktuellem Fortschritt und einer Ergebnisübersicht. Bei Erstellung und Reset wird ausdrücklich zwischen laufender VM und bestätigtem HTTP-Dienst unterschieden. Die Statusansicht trennt gespeicherte Phase, VM-Zustand, VM-Bereitschaft und HTTP-Bereitschaft. Den Ressourcenbestand zeigt sie in zwei Zeilen: die Zahl der virtuellen Maschinen und die Zahl der zugehörigen Ressourcen, gegliedert nach Ausführung, Speicher und Netzwerk. Eine Lernumgebung mit einer VM umfasst auf KubeVirt deshalb mehrere Ressourcen, etwa Datenträger und Netzwerkdienst. Der Zustand der VM-Instanz erscheint nur, wenn er vom VM-Zustand abweicht. Verfügbare HTTP- und SSH-Zugangsangaben erscheinen beim Ergebnis. Beim Abbau werden bestätigte Entfernungen und die verbleibende Anzahl bekannter Ressourcen angezeigt. Unveränderte Abbaumeldungen erscheinen höchstens alle 30 Sekunden.
 
 Mit `--json` bleibt die vollständige maschinenlesbare Ausgabe verfügbar. Lebenszyklusereignisse erscheinen dann wie bisher als JSON-Zeilen mit UTC-Zeitstempel, Ereignis, Laufkennung und Operationskennung. Zustandsangaben, Ressourcen-UIDs und Speichermetadaten bleiben enthalten. `platform-status` liefert in diesem Modus das strukturierte Plattformobjekt einschliesslich MCP-Protokollversion. Die Option kann vor oder nach dem Befehlsnamen stehen. Skripte, die CLI-Ausgaben als JSON lesen, müssen `--json` setzen. Direkte Python-Aufrufe der Lebenszyklusfunktionen behalten die JSON-Ereignisse als Voreinstellung.
 
@@ -1634,7 +1634,7 @@ Ohne weitere Angabe gilt die Standardkonfiguration. Eine andere Konfigurationsda
 Für eine vollständige maschinenlesbare Statusausgabe wird `--json` ergänzt:
 
 ```bash
-python -m agent status --run-id demo-01 --json
+python -m agent status --name demo-01 --json
 ```
 
 Dieselbe Option steht bei create, reset, delete und platform-status zur Verfügung. Eine Umleitung von stdout speichert die JSON-Ausgabe; Fehlermeldungen bleiben auf stderr. Die Nachweisauszüge enthalten die Ausgabe des jeweils dort genannten Code-Stands.
@@ -1648,10 +1648,10 @@ python -m agent status
 Die folgenden Befehle verwenden für eine Beispielumgebung durchgehend die Laufkennung `demo-01`:
 
 ```bash
-python -m agent create modell/beispiele/referenz.yaml --platform kubevirt --run-id demo-01
-python -m agent status --run-id demo-01
-python -m agent reset --run-id demo-01
-python -m agent delete --run-id demo-01
+python -m agent create modell/beispiele/referenz.yaml --platform kubevirt --name demo-01
+python -m agent status --name demo-01
+python -m agent reset --name demo-01
+python -m agent delete --name demo-01
 ```
 
 Nach jedem Befehl wird das Ergebnis geprüft. Im JSON-Modus meldet der Agent den erfolgreichen Abschluss mit `ready` bei create, `reset_completed` bei reset und `deleted` bei delete. Zugangsadresse und vergebene Ports stehen in der Statusausgabe und können sich nach einem Reset ändern.
@@ -1661,8 +1661,8 @@ Die Laufkennung bezeichnet die Umgebung, die Operationskennung einen einzelnen A
 Nach einem behandelten Fehler wird zuerst der Status gelesen. Ein unterbrochener Reset wird anschliessend mit derselben Kennung und einer passenden Zeitgrenze fortgesetzt. Die Kennung steht in der Fehlermeldung des unterbrochenen Auftrags:
 
 ```bash
-python -m agent status --run-id demo-01
-python -m agent reset --run-id demo-01 \
+python -m agent status --name demo-01
+python -m agent reset --name demo-01 \
   --operation-id <Operationskennung> --timeout-seconds 1200
 ```
 
@@ -1676,10 +1676,10 @@ Mit `--count` werden mehrere Läufe aus derselben Definition erstellt. Auf KubeV
 
 ```bash
 python -m agent create modell/beispiele/referenz.yaml --platform kubevirt \
-  --run-id kv-parallel --count 2 --parallel 2 --operation-id create-kv-parallel
+  --name kv-parallel --count 2 --parallel 2 --operation-id create-kv-parallel
 ```
 
-Mit `status` und `delete` lassen sich beide Läufe über `--run-id kv-parallel --count 2` prüfen und entfernen. Bei einem Fehler wartet der Agent auf die bereits gestarteten Aufträge und startet keine weiteren. Für die Wiederaufnahme wird derselbe Erstellungsbefehl mit derselben Operationskennung verwendet.
+Mit `status` und `delete` lassen sich beide Läufe über `--name kv-parallel --count 2` prüfen und entfernen. Bei einem Fehler wartet der Agent auf die bereits gestarteten Aufträge und startet keine weiteren. Für die Wiederaufnahme wird derselbe Erstellungsbefehl mit derselben Operationskennung verwendet.
 
 ### 4.9 AWS-Adapter und EC2-Betrieb
 
@@ -2100,7 +2100,7 @@ Die LernMAAS-Basisserie liefert drei Aufbaudauern und drei Abbauzeiten. Auf Kube
 | cloud-init | Erstkonfiguration einer Maschine beim ersten Start, beispielsweise für SSH-Schlüssel und Dienststart |
 | DataVolume | Von CDI verwendetes Objekt zur Verwaltung der Befüllung eines Volumes |
 | KubeVirt | Kubernetes-Erweiterung für den Betrieb virtueller Maschinen als Kubernetes-Ressourcen |
-| Laufkennung | Name einer Lernumgebung im Agenten; bleibt für Erstellung, Statusprüfung, Reset und Abbau gleich |
+| Laufkennung | Name einer Lernumgebung im Agenten; bleibt für Erstellung, Statusprüfung, Reset und Abbau gleich. In der CLI mit `--name` angegeben und in der Zeile `Maschine` angezeigt |
 | LernMAAS | TBZ-Umsetzung von Lernumgebungen mit MAAS, Modulprofilen und Hilfsskripten |
 | MAAS | Metal as a Service; Grundlage der heutigen Maschinenverwaltung und Bereitstellung |
 | MCP | Model Context Protocol; verbindet den Agenten mit dem lokal gestarteten Plattformadapter |

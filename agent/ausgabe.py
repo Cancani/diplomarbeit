@@ -89,7 +89,7 @@ class HumanOutput:
 
     def context(self, data):
         if self.run != data['runId']:
-            write(f'Lauf: {data["runId"]}')
+            write(f'Maschine: {data["runId"]}')
             self.run = data['runId']
         if self.operation != data['operationId']:
             write(f'Auftrag: {data["operationId"]}')
@@ -190,7 +190,7 @@ def run_overview(runs, json_output=False, show_all=False):
     else:
         write('Es sind keine Lernumgebungen vorhanden.')
     if shown:
-        rows = [('Laufkennung', 'Plattform', 'Gespeicherter Zustand', 'Letzte Änderung (UTC)')]
+        rows = [('Name', 'Plattform', 'Gespeicherter Zustand', 'Letzte Änderung (UTC)')]
         for run in shown:
             rows.append((run['run_id'], PLATFORMS.get(run['platform'], run['platform']),
                          PHASES.get(run['phase'], 'Unbekannt'),
@@ -201,7 +201,7 @@ def run_overview(runs, json_output=False, show_all=False):
     if removed:
         write(f'Abgebaute Lernumgebungen: {removed} (Anzeige mit status --all)')
     if shown:
-        write('Live-Zustand einer Lernumgebung: status --run-id <Laufkennung>')
+        write('Live-Zustand einer Maschine: status --name <Name>')
 
 
 def platform_result(result, json_output=False):

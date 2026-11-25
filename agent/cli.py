@@ -15,26 +15,28 @@ from gemeinsam import MAX_VMS
 
 
 JSON_HELP = 'Vollständige JSON-Ausgabe für Skripte und Protokolle'
-RUN_ID_HELP = 'Laufkennung: Name der Lernumgebung, bleibt für alle Befehle gleich'
+RUN_ID_HELP = ('Name der Maschine, frei gewählt; bleibt für alle Befehle gleich '
+               '(frühere Schreibweise: --run-id)')
 OPERATION_ID_HELP = ('Operationskennung des Auftrags; wird ohne Angabe erzeugt und nur '
                      'angegeben, um einen unterbrochenen Auftrag fortzusetzen')
 ID_RULE = ('Erlaubt sind Kleinbuchstaben, Ziffern und einzelne Bindestriche, '
            'höchstens 63 Zeichen. Beispiel: demo-01')
 EXAMPLES = '''Begriffe:
-  Laufkennung (--run-id)
-      Name einer Lernumgebung. Sie bleibt für create, status, reset und delete gleich.
+  Name (--name)
+      Frei gewählter Name der Maschine. Er bleibt für create, status, reset und
+      delete gleich. Die frühere Schreibweise --run-id gilt weiter.
   Operationskennung (--operation-id)
       Kennung eines einzelnen Auftrags. Der Agent erzeugt sie selbst. Sie wird nur
       angegeben, um einen unterbrochenen Auftrag fortzusetzen.
   Anzahl (--count)
-      Mehrere gleiche Lernumgebungen. Die Laufkennungen erhalten die Endungen -1, -2 usw.
+      Mehrere gleiche Lernumgebungen. Die Namen erhalten die Endungen -1, -2 usw.
 
 Beispiele:
-  python -m agent create modell/beispiele/referenz.yaml --platform kubevirt --run-id demo-01
+  python -m agent create modell/beispiele/referenz.yaml --platform kubevirt --name demo-01
   python -m agent status
-  python -m agent status --run-id demo-01
-  python -m agent reset --run-id demo-01
-  python -m agent delete --run-id demo-01
+  python -m agent status --name demo-01
+  python -m agent reset --name demo-01
+  python -m agent delete --name demo-01
 
 Die Plattform wird nur bei create gewählt. Die übrigen Befehle lesen sie aus der
 gespeicherten Lernumgebung.
@@ -81,12 +83,14 @@ def build_parser():
         command.add_argument('--json', action='store_true', default=argparse.SUPPRESS,
                              help=JSON_HELP)
         if name == 'status':
-            command.add_argument('--run-id', help='Laufkennung; ohne Angabe erscheint die '
-                                                  'Übersicht der vorhandenen Lernumgebungen')
+            command.add_argument('--name', '--run-id', dest='run_id', metavar='NAME',
+                                 help='Name der Maschine; ohne Angabe erscheint die '
+                                      'Übersicht der vorhandenen Lernumgebungen')
             command.add_argument('--all', action='store_true',
                                  help='In der Übersicht auch abgebaute Lernumgebungen zeigen')
         else:
-            command.add_argument('--run-id', required=True, help=RUN_ID_HELP)
+            command.add_argument('--name', '--run-id', dest='run_id', metavar='NAME',
+                                 required=True, help=RUN_ID_HELP)
         if name != 'create':
             command.add_argument('--platform', choices=('kubevirt', 'aws'),
                                  help='Optional; ohne Angabe gilt die gespeicherte Plattform. '
@@ -95,7 +99,7 @@ def build_parser():
         if name in ('create', 'status', 'delete'):
             command.add_argument('--count', type=vm_count, default=1,
                                  help='Anzahl gleicher Lernumgebungen; ab 2 erhalten die '
-                                      'Laufkennungen die Endungen -1, -2 usw. (Standard: 1)')
+                                      'Namen die Endungen -1, -2 usw. (Standard: 1)')
         if name == 'create':
             command.add_argument('definition', type=Path, help='YAML-Datei der Lernumgebung')
             command.add_argument('--platform', required=True, choices=('kubevirt', 'aws'),
@@ -119,9 +123,9 @@ def main(argv=None):
     parser = build_parser()
     args = parser.parse_args(argv)
     if args.operation == 'status' and args.run_id is None and args.count != 1:
-        parser.error('--count benötigt eine Laufkennung mit --run-id.')
+        parser.error('--count benötigt einen Namen mit --name.')
     if args.operation == 'status' and args.run_id is not None and args.all:
-        parser.error('--all gilt nur für die Übersicht ohne --run-id.')
+        parser.error('--all gilt nur für die Übersicht ohne --name.')
     try:
         with output_mode(args.json):
             return run(args)
@@ -186,14 +190,15 @@ def run(args):
     count = args.count
     operation_prefix = getattr(args, 'operation_id', None)
     suffixes = [''] if count == 1 else [f'-{index}' for index in range(1, count + 1)]
-    for label, value in (('Laufkennung', args.run_id), ('Operationskennung', operation_prefix)):
+    for label, value in (('Ungültiger Name', args.run_id),
+                         ('Ungültige Operationskennung', operation_prefix)):
         if value is None:
             continue
         try:
             validate_id(value + suffixes[-1])
         except AdapterError:
             note = ' mit Nummernzusatz' if count > 1 else ''
-            print(f'Ungültige {label}{note} "{value + suffixes[-1]}". {ID_RULE}', file=sys.stderr)
+            print(f'{label}{note} "{value + suffixes[-1]}". {ID_RULE}', file=sys.stderr)
             return 1
 
     if args.operation == 'create' and args.parallel > 1:
@@ -239,8 +244,8 @@ def run(args):
                 label = f'{label} für {run_id}'
             if (isinstance(error, StateError) and args.operation != 'create'
                     and not is_stored(config, run_id)):
-                error = (f'Für die Laufkennung "{run_id}" ist keine Umgebung gespeichert. '
-                         'Die gespeicherten Lernumgebungen zeigt status ohne --run-id.')
+                error = (f'Unter dem Namen "{run_id}" ist keine Umgebung gespeichert. '
+                         'Die vorhandenen Lernumgebungen zeigt status ohne --name.')
             print(f'{label}: {error}', file=sys.stderr)
             result = 1
             if args.operation == 'create':
@@ -252,7 +257,7 @@ def run(args):
 
 
 def is_stored(config, run_id):
-    """Nur lesend prüfen, ob die Laufkennung bekannt ist."""
+    """Nur lesend prüfen, ob der Name (intern Laufkennung) bekannt ist."""
     from agent.zustand import read_runs
 
     try:
