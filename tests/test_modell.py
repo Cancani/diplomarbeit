@@ -31,6 +31,19 @@ class ModelTests(unittest.TestCase):
         self.assertEqual(caught.exception.errors,
                          ('$.vm.resources.minMemoryMiB: Muss mindestens 2048 sein.',))
 
+    def test_module_profiles_keep_derived_resources(self):
+        # Aus den LernMAAS-Profilen abgeleitet; nur Name und Kapazitäten weichen von der Referenz ab.
+        for name, memory in [('m239', 2048), ('m254', 2048), ('m426', 3584)]:
+            with self.subTest(profile=name):
+                profile = load_model(ROOT/'modell/beispiele'/f'{name}.yaml')
+                self.assertEqual(profile['name'], name)
+                self.assertEqual(profile['vm']['resources'],
+                                 {'minVcpus': 2, 'minMemoryMiB': memory, 'minDiskGiB': 12})
+                expected = deepcopy(self.reference)
+                expected['name'] = name
+                expected['vm']['resources']['minMemoryMiB'] = memory
+                self.assertEqual(profile, expected)
+
     def test_resource_boundaries_and_types(self):
         for field, minimum in [('minVcpus', 2), ('minMemoryMiB', 2048), ('minDiskGiB', 12)]:
             for value in [minimum - 1, str(minimum), True, 2.5]:

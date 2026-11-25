@@ -1,0 +1,25 @@
+# Modulprofil m254 als Definition für den Agenten, Modellversion 1.0.
+# Abgeleitet aus dem LernMAAS-Profil m254 mit cores 2, memory 2048 und storage 12.
+# Dienste und Modul-Repository des LernMAAS-Profils sind in Modellversion 1.0 nicht abgebildet.
+modelVersion: "1.0"
+name: m254
+vm:
+  role: server
+  resources:
+    minVcpus: 2
+    minMemoryMiB: 2048
+    minDiskGiB: 12
+  os:
+    distribution: ubuntu
+    release: "24.04"
+    architecture: x86_64
+  ssh:
+    username: ubuntu
+    publicKeys:
+      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICDeni6OPrsYaCfeayWMiGPRKbpcOZf+4Q6T+lFv9tAz diplomarbeit-referenz
+  testService:
+    protocol: http
+    port: 8080
+    path: /
+    expectedStatus: 200
+    expectedBody: lernumgebung bereit

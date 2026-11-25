@@ -1,0 +1,27 @@
+# Modulprofil m426 als Definition für den Agenten, Modellversion 1.0.
+# Abgeleitet aus dem LernMAAS-Profil m426 mit cores 2, memory 3584 und storage 8.
+# Der Datenträger ist auf den Mindestwert des Modells von 12 GiB angehoben.
+# Auf AWS wird diese Definition abgewiesen, weil der Instanztyp t3.small 2048 MiB bietet.
+# Dienste und Modul-Repository des LernMAAS-Profils sind in Modellversion 1.0 nicht abgebildet.
+modelVersion: "1.0"
+name: m426
+vm:
+  role: server
+  resources:
+    minVcpus: 2
+    minMemoryMiB: 3584
+    minDiskGiB: 12
+  os:
+    distribution: ubuntu
+    release: "24.04"
+    architecture: x86_64
+  ssh:
+    username: ubuntu
+    publicKeys:
+      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICDeni6OPrsYaCfeayWMiGPRKbpcOZf+4Q6T+lFv9tAz diplomarbeit-referenz
+  testService:
+    protocol: http
+    port: 8080
+    path: /
+    expectedStatus: 200
+    expectedBody: lernumgebung bereit
