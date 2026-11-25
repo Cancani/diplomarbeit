@@ -642,9 +642,22 @@ Der ursprüngliche Sprint-3-Backlog umfasst 13 Stories mit 38 SP. US25 wurde vor
 | Ergebnisse vergleichen und bewerten | US30 bis US33 | Vorher-Nachher-Vergleich, MCP-Bewertung, Wirtschaftlichkeit und Grenzen der Übertragbarkeit dokumentieren. |
 | Betriebsunterlagen und Abgabe abschliessen | US34, US36 und US37 | Runbook, Projektdokumentation und Präsentationsunterlagen fertigstellen; RASCI-Abstimmung dokumentieren. |
 
+##### Stand der Reviewnacharbeit
+
+Die Rückmeldungen zur Bedienung aus dem zweiten Review habe ich vor der Schulung umgesetzt. Die Tabelle ordnet jede Rückmeldung der Anpassung und dem Kapitel zu, das sie beschreibt.
+
+| Rückmeldung | Umsetzung | Beschrieben in |
+| --- | --- | --- |
+| Bedienung der CLI | `status` ohne `--run-id` listet die gespeicherten Lernumgebungen mit Plattform, gespeichertem Zustand und letzter Änderung. Mit `--run-id` folgt der aktuelle Status einer einzelnen Lernumgebung. Die Beispielbefehle wählen die Konfiguration mit `--platform`. | Kapitel 4.3 und 4.8 |
+| Kennungen und VM-Anzahl | Die Hilfe erklärt Laufkennung, Operationskennung und `--count`. Die Beispielbefehle kommen ohne Operationskennung aus; sie wird nur angegeben, um einen unterbrochenen Auftrag fortzusetzen. | Kapitel 4.3 und 4.8 |
+| Statusausgabe | Die Statusansicht nennt die Zahl der virtuellen Maschinen getrennt von den zugehörigen Ressourcen und gliedert diese nach Ausführung, Speicher und Netzwerk. | Kapitel 4.3 |
+| MCP und Programmaufruf | Der Start über `python -m agent`, die Stationen eines Befehls und die beiden MCP-Verbindungen sind beschrieben. Die Hilfe zeigt den Programmnamen und Beispielbefehle. | Kapitel 4.3 und 4.10 |
+
+Die automatisierten Tests decken die Übersicht, die getrennte Zählung und die Hilfe ab. Die vollständige JSON-Ausgabe der Statusabfrage einer einzelnen Lernumgebung bleibt unverändert. Die Schulung, die RASCI-Abstimmung und die formalen Messserien sind noch offen.
+
 ##### Schulung und Feedbackrückfluss
 
-Die Schulung richtet sich an eine Lehrperson mit Erfahrung in der bestehenden MAAS-Umgebung. Vorgesehen sind 30 bis 60 Minuten. Nach einer Einführung führt die teilnehmende Person Erstellung, Statusprüfung, Reset und Abbau selbst aus. Die benötigten Zugänge werden vorbereitet; der Termin und die Teilnahme der Experten werden abgestimmt.
+Die Schulung richtet sich an eine Lehrperson mit Erfahrung in der bestehenden MAAS-Umgebung. Eine Lehrperson der TBZ, die MAAS bis Ende des letzten Schuljahres im Unterricht eingesetzt hat, hat ihre Teilnahme zugesagt. Vorgesehen sind 60 Minuten. Als Termin ist Donnerstag, 03.12.2026, 16:30 bis 17:30 Uhr vorgeschlagen; die Bestätigung der Experten steht noch aus. Nach einer Einführung führt die teilnehmende Person Erstellung, Statusprüfung, Reset und Abbau selbst aus. Die benötigten Zugänge werden vorbereitet. Lernziele, Ablauf und Lernerfolgskontrolle sind im Entwurf einer Instruktionsplanung festgehalten.
 
 Ich dokumentiere Schwierigkeiten, Rückfragen und Verbesserungsvorschläge. Anschliessend halte ich fest, welche Anpassungen daraus entstehen und welche Vorschläge mit Begründung zurückgestellt werden.
 
@@ -1187,6 +1200,7 @@ Das Fachmodell trennt den gewünschten Testfall von seiner technischen Umsetzung
 | `modell/lernumgebung-v1.schema.json` | JSON-Schema nach Draft 2020-12 für Modellversion 1.0 |
 | `modell/beispiele/referenz.yaml` | Vollständige fachliche Definition der reduzierten Referenzumgebung |
 | `modell/beispiele/ungueltig-ram.yaml` | Bewusst ungültige Variante mit 1024 statt mindestens 2048 MiB RAM |
+| `modell/beispiele/m239.yaml`, `m254.yaml`, `m426.yaml` | Aus den drei LernMAAS-Profilen abgeleitete Definitionen |
 | `modell/validierung.py` | Gemeinsame YAML- und Schemaprüfung für Modellwerkzeug und Agent |
 | `scripts/modell-pruefen.py` | Eigenständiger Aufruf der Modellprüfung |
 | `tests/test_modell.py` | Automatisierte positive und negative Validierungsfälle |
@@ -1237,6 +1251,20 @@ Der Adapter ermittelt den tatsächlichen Prüfendpunkt. In der Definition stehen
 Höhere Kapazitäten als die Mindestwerte sind zulässig. Die Modellprüfung bestätigt jedoch keine verfügbare Host- oder Cloud-Kapazität. Auf KubeVirt entscheidet die Plattform über die tatsächliche Bereitstellung; Kontorechte, Quotas und verfügbare Instanztypen lassen sich durch das Schema allein nicht prüfen.
 
 Das Schema weist unbekannte Felder auf jeder Ebene zurück. Dadurch werden sowohl Schreibfehler als auch Plattformfelder wie `amiId`, `storageClass` und `nodePort` erkannt. Für mehrere VMs kann dieselbe Definition in mehreren Läufen verwendet werden. Weitere Betriebssysteme oder mehrere VMs innerhalb derselben Lernumgebung erfordern eine Erweiterung des Modells.
+
+#### Modulprofile als Definitionen
+
+Die drei in Kapitel 3.2 ausgewählten LernMAAS-Profile liegen als eigene Definitionen vor. Sie zeigen, welche Angaben eines Modulprofils Modellversion 1.0 aufnimmt.
+
+| Definition | Werte im LernMAAS-Profil | Werte in der Definition | Von den Adaptern angenommen |
+| --- | --- | --- | --- |
+| `modell/beispiele/m239.yaml` | `cores` 2, `memory` 2048, `storage` 8 | 2 vCPU, 2048 MiB, 12 GiB | KubeVirt und AWS |
+| `modell/beispiele/m254.yaml` | `cores` 2, `memory` 2048, `storage` 12 | 2 vCPU, 2048 MiB, 12 GiB | KubeVirt und AWS |
+| `modell/beispiele/m426.yaml` | `cores` 2, `memory` 3584, `storage` 8 | 2 vCPU, 3584 MiB, 12 GiB | KubeVirt |
+
+Der Datenträger von m239 und m426 ist auf den Mindestwert des Modells angehoben. Dienste und Modul-Repositories der Profile bildet Modellversion 1.0 nicht ab; die drei Definitionen stellen deshalb dieselbe Ubuntu-VM mit HTTP-Testdienst bereit wie die Referenz.
+
+Der AWS-Adapter weist m426 ab, weil der festgelegte Instanztyp `t3.small` 2048 MiB bietet. Die Definitionen sind mit der Modellprüfung und den automatisierten Tests geprüft; Läufe auf den Zielplattformen liegen dafür nicht vor.
 
 #### Lokale Validierung
 
@@ -1954,7 +1982,7 @@ Die Funktionsprüfung verbindet automatisierte Tests mit Aufrufen auf der lokale
 | Testbereich | Abgedecktes Verhalten |
 | --- | --- |
 | Modell und Konfiguration | Pflichtfelder, Datentypen, unbekannte Felder, YAML-Mehrdeutigkeiten, öffentliche Schlüssel, Pfadauflösung und verständliche Fehler |
-| CLI und Ausgabe | Hilfe, Argumente, Exitcodes, UTF-8, Aufruf aus einem anderen Arbeitsverzeichnis, lesbare Zustandsanzeige und explizite vollständige JSON-Ausgabe |
+| CLI und Ausgabe | Hilfe mit Beispielbefehlen, Argumente, Exitcodes, UTF-8, Aufruf aus einem anderen Arbeitsverzeichnis, lesende Statusübersicht ohne Laufkennung, lesbare Zustandsanzeige mit getrennter Zählung von VMs und zugehörigen Ressourcen sowie explizite vollständige JSON-Ausgabe |
 | SQLite | Unveränderter Snapshot, Migrationen, konkurrierende Starts, zulässige Übergänge, Kapazitätsreservierung und Inventarerhalt |
 | MCP und Prozessschutz | Tatsächlicher stdio-Transport mit Test-Provider, strukturierte Antworten, Fehler, Handshake-Timeout, harter Agentenabbruch, verbliebener Adapter, veraltete Sitzung und erforderliche Sitzungsbestätigung |
 | Erstellung und Bereitschaft | Einzelne Erstellungsschritte, Inventarsicherung, Wiederholung ohne Dubletten und HTTP-Prüfung auf Status, Inhalt, Weiterleitung, Grösse und Zeit |
@@ -2071,11 +2099,13 @@ Die LernMAAS-Basisserie liefert drei Aufbaudauern und drei Abbauzeiten. Auf Kube
 | cloud-init | Erstkonfiguration einer Maschine beim ersten Start, beispielsweise für SSH-Schlüssel und Dienststart |
 | DataVolume | Von CDI verwendetes Objekt zur Verwaltung der Befüllung eines Volumes |
 | KubeVirt | Kubernetes-Erweiterung für den Betrieb virtueller Maschinen als Kubernetes-Ressourcen |
+| Laufkennung | Name einer Lernumgebung im Agenten; bleibt für Erstellung, Statusprüfung, Reset und Abbau gleich |
 | LernMAAS | TBZ-Umsetzung von Lernumgebungen mit MAAS, Modulprofilen und Hilfsskripten |
 | MAAS | Metal as a Service; Grundlage der heutigen Maschinenverwaltung und Bereitstellung |
 | MCP | Model Context Protocol; verbindet den Agenten mit dem lokal gestarteten Plattformadapter |
 | Modell-Snapshot | Unveränderte Kopie der für einen Lauf verwendeten fachlichen Definition |
 | NodePort | Kubernetes-Service, der einen Dienst über einen Port auf dem Knoten erreichbar macht |
+| Operationskennung | Kennung eines einzelnen Auftrags; der Agent erzeugt sie selbst, angegeben wird sie nur zur Fortsetzung eines unterbrochenen Auftrags |
 | PV und PVC | PersistentVolume als clusterweite Speicherressource und PersistentVolumeClaim als Speicheranforderung im Namespace |
 | Readiness | Geprüfte Nutzbarkeit: VM läuft, HTTP-Status und Antwortinhalt entsprechen der Definition |
 | Reset | Vollständiger Abbau und Neuerstellung aus derselben gespeicherten Definition |
