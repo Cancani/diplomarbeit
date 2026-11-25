@@ -1,5 +1,6 @@
 """Lernumgebungen mit persistentem Zustand und Plattformadaptern steuern."""
 import argparse
+import os
 from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
 from pathlib import Path
 import sqlite3
@@ -121,8 +122,14 @@ def main(argv=None):
         parser.error('--count benötigt eine Laufkennung mit --run-id.')
     if args.operation == 'status' and args.run_id is not None and args.all:
         parser.error('--all gilt nur für die Übersicht ohne --run-id.')
-    with output_mode(args.json):
-        return run(args)
+    try:
+        with output_mode(args.json):
+            return run(args)
+    except BrokenPipeError:
+        # Der Empfänger hat die Ausgabe geschlossen, zum Beispiel head. Ohne Traceback enden.
+        os.dup2(os.open(os.devnull, os.O_WRONLY), sys.stdout.fileno())
+        print('Ausgabe wurde geschlossen; gespeicherten Zustand mit status prüfen.', file=sys.stderr)
+        return 1
 
 
 def run(args):

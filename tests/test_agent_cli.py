@@ -277,13 +277,23 @@ class AgentCliTests(unittest.TestCase):
             # Die Übersicht darf weder den Zustand noch das Inventar verändern.
             self.assertEqual((root/'state.sqlite3').read_bytes(), before)
 
+    def temporary_config(self, folder):
+        # Schreibende Befehle dürfen in Tests nie die echte Zustandsdatenbank erreichen.
+        config = Path(folder)/'config.yaml'
+        config.write_text(yaml.safe_dump({
+            'stateFile': 'state.sqlite3', 'adapters': {'kubevirt': {
+                'command': sys.executable, 'timeoutSeconds': 10,
+                'args': [str(ROOT/'tests/fixtures/mcp_adapter.py'), 'success']}},
+        }), encoding='utf-8')
+        return config
+
     def test_existing_run_operations_require_a_stored_environment(self):
         for operation in ['status', 'reset', 'delete']:
-            with self.subTest(operation=operation):
+            with self.subTest(operation=operation), tempfile.TemporaryDirectory() as folder:
                 arguments = [operation, '--run-id', 'lokal-01']
                 if operation == 'reset':
                     arguments += ['--operation-id', 'reset-01', '--timeout-seconds', '1200']
-                result = self.invoke(arguments)
+                result = self.invoke(arguments, config=self.temporary_config(folder))
                 self.assertEqual(result.returncode, 1)
                 self.assertIn('keine Umgebung gespeichert', result.stderr)
                 self.assertIn('"lokal-01"', result.stderr)
@@ -310,18 +320,29 @@ class AgentCliTests(unittest.TestCase):
                 self.assertEqual(result.stdout, '')
         self.assertEqual(state.exists(), existed)
 
-    def test_existing_run_commands_work_without_config_and_platform(self):
-        # Ohne Angabe gilt die lokale Standardkonfiguration; die Datenbank wird nicht angelegt.
+    def test_overview_works_without_config_and_platform(self):
+        # Nur die lesende Übersicht läuft gegen die Standardkonfiguration; sie legt keine
+        # Datenbank an. Die Wahl nach gespeicherter Plattform prüft test_agent_default_config.
         state = ROOT/'agent/beispiele/zustand.sqlite3'
         existed = state.exists()
-        for operation in ['status', 'reset', 'delete']:
-            with self.subTest(operation=operation):
-                result = self.invoke([operation, '--run-id', 'lokal-01'], config=None)
-                self.assertEqual(result.returncode, 1)
-                self.assertIn('keine Umgebung gespeichert', result.stderr)
         result = self.invoke(['status'], config=None)
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(state.exists(), existed)
+
+    @unittest.skipIf(os.name == 'nt', 'Geschlossene Pipes verhalten sich unter Windows anders.')
+    def test_closed_output_ends_without_traceback(self):
+        with tempfile.TemporaryDirectory() as folder:
+            config = self.temporary_config(folder)
+            process = subprocess.Popen(
+                [sys.executable, '-m', 'agent', '--config', str(config), 'status', '--all'],
+                cwd=folder, env=dict(os.environ, PYTHONPATH=str(ROOT)),
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, encoding='utf-8')
+            process.stdout.close()
+            error = process.stderr.read()
+            process.stderr.close()
+            self.assertEqual(process.wait(timeout=15), 1)
+        self.assertNotIn('Traceback', error)
+        self.assertIn('Ausgabe wurde geschlossen', error)
 
     def test_missing_config_file(self):
         with tempfile.TemporaryDirectory() as folder:
