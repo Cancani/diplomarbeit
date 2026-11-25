@@ -30,10 +30,13 @@ EXAMPLES = '''Begriffe:
 
 Beispiele:
   python -m agent create modell/beispiele/referenz.yaml --platform kubevirt --run-id demo-01
-  python -m agent status --platform kubevirt
-  python -m agent status --platform kubevirt --run-id demo-01
-  python -m agent reset --platform kubevirt --run-id demo-01
-  python -m agent delete --platform kubevirt --run-id demo-01
+  python -m agent status
+  python -m agent status --run-id demo-01
+  python -m agent reset --run-id demo-01
+  python -m agent delete --run-id demo-01
+
+Die Plattform wird nur bei create gewählt. Die übrigen Befehle lesen sie aus der
+gespeicherten Lernumgebung.
 '''
 
 
@@ -78,12 +81,16 @@ def build_parser():
                              help=JSON_HELP)
         if name == 'status':
             command.add_argument('--run-id', help='Laufkennung; ohne Angabe erscheint die '
-                                                  'Übersicht der gespeicherten Lernumgebungen')
+                                                  'Übersicht der vorhandenen Lernumgebungen')
+            command.add_argument('--all', action='store_true',
+                                 help='In der Übersicht auch abgebaute Lernumgebungen zeigen')
         else:
             command.add_argument('--run-id', required=True, help=RUN_ID_HELP)
         if name != 'create':
             command.add_argument('--platform', choices=('kubevirt', 'aws'),
-                                 help='Standardkonfiguration wählen und Laufplattform prüfen')
+                                 help='Optional; ohne Angabe gilt die gespeicherte Plattform. '
+                                      'Mit Angabe wird sie geprüft'
+                                      + (', in der Übersicht gefiltert.' if name == 'status' else '.'))
         if name in ('create', 'status', 'delete'):
             command.add_argument('--count', type=vm_count, default=1,
                                  help='Anzahl gleicher Lernumgebungen; ab 2 erhalten die '
@@ -110,10 +117,10 @@ def main(argv=None):
     sys.stderr.reconfigure(encoding='utf-8')
     parser = build_parser()
     args = parser.parse_args(argv)
-    if args.config is None and getattr(args, 'platform', None) is None:
-        parser.error('Bitte --platform oder eine Konfigurationsdatei mit --config angeben.')
     if args.operation == 'status' and args.run_id is None and args.count != 1:
         parser.error('--count benötigt eine Laufkennung mit --run-id.')
+    if args.operation == 'status' and args.run_id is not None and args.all:
+        parser.error('--all gilt nur für die Übersicht ohne --run-id.')
     with output_mode(args.json):
         return run(args)
 
@@ -122,7 +129,8 @@ def run(args):
     source = args.config
     try:
         if source is None:
-            source = default_config_path(getattr(args, 'platform', None))
+            # Ohne Plattformangabe liegt der Zustand bei der lokalen Standardkonfiguration.
+            source = default_config_path(getattr(args, 'platform', None) or 'kubevirt')
         config = load_config(source)
     except ConfigurationError as error:
         hint = (f' Standardkonfiguration: {source}. '
@@ -147,7 +155,7 @@ def run(args):
         platform_result(result, args.json)
         return 0
     if args.operation == 'status' and args.run_id is None:
-        return overview(config, args.platform, args.json)
+        return overview(config, args.platform, args.json, args.all)
     if args.operation == 'create':
         if args.parallel > args.count or (args.parallel > 1 and args.platform != 'kubevirt'):
             print('--parallel darf bei KubeVirt höchstens --count sein und muss bei AWS 1 sein.',
@@ -187,8 +195,21 @@ def run(args):
     result = 0
     for suffix in suffixes:
         run_id = args.run_id + suffix
+        platform = getattr(args, 'platform', None)
+        run_config = config
+        if args.operation != 'create' and args.config is None and platform is None:
+            # Ohne --platform gilt die Standardkonfiguration der gespeicherten Plattform.
+            stored = stored_platform(config, run_id)
+            if stored not in (None, 'kubevirt'):
+                path = default_config_path(stored)
+                try:
+                    run_config = load_config(path)
+                except ConfigurationError as error:
+                    print(f'Konfigurationsfehler: {error} Standardkonfiguration: {path}. '
+                          'Eine andere Datei kann mit --config gewählt werden.', file=sys.stderr)
+                    result = 1
+                    continue
         try:
-            platform = getattr(args, 'platform', None)
             if args.operation != 'create' and platform:
                 if not config['stateFile'].is_file():
                     raise StateError('Für diese Laufkennung ist keine Umgebung gespeichert.')
@@ -196,15 +217,15 @@ def run(args):
                 if record['platform'] != platform:
                     raise StateError('Die gewählte Plattform passt nicht zum gespeicherten Lauf.')
             if args.operation == 'status':
-                status(config, run_id)
+                status(run_config, run_id)
                 continue
             operation_id = operation_prefix + suffix if operation_prefix else uuid.uuid4().hex
             if args.operation == 'create':
                 create(config, run_id, operation_id, args.platform, model, args.timeout_seconds)
             elif args.operation == 'delete':
-                delete(config, run_id, operation_id, args.timeout_seconds)
+                delete(run_config, run_id, operation_id, args.timeout_seconds)
             else:
-                reset(config, run_id, operation_id, args.timeout_seconds)
+                reset(run_config, run_id, operation_id, args.timeout_seconds)
         except (AdapterError, StateError) as error:
             label = f'Fehler ({error.code})' if isinstance(error, AdapterError) else 'Fehler'
             if count > 1:
@@ -233,7 +254,18 @@ def is_stored(config, run_id):
         return True  # Im Zweifel bleibt die ursprüngliche Meldung stehen.
 
 
-def overview(config, platform, json_output):
+def stored_platform(config, run_id):
+    """Plattform eines gespeicherten Laufs nur lesend ermitteln."""
+    from agent.zustand import read_runs
+
+    try:
+        return next((run['platform'] for run in read_runs(config['stateFile'])
+                     if run['run_id'] == run_id), None)
+    except sqlite3.Error:
+        return None
+
+
+def overview(config, platform, json_output, show_all=False):
     """Gespeicherte Läufe nur lesend auflisten; ohne Plattformaufruf und ohne neue Datenbank."""
     from agent.zustand import read_runs
 
@@ -244,7 +276,7 @@ def overview(config, platform, json_output):
         return 1
     if platform:
         runs = [run for run in runs if run['platform'] == platform]
-    run_overview(runs, json_output)
+    run_overview(runs, json_output, show_all)
     return 0
 
 

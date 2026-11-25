@@ -648,7 +648,7 @@ Die Rückmeldungen zur Bedienung aus dem zweiten Review habe ich vor der Schulun
 
 | Rückmeldung | Umsetzung | Beschrieben in |
 | --- | --- | --- |
-| Bedienung der CLI | `status` ohne `--run-id` listet die gespeicherten Lernumgebungen mit Plattform, gespeichertem Zustand und letzter Änderung. Mit `--run-id` folgt der aktuelle Status einer einzelnen Lernumgebung. Die Beispielbefehle wählen die Konfiguration mit `--platform`. | Kapitel 4.3 und 4.8 |
+| Bedienung der CLI | `status` ohne `--run-id` listet die gespeicherten Lernumgebungen mit Plattform, gespeichertem Zustand und letzter Änderung. Mit `--run-id` folgt der aktuelle Status einer einzelnen Lernumgebung. Die Plattform wird nur beim Erstellen angegeben; die übrigen Befehle lesen sie aus dem gespeicherten Lauf. | Kapitel 4.3 und 4.8 |
 | Kennungen und VM-Anzahl | Die Hilfe erklärt Laufkennung, Operationskennung und `--count`. Die Beispielbefehle kommen ohne Operationskennung aus; sie wird nur angegeben, um einen unterbrochenen Auftrag fortzusetzen. | Kapitel 4.3 und 4.8 |
 | Statusausgabe | Die Statusansicht nennt die Zahl der virtuellen Maschinen getrennt von den zugehörigen Ressourcen und gliedert diese nach Ausführung, Speicher und Netzwerk. | Kapitel 4.3 |
 | MCP und Programmaufruf | Der Start über `python -m agent`, die Stationen eines Befehls und die beiden MCP-Verbindungen sind beschrieben. Die Hilfe zeigt den Programmnamen und Beispielbefehle. | Kapitel 4.3 und 4.10 |
@@ -1264,7 +1264,7 @@ Die drei in Kapitel 3.2 ausgewählten LernMAAS-Profile liegen als eigene Definit
 
 Der Datenträger von m239 und m426 ist auf den Mindestwert des Modells angehoben. Dienste und Modul-Repositories der Profile bildet Modellversion 1.0 nicht ab; die drei Definitionen stellen deshalb dieselbe Ubuntu-VM mit HTTP-Testdienst bereit wie die Referenz.
 
-Der AWS-Adapter weist m426 ab, weil der festgelegte Instanztyp `t3.small` 2048 MiB bietet. Die Definitionen sind mit der Modellprüfung und den automatisierten Tests geprüft; Läufe auf den Zielplattformen liegen dafür nicht vor.
+Der AWS-Adapter weist m426 ab, weil der festgelegte Instanztyp `t3.small` 2048 MiB bietet. Die Definitionen sind mit der Modellprüfung und den automatisierten Tests geprüft. Auf KubeVirt habe ich m426 erstellt und wieder entfernt; in der VM waren 3409 MiB Arbeitsspeicher sichtbar. Für m239 und m254 liegen keine eigenen Läufe vor.
 
 #### Lokale Validierung
 
@@ -1347,19 +1347,20 @@ python -m agent create modell/beispiele/referenz.yaml \
   --platform kubevirt --run-id lokal-01
 python -m agent create modell/beispiele/referenz.yaml \
   --platform aws --run-id cloud-01
-python -m agent status --platform aws --run-id cloud-01
+python -m agent status --run-id cloud-01
 ```
 
-Auch `status`, `reset` und `delete` akzeptieren `--platform` zur Konfigurationsauswahl. Bei diesen Befehlen muss die Plattform zum gespeicherten Lauf passen, bevor die Lebenszyklusoperation ausgeführt wird. Ohne `--platform` bleibt `--config` erforderlich. Bestehende Aufrufe mit einer expliziten Konfiguration funktionieren unverändert.
+Die Plattform wird nur bei `create` gewählt. `status`, `reset` und `delete` lesen sie aus dem gespeicherten Lauf und verwenden die Standardkonfiguration dieser Plattform. Ausgangspunkt ist die Zustandsdatei der KubeVirt-Standardkonfiguration. `--platform` bleibt bei diesen Befehlen erlaubt; die Angabe muss dann zum gespeicherten Lauf passen. Bestehende Aufrufe mit `--platform` oder einer expliziten Konfiguration funktionieren unverändert.
 
-Ohne `--run-id` zeigt `status` eine Übersicht der gespeicherten Lernumgebungen mit Laufkennung, Plattform, gespeichertem Zustand und Zeitpunkt der letzten Änderung. Mit `--platform` erscheinen nur die Läufe dieser Plattform.
+Ohne `--run-id` zeigt `status` eine Übersicht der vorhandenen Lernumgebungen mit Laufkennung, Plattform, gespeichertem Zustand und Zeitpunkt der letzten Änderung. Abgebaute Lernumgebungen nennt die Übersicht nur als Zahl; mit `--all` erscheinen auch sie. Mit `--platform` erscheinen nur die Läufe dieser Plattform.
 
 ```bash
-python -m agent status --platform kubevirt
-python -m agent status --platform kubevirt --run-id lokal-01
+python -m agent status
+python -m agent status --all
+python -m agent status --run-id lokal-01
 ```
 
-Die Übersicht liest die SQLite-Datei nur lesend und ruft keine Plattform auf. Sie bestätigt deshalb weder den VM-Zustand noch die HTTP-Bereitschaft. Den aktuellen Zustand einer einzelnen Lernumgebung liefert `status --run-id`. Im JSON-Modus erscheint die Übersicht als ein Objekt mit dem Ereignis `overview` und der Liste `runs`.
+Die Übersicht liest die SQLite-Datei nur lesend und ruft keine Plattform auf. Sie bestätigt deshalb weder den VM-Zustand noch die HTTP-Bereitschaft. Den aktuellen Zustand einer einzelnen Lernumgebung liefert `status --run-id`. Im JSON-Modus erscheint die Übersicht als ein Objekt mit dem Ereignis `overview` und der Liste `runs`; sie enthält dort immer alle gespeicherten Läufe.
 
 Die KubeVirt-Vorlage lautet:
 
@@ -1626,31 +1627,31 @@ python -m agent reset --help
 python -m agent platform-status --platform kubevirt
 ```
 
-Die Befehle verwenden die Standardkonfiguration der Plattform. Eine andere Konfigurationsdatei wird mit `--config` vor dem Befehlsnamen angegeben.
+Ohne weitere Angabe gilt die Standardkonfiguration. Eine andere Konfigurationsdatei wird mit `--config` vor dem Befehlsnamen angegeben.
 
 `platform-status` liest Knoten, KubeVirt und VM-/VMI-Bestand. Es erstellt keine Lernumgebung und bestätigt keine HTTP-Bereitschaft. Vor einem eigenen Lauf muss der öffentliche Schlüssel in der fachlichen Definition zu einem verfügbaren privaten Schlüssel passen, wenn auch SSH im Gast verwendet werden soll.
 
 Für eine vollständige maschinenlesbare Statusausgabe wird `--json` ergänzt:
 
 ```bash
-python -m agent status --platform kubevirt --run-id demo-01 --json
+python -m agent status --run-id demo-01 --json
 ```
 
 Dieselbe Option steht bei create, reset, delete und platform-status zur Verfügung. Eine Umleitung von stdout speichert die JSON-Ausgabe; Fehlermeldungen bleiben auf stderr. Die Nachweisauszüge enthalten die Ausgabe des jeweils dort genannten Code-Stands.
 
-Welche Lernumgebungen gespeichert sind, zeigt `status` ohne Laufkennung:
+Welche Lernumgebungen vorhanden sind, zeigt `status` ohne Laufkennung:
 
 ```bash
-python -m agent status --platform kubevirt
+python -m agent status
 ```
 
 Die folgenden Befehle verwenden für eine Beispielumgebung durchgehend die Laufkennung `demo-01`:
 
 ```bash
 python -m agent create modell/beispiele/referenz.yaml --platform kubevirt --run-id demo-01
-python -m agent status --platform kubevirt --run-id demo-01
-python -m agent reset --platform kubevirt --run-id demo-01
-python -m agent delete --platform kubevirt --run-id demo-01
+python -m agent status --run-id demo-01
+python -m agent reset --run-id demo-01
+python -m agent delete --run-id demo-01
 ```
 
 Nach jedem Befehl wird das Ergebnis geprüft. Im JSON-Modus meldet der Agent den erfolgreichen Abschluss mit `ready` bei create, `reset_completed` bei reset und `deleted` bei delete. Zugangsadresse und vergebene Ports stehen in der Statusausgabe und können sich nach einem Reset ändern.
@@ -1660,8 +1661,8 @@ Die Laufkennung bezeichnet die Umgebung, die Operationskennung einen einzelnen A
 Nach einem behandelten Fehler wird zuerst der Status gelesen. Ein unterbrochener Reset wird anschliessend mit derselben Kennung und einer passenden Zeitgrenze fortgesetzt. Die Kennung steht in der Fehlermeldung des unterbrochenen Auftrags:
 
 ```bash
-python -m agent status --platform kubevirt --run-id demo-01
-python -m agent reset --platform kubevirt --run-id demo-01 \
+python -m agent status --run-id demo-01
+python -m agent reset --run-id demo-01 \
   --operation-id <Operationskennung> --timeout-seconds 1200
 ```
 

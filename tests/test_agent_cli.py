@@ -258,9 +258,14 @@ class AgentCliTests(unittest.TestCase):
 
             result = self.invoke(['status'], config=config)
             self.assertEqual(result.returncode, 0, result.stderr)
-            self.assertIn('Gespeicherte Lernumgebungen: 2', result.stdout)
+            self.assertIn('Vorhandene Lernumgebungen: 2', result.stdout)
             for expected in ['lokal-01', 'KubeVirt', 'cloud-01', 'AWS EC2', 'Wird erstellt']:
                 self.assertIn(expected, result.stdout)
+            result = self.invoke(['status', '--all'], config=config)
+            self.assertIn('Gespeicherte Lernumgebungen: 2', result.stdout)
+            result = self.invoke(['status', '--run-id', 'lokal-01', '--all'], config=config)
+            self.assertEqual(result.returncode, 2)
+            self.assertIn('--all', result.stderr)
             result = self.invoke(['status', '--platform', 'aws'], config=config)
             self.assertIn('cloud-01', result.stdout)
             self.assertNotIn('lokal-01', result.stdout)
@@ -305,11 +310,18 @@ class AgentCliTests(unittest.TestCase):
                 self.assertEqual(result.stdout, '')
         self.assertEqual(state.exists(), existed)
 
-    def test_config_or_platform_is_required(self):
-        result = self.invoke(['status', '--run-id', 'lokal-01'], config=None)
-        self.assertEqual(result.returncode, 2)
-        self.assertIn('--config', result.stderr)
-        self.assertIn('--platform', result.stderr)
+    def test_existing_run_commands_work_without_config_and_platform(self):
+        # Ohne Angabe gilt die lokale Standardkonfiguration; die Datenbank wird nicht angelegt.
+        state = ROOT/'agent/beispiele/zustand.sqlite3'
+        existed = state.exists()
+        for operation in ['status', 'reset', 'delete']:
+            with self.subTest(operation=operation):
+                result = self.invoke([operation, '--run-id', 'lokal-01'], config=None)
+                self.assertEqual(result.returncode, 1)
+                self.assertIn('keine Umgebung gespeichert', result.stderr)
+        result = self.invoke(['status'], config=None)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(state.exists(), existed)
 
     def test_missing_config_file(self):
         with tempfile.TemporaryDirectory() as folder:

@@ -17,7 +17,13 @@ VM_STATES = {'Absent': 'Nicht vorhanden', 'Provisioning': 'Wird bereitgestellt',
              'Pending': 'Wartet', 'Scheduling': 'Wird eingeplant', 'Scheduled': 'Eingeplant',
              'Starting': 'Wird gestartet', 'Running': 'Läuft', 'Terminating': 'Wird entfernt',
              'Stopped': 'Gestoppt', 'Stopping': 'Wird gestoppt', 'Failed': 'Fehler',
-             'Succeeded': 'Beendet', 'Unknown': 'Unbekannt'}
+             'Succeeded': 'Beendet', 'Unknown': 'Unbekannt',
+             'WaitingForVolumeBinding': 'Wartet auf Datenträger', 'Paused': 'Pausiert',
+             'Migrating': 'Wird verschoben', 'CrashLoopBackOff': 'Startet wiederholt neu',
+             'ErrorUnschedulable': 'Nicht einplanbar', 'ErrImagePull': 'Abbild nicht abrufbar',
+             'ImagePullBackOff': 'Abbild nicht abrufbar',
+             'ErrorPvcNotFound': 'Datenträger nicht gefunden',
+             'DataVolumeError': 'Fehler beim Datenträger'}
 VM_KINDS = ('VirtualMachine', 'EC2Instance')
 RESOURCE_GROUPS = {'VirtualMachineInstance': 'Ausführung', 'Pod': 'Ausführung',
                    'DataVolume': 'Speicher', 'PersistentVolumeClaim': 'Speicher',
@@ -161,8 +167,11 @@ class HumanOutput:
                   f'--operation-id {data["operationId"]} ausführen.')
 
 
-def run_overview(runs, json_output=False):
-    """Gespeicherte Läufe auflisten; die Angaben stammen nur aus SQLite."""
+def run_overview(runs, json_output=False, show_all=False):
+    """Gespeicherte Läufe auflisten; die Angaben stammen nur aus SQLite.
+
+    Die Textansicht zeigt ohne show_all nur vorhandene Lernumgebungen. JSON enthält immer alle.
+    """
     if json_output:
         data = {'timeUtc': datetime.now(timezone.utc).isoformat(), 'event': 'overview', 'runs': [
             {'runId': run['run_id'], 'platform': run['platform'], 'storedPhase': run['phase'],
@@ -172,15 +181,27 @@ def run_overview(runs, json_output=False):
     if not runs:
         write('Es sind keine Lernumgebungen gespeichert.')
         return
-    rows = [('Laufkennung', 'Plattform', 'Gespeicherter Zustand', 'Letzte Änderung (UTC)')]
-    for run in runs:
-        rows.append((run['run_id'], PLATFORMS.get(run['platform'], run['platform']),
-                     PHASES.get(run['phase'], 'Unbekannt'), run['updated_at'][:16].replace('T', ' ')))
-    widths = [max(len(row[column]) for row in rows) for column in range(4)]
-    write(f'Gespeicherte Lernumgebungen: {len(runs)}')
-    for row in rows:
-        write('  '.join(value.ljust(width) for value, width in zip(row, widths)).rstrip())
-    write('Live-Zustand einer Lernumgebung: status --run-id <Laufkennung>')
+    shown = runs if show_all else [run for run in runs if run['phase'] != 'absent']
+    removed = len(runs) - len(shown)
+    if show_all:
+        write(f'Gespeicherte Lernumgebungen: {len(runs)}')
+    elif shown:
+        write(f'Vorhandene Lernumgebungen: {len(shown)}')
+    else:
+        write('Es sind keine Lernumgebungen vorhanden.')
+    if shown:
+        rows = [('Laufkennung', 'Plattform', 'Gespeicherter Zustand', 'Letzte Änderung (UTC)')]
+        for run in shown:
+            rows.append((run['run_id'], PLATFORMS.get(run['platform'], run['platform']),
+                         PHASES.get(run['phase'], 'Unbekannt'),
+                         run['updated_at'][:16].replace('T', ' ')))
+        widths = [max(len(row[column]) for row in rows) for column in range(4)]
+        for row in rows:
+            write('  '.join(value.ljust(width) for value, width in zip(row, widths)).rstrip())
+    if removed:
+        write(f'Abgebaute Lernumgebungen: {removed} (Anzeige mit status --all)')
+    if shown:
+        write('Live-Zustand einer Lernumgebung: status --run-id <Laufkennung>')
 
 
 def platform_result(result, json_output=False):

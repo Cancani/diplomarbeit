@@ -115,6 +115,36 @@ class DefaultConfigTests(unittest.TestCase):
                     command.assert_called_once()
                     self.assertEqual(command.call_args.args[1], run_id)
 
+    def test_without_platform_the_stored_platform_selects_the_default(self):
+        store = StateStore(self.state)
+        model = load_model(self.model_path)
+        for platform in ('kubevirt', 'aws'):
+            run_id = f'{platform}-01'
+            store.start_create(run_id, f'create-{run_id}', platform, model)
+            for operation in ('status', 'reset', 'delete'):
+                with self.subTest(platform=platform, operation=operation), \
+                        patch('agent.cli.default_config_path', return_value=self.source) as select, \
+                        patch(f'agent.lebenszyklus.{operation}') as command:
+                    result, error = self.invoke([operation, '--run-id', run_id])
+                    self.assertEqual((result, error), (0, ''))
+                    expected = ['kubevirt'] if platform == 'kubevirt' else ['kubevirt', 'aws']
+                    self.assertEqual([call.args[0] for call in select.call_args_list], expected)
+                    command.assert_called_once()
+                    self.assertEqual(command.call_args.args[1], run_id)
+
+    def test_missing_default_of_the_stored_platform_is_reported(self):
+        StateStore(self.state).start_create('cloud-01', 'create-cloud-01', 'aws',
+                                            load_model(self.model_path))
+        missing = self.root/'missing-aws.yaml'
+        with patch('agent.cli.default_config_path',
+                   side_effect=lambda platform: self.source if platform == 'kubevirt' else missing), \
+                patch('agent.lebenszyklus.status') as command:
+            result, error = self.invoke(['status', '--run-id', 'cloud-01'])
+        self.assertEqual(result, 1)
+        self.assertIn('Konfigurationsfehler:', error)
+        self.assertIn(str(missing), error)
+        command.assert_not_called()
+
     def test_wrong_platform_stops_before_the_lifecycle_operation(self):
         store = StateStore(self.state)
         store.start_create('cloud-01', 'create-cloud-01', 'aws', load_model(self.model_path))

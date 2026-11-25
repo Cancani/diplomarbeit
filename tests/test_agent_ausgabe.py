@@ -9,7 +9,7 @@ from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
-from agent.ausgabe import emit, output_mode, platform_result
+from agent.ausgabe import emit, output_mode, platform_result, run_overview
 
 
 class OutputTests(unittest.TestCase):
@@ -50,6 +50,42 @@ class OutputTests(unittest.TestCase):
             self.assertIn(expected, text)
             # Die VM-Instanz erscheint nur bei abweichendem Zustand.
             self.assertEqual('VM-Instanz: Wird eingeplant' in text, vmi_phase == 'Scheduling')
+
+    def test_overview_hides_removed_runs_unless_all_are_requested(self):
+        runs = [{'run_id': 'demo-01', 'platform': 'kubevirt', 'phase': 'ready',
+                 'updated_at': '2026-11-25T19:30:00+00:00'},
+                {'run_id': 'alt-01', 'platform': 'kubevirt', 'phase': 'absent',
+                 'updated_at': '2026-11-18T00:29:00+00:00'}]
+        out = io.StringIO()
+        with redirect_stdout(out):
+            run_overview(runs)
+        text = out.getvalue()
+        self.assertIn('Vorhandene Lernumgebungen: 1', text)
+        self.assertIn('demo-01', text)
+        self.assertNotIn('alt-01', text)
+        self.assertIn('Abgebaute Lernumgebungen: 1 (Anzeige mit status --all)', text)
+        out = io.StringIO()
+        with redirect_stdout(out):
+            run_overview(runs, show_all=True)
+        self.assertIn('Gespeicherte Lernumgebungen: 2', out.getvalue())
+        self.assertIn('alt-01', out.getvalue())
+        out = io.StringIO()
+        with redirect_stdout(out):
+            run_overview(runs[1:])
+        self.assertIn('Es sind keine Lernumgebungen vorhanden.', out.getvalue())
+        self.assertNotIn('Live-Zustand', out.getvalue())
+        out = io.StringIO()
+        with redirect_stdout(out):
+            run_overview(runs, json_output=True)
+        self.assertEqual(len(json.loads(out.getvalue())['runs']), 2)
+
+    def test_intermediate_kubevirt_state_is_translated(self):
+        out = io.StringIO()
+        with redirect_stdout(out), output_mode():
+            emit('waiting', 'run-01', 'create-01', vmReady=False, vmState='WaitingForVolumeBinding',
+                 vmiPhase='Absent', remainingSeconds=890)
+        self.assertIn('VM: Wartet auf Datenträger.', out.getvalue())
+        self.assertNotIn('Unbekannt', out.getvalue())
 
     def test_progress_does_not_claim_http_readiness_early_and_reduces_unchanged_delete_reports(self):
         out = io.StringIO()
