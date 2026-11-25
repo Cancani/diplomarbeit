@@ -38,8 +38,12 @@ class AgentCliTests(unittest.TestCase):
             with self.subTest(command=command):
                 result = self.invoke([*command, '--help'], config=None)
                 self.assertEqual(result.returncode, 0)
-                self.assertTrue(result.stdout)
+                self.assertIn('usage: python -m agent', result.stdout)
+                self.assertNotIn('__main__', result.stdout)
                 self.assertEqual(result.stderr, '')
+        result = self.invoke(['--help'], config=None)
+        for expected in ['Laufkennung (--run-id)', 'Operationskennung (--operation-id)', 'Beispiele:']:
+            self.assertIn(expected, result.stdout)
 
     def test_missing_and_unknown_arguments(self):
         for arguments in [[], ['unknown'], ['status', '--count', '2'], ['platform-status'],
@@ -220,7 +224,8 @@ class AgentCliTests(unittest.TestCase):
             self.assertIn('Gespeicherter Zustand: Fehler', result.stdout)
             self.assertIn('VM: Nicht vorhanden', result.stdout)
             self.assertIn('HTTP-Dienst: Nicht bestätigt', result.stdout)
-            self.assertIn('Aktuell beobachtete Ressourcen: 0', result.stdout)
+            self.assertIn('Virtuelle Maschinen: 0', result.stdout)
+            self.assertIn('Zugehörige Ressourcen: 0', result.stdout)
             self.assertNotIn('known-uid', result.stdout)
             result = self.invoke(['status', '--run-id', 'readable-01', '--json'], config=config)
             self.assertEqual(result.returncode, 0, result.stderr)

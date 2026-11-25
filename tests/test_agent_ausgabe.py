@@ -25,9 +25,31 @@ class OutputTests(unittest.TestCase):
             text = out.getvalue()
             self.assertIn('Gespeicherter Zustand: ' + ('Fehler' if phase == 'error' else 'Bereit'), text)
             self.assertIn('HTTP-Dienst: ' + ('Bereit' if service_ready else 'Nicht bestätigt'), text)
-            self.assertIn('Aktuell beobachtete Ressourcen: 1', text)
+            self.assertIn('Virtuelle Maschinen: 1', text)
+            self.assertIn('Zugehörige Ressourcen: 0', text)
+            self.assertNotIn('VM-Instanz:', text)
             self.assertIn('SSH: test.invalid, Port 2222', text)
             self.assertNotIn('internal-uid', text)
+
+    def test_status_counts_machines_separately_from_related_resources(self):
+        kubevirt = ['VirtualMachine', 'VirtualMachineInstance', 'Pod', 'DataVolume',
+                    'PersistentVolumeClaim', 'PersistentVolume', 'Service', 'EndpointSlice']
+        aws = ['EC2Instance', 'EBSVolume', 'NetworkInterface', 'SecurityGroup']
+        for kinds, vmi_phase, expected in [
+                (kubevirt, 'Scheduling', 'Zugehörige Ressourcen: 7 (Ausführung 2, Speicher 3, Netzwerk 2)'),
+                (aws, 'Running', 'Zugehörige Ressourcen: 3 (Speicher 1, Netzwerk 2)'),
+                (['VirtualMachine', 'Unbekannt'], 'Running', 'Zugehörige Ressourcen: 1 (Weitere 1)')]:
+            out = io.StringIO()
+            with self.subTest(kinds=kinds), redirect_stdout(out), output_mode():
+                emit('status', 'run-01', 'operation-01', storedPhase='ready', vmState='Running',
+                     vmiPhase=vmi_phase, vmReady=True, serviceReady=True, httpUrl=None,
+                     sshHost=None, sshPort=None,
+                     resources=[{'kind': kind, 'resource_id': 'uid'} for kind in kinds])
+            text = out.getvalue()
+            self.assertIn('Virtuelle Maschinen: 1', text)
+            self.assertIn(expected, text)
+            # Die VM-Instanz erscheint nur bei abweichendem Zustand.
+            self.assertEqual('VM-Instanz: Wird eingeplant' in text, vmi_phase == 'Scheduling')
 
     def test_progress_does_not_claim_http_readiness_early_and_reduces_unchanged_delete_reports(self):
         out = io.StringIO()

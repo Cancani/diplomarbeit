@@ -14,6 +14,25 @@ from gemeinsam import MAX_VMS
 
 
 JSON_HELP = 'Vollständige JSON-Ausgabe für Skripte und Protokolle'
+RUN_ID_HELP = 'Laufkennung: Name der Lernumgebung, bleibt für alle Befehle gleich'
+OPERATION_ID_HELP = ('Operationskennung des Auftrags; wird ohne Angabe erzeugt und nur '
+                     'angegeben, um einen unterbrochenen Auftrag fortzusetzen')
+EXAMPLES = '''Begriffe:
+  Laufkennung (--run-id)
+      Name einer Lernumgebung. Sie bleibt für create, status, reset und delete gleich.
+  Operationskennung (--operation-id)
+      Kennung eines einzelnen Auftrags. Der Agent erzeugt sie selbst. Sie wird nur
+      angegeben, um einen unterbrochenen Auftrag fortzusetzen.
+  Anzahl (--count)
+      Mehrere gleiche Lernumgebungen. Die Laufkennungen erhalten die Endungen -1, -2 usw.
+
+Beispiele:
+  python -m agent create modell/beispiele/referenz.yaml --platform kubevirt --run-id demo-01
+  python -m agent status --platform kubevirt
+  python -m agent status --platform kubevirt --run-id demo-01
+  python -m agent reset --platform kubevirt --run-id demo-01
+  python -m agent delete --platform kubevirt --run-id demo-01
+'''
 
 
 def positive_seconds(value):
@@ -32,6 +51,8 @@ def vm_count(value):
 
 def build_parser():
     parser = argparse.ArgumentParser(
+        prog='python -m agent', epilog=EXAMPLES,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
         description='Lernumgebungen erstellen, prüfen, zurücksetzen und löschen.')
     parser.add_argument('--config', type=Path,
                         help='Agent-Konfiguration; hat Vorrang vor der Auswahl über --platform')
@@ -41,7 +62,8 @@ def build_parser():
     probe = commands.add_parser('platform-status', help='Plattform über MCP lesend prüfen')
     probe.add_argument('--json', action='store_true', default=argparse.SUPPRESS,
                        help=JSON_HELP)
-    probe.add_argument('--platform', required=True, choices=('kubevirt', 'aws'))
+    probe.add_argument('--platform', required=True, choices=('kubevirt', 'aws'),
+                       help='Zu prüfende Plattform')
     descriptions = {
         'create': 'Lernumgebung aus einer YAML-Definition erstellen',
         'status': 'Übersicht der gespeicherten Lernumgebungen oder Zustand einer Lernumgebung abfragen',
@@ -53,27 +75,28 @@ def build_parser():
         command.add_argument('--json', action='store_true', default=argparse.SUPPRESS,
                              help=JSON_HELP)
         if name == 'status':
-            command.add_argument('--run-id', help='Kennung des Laufs; ohne Angabe erscheint die '
+            command.add_argument('--run-id', help='Laufkennung; ohne Angabe erscheint die '
                                                   'Übersicht der gespeicherten Lernumgebungen')
         else:
-            command.add_argument('--run-id', required=True, help='Kennung des Laufs')
+            command.add_argument('--run-id', required=True, help=RUN_ID_HELP)
         if name != 'create':
             command.add_argument('--platform', choices=('kubevirt', 'aws'),
                                  help='Standardkonfiguration wählen und Laufplattform prüfen')
         if name in ('create', 'status', 'delete'):
             command.add_argument('--count', type=vm_count, default=1,
-                                 help='Bei mehreren VMs Laufkennungen mit -1, -2 usw. bilden.')
+                                 help='Anzahl gleicher Lernumgebungen; ab 2 erhalten die '
+                                      'Laufkennungen die Endungen -1, -2 usw. (Standard: 1)')
         if name == 'create':
             command.add_argument('definition', type=Path, help='YAML-Datei der Lernumgebung')
             command.add_argument('--platform', required=True, choices=('kubevirt', 'aws'),
                                  help='Zielplattform')
-            command.add_argument('--operation-id', help='Kennung des Erstellungsauftrags')
+            command.add_argument('--operation-id', help=OPERATION_ID_HELP)
             command.add_argument('--parallel', type=vm_count, default=1,
                                  help='Gleichzeitige KubeVirt-Erstellungsaufträge (Standard: 1).')
             command.add_argument('--timeout-seconds', type=positive_seconds, default=900,
                                  help='Gesamte Zeitgrenze bis zur HTTP-Bereitschaft (Standard: 900)')
         if name in ('reset', 'delete'):
-            command.add_argument('--operation-id', help='Kennung des Reset- oder Löschauftrags')
+            command.add_argument('--operation-id', help=OPERATION_ID_HELP)
             default_timeout = 1200 if name == 'reset' else 300
             command.add_argument('--timeout-seconds', type=positive_seconds, default=default_timeout,
                                  help=f'Gesamte Zeitgrenze der Operation (Standard: {default_timeout})')

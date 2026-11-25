@@ -1278,6 +1278,33 @@ Der Agent verbindet die Modellprüfung mit der Zustandsführung und dem Plattfor
 | `agent/mcp_client.py` | Konfigurierten MCP-Prozess aufrufen und Antworten prüfen |
 | `adapter/` | Werkzeugvertrag, KubeVirt- und AWS-Aufrufe sowie gemeinsame Cloud-init-Erzeugung |
 
+#### Aufruf und Zusammenspiel
+
+`agent` ist ein Python-Package, also ein Verzeichnis mit Python-Modulen. Der Aufruf `python -m agent` startet die Datei `agent/__main__.py`. Sie ruft die Funktion `main` in `agent/cli.py` auf. Eine Installation als eigenes Programm ist dafür nicht nötig. Der Aufruf erfolgt aus dem Repository-Verzeichnis mit aktiviertem Python-Umfeld.
+
+Ein Befehl durchläuft immer dieselben Stationen:
+
+1. **CLI:** `agent/cli.py` liest Befehl und Optionen und lädt die Konfiguration.
+2. **Zustand:** `agent/zustand.py` speichert Modell, Auftrag und Ressourcen in einer SQLite-Datei. SQLite ist eine Datenbank in einer einzelnen Datei und benötigt keinen eigenen Server.
+3. **Adapter:** `agent/mcp_client.py` startet den Adapter der gewählten Plattform als eigenen Prozess und ruft dessen Werkzeuge über MCP auf.
+4. **Ausgabe:** `agent/ausgabe.py` zeigt Fortschritt und Ergebnis.
+
+Die Lösung enthält zwei voneinander unabhängige MCP-Verbindungen. Die erste verbindet den Agenten mit dem KubeVirt- oder AWS-Adapter und wird bei jedem Befehl verwendet. Die zweite ist der lesende Statusserver aus Kapitel 4.10, über den ein externer MCP-Client den Zustand einer Lernumgebung abfragen kann. Für die Bedienung über die CLI wird der Statusserver nicht benötigt.
+
+#### Kennungen
+
+Drei Angaben kommen in fast jedem Befehl vor. Die Hilfe `python -m agent --help` erklärt sie ebenfalls und zeigt Beispielbefehle.
+
+| Angabe | Bedeutung | Beispiel |
+| --- | --- | --- |
+| Laufkennung, `--run-id` | Name der Lernumgebung. Sie bleibt für create, status, reset und delete gleich. | `demo-01` |
+| Operationskennung, `--operation-id` | Kennung eines einzelnen Auftrags. Der Agent erzeugt sie selbst. Sie wird nur angegeben, um einen unterbrochenen Auftrag fortzusetzen. | `reset-demo-01` |
+| Anzahl, `--count` | Mehrere gleiche Lernumgebungen aus derselben Definition. Die Laufkennungen erhalten die Endungen `-1`, `-2` und so weiter. | `--run-id demo --count 2` ergibt `demo-1` und `demo-2` |
+
+Für den normalen Ablauf genügt die Laufkennung. Nach einem Fehler nennt die Ausgabe die Operationskennung, mit der sich der Auftrag fortsetzen lässt.
+
+#### Konfiguration
+
 Die Konfiguration trennt technische Einstellungen vom fachlichen Modell. Mit `--platform` wählt die CLI automatisch die passende Standarddatei:
 
 | Plattform | Standardkonfiguration |
@@ -1332,7 +1359,7 @@ Die Hilfe funktioniert ohne Konfigurationsdatei. Die CLI verwendet folgende Exit
 | 2 | Ungültige oder fehlende Kommandozeilenargumente |
 | 130 | Operation mit Ctrl+C unterbrochen |
 
-Standardausgabe und Fehlerausgabe verwenden UTF-8. Die CLI zeigt standardmässig lesbare Meldungen mit Lauf und Auftrag, aktuellem Fortschritt und einer Ergebnisübersicht. Bei Erstellung und Reset wird ausdrücklich zwischen laufender VM und bestätigtem HTTP-Dienst unterschieden. Die Statusansicht trennt gespeicherte Phase, VM-/VMI-Zustand, VM-Bereitschaft, HTTP-Bereitschaft und aktuell beobachteten Ressourcenbestand. Verfügbare HTTP- und SSH-Zugangsangaben erscheinen beim Ergebnis. Beim Abbau werden bestätigte Entfernungen und die verbleibende Anzahl bekannter Ressourcen angezeigt. Unveränderte Abbaumeldungen erscheinen höchstens alle 30 Sekunden.
+Standardausgabe und Fehlerausgabe verwenden UTF-8. Die CLI zeigt standardmässig lesbare Meldungen mit Lauf und Auftrag, aktuellem Fortschritt und einer Ergebnisübersicht. Bei Erstellung und Reset wird ausdrücklich zwischen laufender VM und bestätigtem HTTP-Dienst unterschieden. Die Statusansicht trennt gespeicherte Phase, VM-Zustand, VM-Bereitschaft und HTTP-Bereitschaft. Den Ressourcenbestand zeigt sie in zwei Zeilen: die Zahl der virtuellen Maschinen und die Zahl der zugehörigen Ressourcen, gegliedert nach Ausführung, Speicher und Netzwerk. Eine Lernumgebung mit einer VM umfasst auf KubeVirt deshalb mehrere Ressourcen, etwa Datenträger und Netzwerkdienst. Der Zustand der VM-Instanz erscheint nur, wenn er vom VM-Zustand abweicht. Verfügbare HTTP- und SSH-Zugangsangaben erscheinen beim Ergebnis. Beim Abbau werden bestätigte Entfernungen und die verbleibende Anzahl bekannter Ressourcen angezeigt. Unveränderte Abbaumeldungen erscheinen höchstens alle 30 Sekunden.
 
 Mit `--json` bleibt die vollständige maschinenlesbare Ausgabe verfügbar. Lebenszyklusereignisse erscheinen dann wie bisher als JSON-Zeilen mit UTC-Zeitstempel, Ereignis, Laufkennung und Operationskennung. Zustandsangaben, Ressourcen-UIDs und Speichermetadaten bleiben enthalten. `platform-status` liefert in diesem Modus das strukturierte Plattformobjekt einschliesslich MCP-Protokollversion. Die Option kann vor oder nach dem Befehlsnamen stehen. Skripte, die CLI-Ausgaben als JSON lesen, müssen `--json` setzen. Direkte Python-Aufrufe der Lebenszyklusfunktionen behalten die JSON-Ereignisse als Voreinstellung.
 
@@ -1568,17 +1595,17 @@ Die technische Erreichbarkeit und die Hilfe lassen sich vor einer Erstellung pr�
 ```bash
 python -m agent --help
 python -m agent reset --help
-python -m agent --config agent/beispiele/konfiguration.yaml platform-status \
-  --platform kubevirt
+python -m agent platform-status --platform kubevirt
 ```
+
+Die Befehle verwenden die Standardkonfiguration der Plattform. Eine andere Konfigurationsdatei wird mit `--config` vor dem Befehlsnamen angegeben.
 
 `platform-status` liest Knoten, KubeVirt und VM-/VMI-Bestand. Es erstellt keine Lernumgebung und bestätigt keine HTTP-Bereitschaft. Vor einem eigenen Lauf muss der öffentliche Schlüssel in der fachlichen Definition zu einem verfügbaren privaten Schlüssel passen, wenn auch SSH im Gast verwendet werden soll.
 
 Für eine vollständige maschinenlesbare Statusausgabe wird `--json` ergänzt:
 
 ```bash
-python -m agent --config agent/beispiele/konfiguration.yaml status \
-  --run-id demo-01 --json
+python -m agent status --platform kubevirt --run-id demo-01 --json
 ```
 
 Dieselbe Option steht bei create, reset, delete und platform-status zur Verfügung. Eine Umleitung von stdout speichert die JSON-Ausgabe; Fehlermeldungen bleiben auf stderr. Die Nachweisauszüge enthalten die Ausgabe des jeweils dort genannten Code-Stands.
@@ -1586,39 +1613,28 @@ Dieselbe Option steht bei create, reset, delete und platform-status zur Verfügu
 Welche Lernumgebungen gespeichert sind, zeigt `status` ohne Laufkennung:
 
 ```bash
-python -m agent --config agent/beispiele/konfiguration.yaml status
+python -m agent status --platform kubevirt
 ```
 
 Die folgenden Befehle verwenden für eine Beispielumgebung durchgehend die Laufkennung `demo-01`:
 
 ```bash
-python -m agent --config agent/beispiele/konfiguration.yaml create \
-  modell/beispiele/referenz.yaml \
-  --platform kubevirt \
-  --run-id demo-01 \
-  --operation-id create-demo-01
-python -m agent --config agent/beispiele/konfiguration.yaml status \
-  --run-id demo-01
-python -m agent --config agent/beispiele/konfiguration.yaml reset \
-  --run-id demo-01 \
-  --operation-id reset-demo-01
-python -m agent --config agent/beispiele/konfiguration.yaml delete \
-  --run-id demo-01 \
-  --operation-id delete-demo-01
+python -m agent create modell/beispiele/referenz.yaml --platform kubevirt --run-id demo-01
+python -m agent status --platform kubevirt --run-id demo-01
+python -m agent reset --platform kubevirt --run-id demo-01
+python -m agent delete --platform kubevirt --run-id demo-01
 ```
 
 Nach jedem Befehl wird das Ergebnis geprüft. Im JSON-Modus meldet der Agent den erfolgreichen Abschluss mit `ready` bei create, `reset_completed` bei reset und `deleted` bei delete. Zugangsadresse und vergebene Ports stehen in der Statusausgabe und können sich nach einem Reset ändern.
 
-Die Laufkennung bezeichnet die Umgebung, die Operationskennung einen einzelnen Auftrag. Beide bestehen aus Kleinbuchstaben, Ziffern und durch einzelne Bindestriche getrennten Teilen mit höchstens 63 Zeichen. Ohne `--operation-id` erzeugt die CLI eine neue Kennung. Für eine gezielte Wiederaufnahme wird die Kennung aus der Ausgabe erneut angegeben. Ein weiterer beabsichtigter Reset erhält beispielsweise `reset-demo-02`.
+Die Laufkennung bezeichnet die Umgebung, die Operationskennung einen einzelnen Auftrag. Beide bestehen aus Kleinbuchstaben, Ziffern und durch einzelne Bindestriche getrennten Teilen mit höchstens 63 Zeichen. Ohne `--operation-id` erzeugt die CLI eine neue Kennung. Für eine gezielte Wiederaufnahme wird die Kennung aus der Ausgabe erneut angegeben. Eine eigene Kennung wie `reset-demo-01` ist ebenfalls zulässig; ein weiterer beabsichtigter Reset erhält dann beispielsweise `reset-demo-02`.
 
-Nach einem behandelten Fehler wird zuerst der Status gelesen. Ein unterbrochener Reset wird anschliessend mit derselben Kennung und einer passenden Zeitgrenze fortgesetzt:
+Nach einem behandelten Fehler wird zuerst der Status gelesen. Ein unterbrochener Reset wird anschliessend mit derselben Kennung und einer passenden Zeitgrenze fortgesetzt. Die Kennung steht in der Fehlermeldung des unterbrochenen Auftrags:
 
 ```bash
-python -m agent --config agent/beispiele/konfiguration.yaml status \
-  --run-id demo-01
-python -m agent --config agent/beispiele/konfiguration.yaml reset \
-  --run-id demo-01 \
-  --operation-id reset-demo-01 --timeout-seconds 1200
+python -m agent status --platform kubevirt --run-id demo-01
+python -m agent reset --platform kubevirt --run-id demo-01 \
+  --operation-id <Operationskennung> --timeout-seconds 1200
 ```
 
 Für bestehende Läufe müssen Konfiguration und Zustandsdatenbank beibehalten werden. Beim Verschieben einer Konfiguration ist der Bezug relativer Zustandspfade zu beachten. Die Datenbank enthält auch Ressourcen früherer Fehlversuche und wird nicht durch einen neuen leeren Zustand ersetzt.
@@ -1630,8 +1646,8 @@ Für eine unabhängige Abbaukontrolle werden vor delete die UIDs und Speichermet
 Mit `--count` werden mehrere Läufe aus derselben Definition erstellt. Auf KubeVirt legt `--parallel` fest, wie viele Starts gleichzeitig laufen. Das folgende Beispiel erstellt `kv-parallel-1` und `kv-parallel-2`:
 
 ```bash
-python -m agent --config agent/beispiele/konfiguration.yaml create modell/beispiele/referenz.yaml \
-  --platform kubevirt --run-id kv-parallel --count 2 --parallel 2 --operation-id create-kv-parallel
+python -m agent create modell/beispiele/referenz.yaml --platform kubevirt \
+  --run-id kv-parallel --count 2 --parallel 2 --operation-id create-kv-parallel
 ```
 
 Mit `status` und `delete` lassen sich beide Läufe über `--run-id kv-parallel --count 2` prüfen und entfernen. Bei einem Fehler wartet der Agent auf die bereits gestarteten Aufträge und startet keine weiteren. Für die Wiederaufnahme wird derselbe Erstellungsbefehl mit derselben Operationskennung verwendet.

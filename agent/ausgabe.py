@@ -18,10 +18,30 @@ VM_STATES = {'Absent': 'Nicht vorhanden', 'Provisioning': 'Wird bereitgestellt',
              'Starting': 'Wird gestartet', 'Running': 'Läuft', 'Terminating': 'Wird entfernt',
              'Stopped': 'Gestoppt', 'Stopping': 'Wird gestoppt', 'Failed': 'Fehler',
              'Succeeded': 'Beendet', 'Unknown': 'Unbekannt'}
+VM_KINDS = ('VirtualMachine', 'EC2Instance')
+RESOURCE_GROUPS = {'VirtualMachineInstance': 'Ausführung', 'Pod': 'Ausführung',
+                   'DataVolume': 'Speicher', 'PersistentVolumeClaim': 'Speicher',
+                   'PersistentVolume': 'Speicher', 'EBSVolume': 'Speicher',
+                   'Service': 'Netzwerk', 'EndpointSlice': 'Netzwerk',
+                   'NetworkInterface': 'Netzwerk', 'SecurityGroup': 'Netzwerk'}
 
 
 def machine_state(value):
     return VM_STATES.get(value, f'Unbekannt ({json.dumps(value, ensure_ascii=False)})')
+
+
+def resource_summary(resources):
+    """VMs getrennt von den zugehörigen Ressourcen zählen."""
+    machines = sum(1 for resource in resources if resource['kind'] in VM_KINDS)
+    counts = {}
+    for resource in resources:
+        if resource['kind'] not in VM_KINDS:
+            group = RESOURCE_GROUPS.get(resource['kind'], 'Weitere')
+            counts[group] = counts.get(group, 0) + 1
+    details = ', '.join(f'{group} {counts[group]}'
+                        for group in ('Ausführung', 'Speicher', 'Netzwerk', 'Weitere') if group in counts)
+    related = sum(counts.values())
+    return machines, f'{related} ({details})' if details else '0'
 
 
 def emit(event, run_id, operation_id, **values):
@@ -125,10 +145,14 @@ class HumanOutput:
         elif event == 'status':
             write(f'Gespeicherter Zustand: {PHASES.get(data["storedPhase"], "Unbekannt")}')
             write(f'VM: {machine_state(data["vmState"])}')
-            write(f'VM-Instanz: {machine_state(data["vmiPhase"])}')
+            # Die VM-Instanz nur zeigen, wenn sie etwas anderes meldet als die VM.
+            if machine_state(data['vmiPhase']) != machine_state(data['vmState']):
+                write(f'VM-Instanz: {machine_state(data["vmiPhase"])}')
             write(f'VM-Bereitschaft: {"Ja" if data["vmReady"] else "Nein"}')
             write(f'HTTP-Dienst: {"Bereit" if data["serviceReady"] else "Nicht bestätigt"}')
-            write(f'Aktuell beobachtete Ressourcen: {len(data["resources"])}')
+            machines, related = resource_summary(data['resources'])
+            write(f'Virtuelle Maschinen: {machines}')
+            write(f'Zugehörige Ressourcen: {related}')
             self.access(data)
         elif event == 'error':
             write('Gespeicherter Zustand: Fehler')
