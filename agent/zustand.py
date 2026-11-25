@@ -1,5 +1,5 @@
 """SQLite-Zustand und Übergänge; Plattformabfragen erfolgen im Lebenszyklus."""
-from contextlib import contextmanager
+from contextlib import closing, contextmanager
 from datetime import datetime, timezone
 import json
 from pathlib import Path
@@ -62,6 +62,18 @@ def require_text(*values):
 
 def timestamp():
     return datetime.now(timezone.utc).isoformat()
+
+
+def read_runs(path):
+    """Laufübersicht aus SQLite lesen, ohne die Datenbank zu initialisieren."""
+    path = Path(path)
+    if not path.is_file():
+        return []
+    with closing(sqlite3.connect(path.resolve().as_uri() + '?mode=ro', uri=True)) as connection:
+        connection.row_factory = sqlite3.Row
+        return [dict(row) for row in connection.execute(
+            "SELECT run_id, platform, phase, model_hash, model_snapshot, updated_at FROM runs "
+            "ORDER BY phase = 'absent', updated_at DESC, run_id")]
 
 
 class StateStore:

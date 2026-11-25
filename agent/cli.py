@@ -2,13 +2,14 @@
 import argparse
 from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
 from pathlib import Path
+import sqlite3
 import sys
 from threading import Event
 import uuid
 
 from modell.validierung import load_model, ModelValidationError
 from agent.konfiguration import ConfigurationError, default_config_path, load_config
-from agent.ausgabe import output_mode, platform_result
+from agent.ausgabe import output_mode, platform_result, run_overview
 from gemeinsam import MAX_VMS
 
 
@@ -43,7 +44,7 @@ def build_parser():
     probe.add_argument('--platform', required=True, choices=('kubevirt', 'aws'))
     descriptions = {
         'create': 'Lernumgebung aus einer YAML-Definition erstellen',
-        'status': 'Zustand einer Lernumgebung abfragen',
+        'status': 'Übersicht der gespeicherten Lernumgebungen oder Zustand einer Lernumgebung abfragen',
         'reset': 'Lernumgebung aus dem gespeicherten Modell neu erstellen',
         'delete': 'Lernumgebung vollständig entfernen',
     }
@@ -51,7 +52,11 @@ def build_parser():
         command = commands.add_parser(name, help=description, description=description)
         command.add_argument('--json', action='store_true', default=argparse.SUPPRESS,
                              help=JSON_HELP)
-        command.add_argument('--run-id', required=True, help='Kennung des Laufs')
+        if name == 'status':
+            command.add_argument('--run-id', help='Kennung des Laufs; ohne Angabe erscheint die '
+                                                  'Übersicht der gespeicherten Lernumgebungen')
+        else:
+            command.add_argument('--run-id', required=True, help='Kennung des Laufs')
         if name != 'create':
             command.add_argument('--platform', choices=('kubevirt', 'aws'),
                                  help='Standardkonfiguration wählen und Laufplattform prüfen')
@@ -82,6 +87,8 @@ def main(argv=None):
     args = parser.parse_args(argv)
     if args.config is None and getattr(args, 'platform', None) is None:
         parser.error('Bitte --platform oder eine Konfigurationsdatei mit --config angeben.')
+    if args.operation == 'status' and args.run_id is None and args.count != 1:
+        parser.error('--count benötigt eine Laufkennung mit --run-id.')
     with output_mode(args.json):
         return run(args)
 
@@ -114,6 +121,8 @@ def run(args):
             return 1
         platform_result(result, args.json)
         return 0
+    if args.operation == 'status' and args.run_id is None:
+        return overview(config, args.platform, args.json)
     if args.operation == 'create':
         if args.parallel > args.count or (args.parallel > 1 and args.platform != 'kubevirt'):
             print('--parallel darf bei KubeVirt höchstens --count sein und muss bei AWS 1 sein.',
@@ -179,6 +188,21 @@ def run(args):
             print('Operation unterbrochen; gespeicherten Zustand prüfen.', file=sys.stderr)
             return 130
     return result
+
+
+def overview(config, platform, json_output):
+    """Gespeicherte Läufe nur lesend auflisten; ohne Plattformaufruf und ohne neue Datenbank."""
+    from agent.zustand import read_runs
+
+    try:
+        runs = read_runs(config['stateFile'])
+    except sqlite3.Error:
+        print('Fehler: Der Zustandsspeicher ist momentan nicht lesbar.', file=sys.stderr)
+        return 1
+    if platform:
+        runs = [run for run in runs if run['platform'] == platform]
+    run_overview(runs, json_output)
+    return 0
 
 
 def create_parallel(args, config, model, suffixes):

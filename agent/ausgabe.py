@@ -10,6 +10,7 @@ import time
 _renderer = ContextVar('agent_output', default=None)
 _prefix = ContextVar('agent_output_prefix', default=None)
 _output_lock = Lock()
+PLATFORMS = {'kubevirt': 'KubeVirt', 'aws': 'AWS EC2'}
 PHASES = {'absent': 'Nicht vorhanden', 'creating': 'Wird erstellt', 'ready': 'Bereit',
           'deleting': 'Wird gelöscht', 'error': 'Fehler'}
 VM_STATES = {'Absent': 'Nicht vorhanden', 'Provisioning': 'Wird bereitgestellt',
@@ -134,6 +135,28 @@ class HumanOutput:
             write(f'Bekannte Ressourcen zur weiteren Prüfung: {len(data["resources"])}')
             write('Bestand mit status prüfen. Zum Fortsetzen denselben Befehl mit '
                   f'--operation-id {data["operationId"]} ausführen.')
+
+
+def run_overview(runs, json_output=False):
+    """Gespeicherte Läufe auflisten; die Angaben stammen nur aus SQLite."""
+    if json_output:
+        data = {'timeUtc': datetime.now(timezone.utc).isoformat(), 'event': 'overview', 'runs': [
+            {'runId': run['run_id'], 'platform': run['platform'], 'storedPhase': run['phase'],
+             'updatedAt': run['updated_at']} for run in runs]}
+        write(json.dumps(data, ensure_ascii=False))
+        return
+    if not runs:
+        write('Es sind keine Lernumgebungen gespeichert.')
+        return
+    rows = [('Laufkennung', 'Plattform', 'Gespeicherter Zustand', 'Letzte Änderung (UTC)')]
+    for run in runs:
+        rows.append((run['run_id'], PLATFORMS.get(run['platform'], run['platform']),
+                     PHASES.get(run['phase'], 'Unbekannt'), run['updated_at'][:16].replace('T', ' ')))
+    widths = [max(len(row[column]) for row in rows) for column in range(4)]
+    write(f'Gespeicherte Lernumgebungen: {len(runs)}')
+    for row in rows:
+        write('  '.join(value.ljust(width) for value, width in zip(row, widths)).rstrip())
+    write('Live-Zustand einer Lernumgebung: status --run-id <Laufkennung>')
 
 
 def platform_result(result, json_output=False):

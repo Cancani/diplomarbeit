@@ -42,7 +42,7 @@ class AgentCliTests(unittest.TestCase):
                 self.assertEqual(result.stderr, '')
 
     def test_missing_and_unknown_arguments(self):
-        for arguments in [[], ['unknown'], ['status'], ['platform-status'],
+        for arguments in [[], ['unknown'], ['status', '--count', '2'], ['platform-status'],
                           ['reset', '--run-id', 'lokal-01', '--timeout-seconds', '0'],
                           ['create', 'definition.yaml', '--run-id', 'lokal-01',
                            '--platform', 'unknown']]:
@@ -230,6 +230,42 @@ class AgentCliTests(unittest.TestCase):
             self.assertFalse(data['serviceReady'])
             self.assertEqual(data['resources'], [])
             self.assertEqual(store.get('readable-01')['resources'][0]['resource_id'], 'known-uid')
+
+    def test_status_without_run_id_lists_stored_runs_read_only(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            config = root/'config.yaml'
+            config.write_text(yaml.safe_dump({
+                'stateFile': 'state.sqlite3', 'adapters': {'kubevirt': {
+                    'command': sys.executable, 'timeoutSeconds': 10,
+                    'args': [str(ROOT/'tests/fixtures/mcp_adapter.py'), 'success']}},
+            }), encoding='utf-8')
+            result = self.invoke(['status'], config=config)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn('keine Lernumgebungen gespeichert', result.stdout)
+            self.assertFalse((root/'state.sqlite3').exists())
+
+            model = load_model(ROOT/'modell/beispiele/referenz.yaml')
+            store = StateStore(root/'state.sqlite3')
+            store.start_create('lokal-01', 'create-lokal-01', 'kubevirt', model)
+            store.start_create('cloud-01', 'create-cloud-01', 'aws', model)
+            before = (root/'state.sqlite3').read_bytes()
+
+            result = self.invoke(['status'], config=config)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn('Gespeicherte Lernumgebungen: 2', result.stdout)
+            for expected in ['lokal-01', 'KubeVirt', 'cloud-01', 'AWS EC2', 'Wird erstellt']:
+                self.assertIn(expected, result.stdout)
+            result = self.invoke(['status', '--platform', 'aws'], config=config)
+            self.assertIn('cloud-01', result.stdout)
+            self.assertNotIn('lokal-01', result.stdout)
+            result = self.invoke(['status', '--json'], config=config)
+            data = json.loads(result.stdout)
+            self.assertEqual(data['event'], 'overview')
+            self.assertEqual({run['runId'] for run in data['runs']}, {'lokal-01', 'cloud-01'})
+            self.assertEqual(set(data['runs'][0]), {'runId', 'platform', 'storedPhase', 'updatedAt'})
+            # Die Übersicht darf weder den Zustand noch das Inventar verändern.
+            self.assertEqual((root/'state.sqlite3').read_bytes(), before)
 
     def test_existing_run_operations_require_a_stored_environment(self):
         for operation in ['status', 'reset', 'delete']:

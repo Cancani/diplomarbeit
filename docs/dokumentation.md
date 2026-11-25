@@ -76,7 +76,7 @@ Das Modell beschreibt eine Ubuntu-VM mit einem HTTP-Testdienst. Pro Lauf wählt 
 | Produktiver Betrieb der neuen Infrastruktur | Der Nachweis erfolgt als Proof of Concept, nicht als Einführung |
 | Vollständige Umsetzung aller Unterrichtsmodule | Eine technisch reduzierte Test-Lernumgebung genügt für den Nachweis des Lebenszyklus |
 | Sprachmodellbasierte Entscheidungslogik | Der Agent arbeitet nach festgelegten Regeln, um Abläufe und Fehlerfälle eindeutig prüfen zu können |
-| Produktive Bedienoberfläche | Die CLI steuert den Lebenszyklus. Das lokale Dashboard zeigt gespeicherte Läufe und bietet eine lesende Statusabfrage. |
+| Bedienoberfläche | Die Bedienung erfolgt über die CLI. Eine grafische Oberfläche ist gemäss Projektbeschreibung nicht Teil der Arbeit. |
 | Zweite Public Cloud | Eine Plattform genügt, um die Austauschbarkeit über die Adapterschicht zu zeigen |
 | GitOps oder Argo CD | Wird in dieser Arbeit nicht behandelt |
 | Hochverfügbarkeit, verteilter Storage, produktive Skalierung | Betriebsthemen, die erst bei einer produktiven Einführung relevant werden |
@@ -275,7 +275,7 @@ Die fachliche Dokumentation steht in dieser Datei. Code, Testdaten und Originalp
 | `docs/dokumentation.md` | Projektbericht mit Planung, Entscheiden, Umsetzung und Ergebnissen |
 | `docs/nachweise/`, `docs/messungen/` | Systemausgaben, Laufprotokolle und verwendete Manifeste |
 | `modell/` | JSON-Schema, YAML-Beispiele und Validierung |
-| `agent/` | CLI, Konfiguration, Lebenszyklus, SQLite, MCP-Client, Statusserver und Dashboard |
+| `agent/` | CLI, Konfiguration, Lebenszyklus, SQLite, MCP-Client und Statusserver |
 | `adapter/` | MCP-Werkzeugvertrag, Server sowie KubeVirt- und AWS-Aufrufe |
 | `gemeinsam/` | Prozesssperre für Agent und Adapter |
 | `scripts/` | Hilfswerkzeuge für Messungen, Modellprüfung, Issues und Repository-Prüfungen |
@@ -562,7 +562,7 @@ gantt
 | US19 bis US24 | Ich habe CLI, SQLite-Zustand und MCP-Adapter verbunden. Auf KubeVirt habe ich Erstellung, Status, Reset und Abbau ausgeführt. Die [Funktionsprüfung](#55-funktionsprufung-des-lokalen-agenten) beschreibt auch die getesteten Abbruch- und Wiederaufnahmefälle. |
 | US39 | Der Agent hat dieselbe Referenzumgebung im Learner Lab erstellt, per HTTP geprüft und abgebaut. Die [direkte AWS-Nachkontrolle](#56-funktionsprufung-des-aws-agenten) zeigt die Abfrageergebnisse. |
 | US25, aus Sprint 3 vorgezogen | Im Learner Lab habe ich einen regulären Reset und die Fortsetzung eines mit Ctrl+C unterbrochenen Resets geprüft. |
-| Statusabfrage | Das Dashboard zeigt gespeicherte Läufe. Der zusätzliche MCP-Server bietet eine lesende Abfrage von VM-Zustand und HTTP-Bereitschaft an. |
+| Statusabfrage | Der zusätzliche MCP-Server bietet eine lesende Abfrage von VM-Zustand und HTTP-Bereitschaft an. |
 
 #### Sprint 2 Retrospektive
 
@@ -1098,7 +1098,7 @@ flowchart TD
 
 <small id="abb-12"><em>Abbildung 12: Systemkontext der Bereitstellungslösung</em></small>
 
-Die Systemgrenze umfasst die CLI, den Agenten, SQLite und die Adapter. Der lesende Statusserver und das Dashboard greifen auf denselben gespeicherten Zustand zu. Kubernetes mit KubeVirt sowie AWS liegen ausserhalb dieser Grenze. Pro Lernumgebung wird eine der beiden Zielplattformen verwendet. Die YAML-Definition beschreibt die fachlichen Anforderungen; die Zuordnung zu konkreten Plattformressourcen übernimmt die Lösung.
+Die Systemgrenze umfasst die CLI, den Agenten, SQLite und die Adapter. Der lesende Statusserver greift auf denselben gespeicherten Zustand zu. Kubernetes mit KubeVirt sowie AWS liegen ausserhalb dieser Grenze. Pro Lernumgebung wird eine der beiden Zielplattformen verwendet. Die YAML-Definition beschreibt die fachlichen Anforderungen; die Zuordnung zu konkreten Plattformressourcen übernimmt die Lösung.
 
 #### 3.7.2 Komponentensicht
 
@@ -1133,7 +1133,7 @@ Die Adapter kapseln die Übersetzung in Kubernetes- beziehungsweise AWS-Aufrufe.
 
 Agent und lokal gestarteter MCP-Adapter kommunizieren über stdio. MCP-Nachrichten laufen über die Standardein- und -ausgabe, Diagnosemeldungen getrennt über stderr. Der Werkzeugvertrag beschreibt Aufrufe, Antworten und Fehler. SDK, Protokollaushandlung und Werkzeuge sind in Kapitel 4.5 festgehalten; Grundlage der Anbindung ist das MCP-Python-SDK.
 
-Der [lesende Statuszugriff](#410-lesender-statuszugriff) ergänzt diesen Ablauf. Das Dashboard und der Statusserver verwenden dieselbe Live-Prüfung für VM und HTTP-Dienst.
+Der [lesende Statuszugriff](#410-lesender-statuszugriff) ergänzt diesen Ablauf. Der Statusserver verwendet dieselbe Live-Prüfung für VM und HTTP-Dienst wie der Befehl `status`.
 
 ### 3.8 Bewertungskonzept
 
@@ -1296,6 +1296,15 @@ python -m agent status --platform aws --run-id cloud-01
 ```
 
 Auch `status`, `reset` und `delete` akzeptieren `--platform` zur Konfigurationsauswahl. Bei diesen Befehlen muss die Plattform zum gespeicherten Lauf passen, bevor die Lebenszyklusoperation ausgeführt wird. Ohne `--platform` bleibt `--config` erforderlich. Bestehende Aufrufe mit einer expliziten Konfiguration funktionieren unverändert.
+
+Ohne `--run-id` zeigt `status` eine Übersicht der gespeicherten Lernumgebungen mit Laufkennung, Plattform, gespeichertem Zustand und Zeitpunkt der letzten Änderung. Mit `--platform` erscheinen nur die Läufe dieser Plattform.
+
+```bash
+python -m agent status --platform kubevirt
+python -m agent status --platform kubevirt --run-id lokal-01
+```
+
+Die Übersicht liest die SQLite-Datei nur lesend und ruft keine Plattform auf. Sie bestätigt deshalb weder den VM-Zustand noch die HTTP-Bereitschaft. Den aktuellen Zustand einer einzelnen Lernumgebung liefert `status --run-id`. Im JSON-Modus erscheint die Übersicht als ein Objekt mit dem Ereignis `overview` und der Liste `runs`.
 
 Die KubeVirt-Vorlage lautet:
 
@@ -1574,6 +1583,12 @@ python -m agent --config agent/beispiele/konfiguration.yaml status \
 
 Dieselbe Option steht bei create, reset, delete und platform-status zur Verfügung. Eine Umleitung von stdout speichert die JSON-Ausgabe; Fehlermeldungen bleiben auf stderr. Die Nachweisauszüge enthalten die Ausgabe des jeweils dort genannten Code-Stands.
 
+Welche Lernumgebungen gespeichert sind, zeigt `status` ohne Laufkennung:
+
+```bash
+python -m agent --config agent/beispiele/konfiguration.yaml status
+```
+
 Die folgenden Befehle verwenden für eine Beispielumgebung durchgehend die Laufkennung `demo-01`:
 
 ```bash
@@ -1702,7 +1717,7 @@ Ich habe den lesenden Zugriff mit Claude Code am KubeVirt-Lauf `s2-kv-01` geprü
 
 <small id="abb-14"><em>Abbildung 14: Lesende MCP-Statusabfrage mit Claude Code</em></small>
 
-Das Dashboard zeigt die gespeicherten Läufe und prüft auf Anfrage den Status eines ausgewählten Laufs. Es lauscht standardmässig auf `127.0.0.1:8765`. Der Statusserver nutzt derzeit die SQLite-Lesefunktion `read_runs` aus dem Dashboard-Modul. Für einen MCP-Aufruf muss der HTTP-Server des Dashboards nicht laufen.
+Der Statusserver liest die gespeicherten Läufe mit der Funktion `read_runs` aus `agent/zustand.py`. Sie öffnet die SQLite-Datei nur lesend und legt keine Datenbank an.
 
 ## 5 Tests und Messungen
 

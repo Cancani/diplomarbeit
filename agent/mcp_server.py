@@ -8,10 +8,9 @@ from mcp.server import MCPServer
 from mcp.types import CallToolResult, TextContent, ToolAnnotations
 
 from adapter.vertrag import AdapterError
-from agent.dashboard import read_runs
 from agent.konfiguration import ConfigurationError, load_config
 from agent.lebenszyklus import inspect_status
-from agent.zustand import StateError
+from agent.zustand import StateError, read_runs
 
 
 def read_status(config, run_id):
