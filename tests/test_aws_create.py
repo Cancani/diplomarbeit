@@ -111,6 +111,17 @@ class AwsCreateTests(unittest.TestCase):
                 self.assertEqual(invoke('delete', '--operation-id', 'delete-01'), 0)
                 self.assertEqual(store.get('aws-test-01')['phase'], 'absent')
 
+    def test_profile_above_the_instance_type_is_rejected_before_any_aws_call(self):
+        model = load_model(Path(__file__).resolve().parents[1] / 'modell/beispiele/m426.yaml')
+        client = boto3.client('ec2', region_name='us-east-1', aws_access_key_id='test',
+                              aws_secret_access_key='test')
+        with Stubber(client) as stub, self.assertRaises(AdapterError) as caught:
+            _create_step(client, 'us-east-1', ('vpc-0123', 'subnet-0123', '8.8.8.8/32'),
+                         'aws-test-01', 'create-test-01', model)
+        self.assertEqual(caught.exception.code, 'aws_model_unsupported')
+        self.assertIn('2048 MiB', str(caught.exception))
+        stub.assert_no_pending_responses()
+
     def test_launch_saves_ids_and_reuses_one_instance_with_restricted_http(self):
         region = 'us-east-1'
         run, operation = 'aws-test-01', 'create-test-01'

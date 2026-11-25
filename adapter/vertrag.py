@@ -14,7 +14,8 @@ ERRORS = {
     'aws_cli_unavailable': 'Die AWS CLI wurde nicht gefunden.',
     'aws_query_failed': 'Der AWS-Aufruf ist fehlgeschlagen. Prüfe das AWS-Profil, die Lab-Sitzung und die Berechtigungen.',
     'aws_launch_unconfigured': 'Für den EC2-Start fehlen Konto, VPC, Subnetz oder HTTP-Quelladresse in der Adapterkonfiguration.',
-    'aws_model_unsupported': 'Der EC2-Adapter unterstützt t3.small mit bis zu 100 GiB und maximal 16 KiB Cloud-init-Daten.',
+    'aws_model_unsupported': ('Der EC2-Adapter unterstützt mit t3.small höchstens 2 vCPU und 2048 MiB '
+                              'Arbeitsspeicher, bis zu 100 GiB Datenträger und maximal 16 KiB Cloud-init-Daten.'),
     'aws_image_unavailable': 'Das EC2-Abbild für die Neuerstellung ist nicht verfügbar.',
     'platform_error': 'Die Clusterabfrage ist fehlgeschlagen. Prüfe den lokalen Clusterzugang.',
     'timeout': 'Die Zeitgrenze für die Abfrage wurde überschritten.',

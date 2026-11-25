@@ -57,7 +57,7 @@ class AgentCliTests(unittest.TestCase):
 
     def test_invalid_model_rejected(self):
         for name, message in [('ungueltig-ram.yaml', '$.vm.resources.minMemoryMiB'),
-                              ('missing.yaml', 'Datei konnte nicht gelesen werden')]:
+                              ('missing.yaml', 'missing.yaml wurde nicht gefunden')]:
             with self.subTest(name=name):
                 result = self.invoke(['create', str(ROOT/'modell/beispiele'/name),
                                       '--platform', 'kubevirt', '--run-id', 'lokal-01'])
@@ -281,7 +281,29 @@ class AgentCliTests(unittest.TestCase):
                 result = self.invoke(arguments)
                 self.assertEqual(result.returncode, 1)
                 self.assertIn('keine Umgebung gespeichert', result.stderr)
+                self.assertIn('"lokal-01"', result.stderr)
+                self.assertIn('status ohne --run-id', result.stderr)
                 self.assertEqual(result.stdout, '')
+
+    def test_invalid_ids_name_the_rule_before_any_state_access(self):
+        model = str(ROOT/'modell/beispiele/referenz.yaml')
+        state = ROOT/'agent/beispiele/zustand.sqlite3'
+        existed = state.exists()
+        for arguments, expected in [
+                (['create', model, '--platform', 'kubevirt', '--run-id', 'Demo_01'],
+                 'Ungültige Laufkennung "Demo_01"'),
+                (['status', '--run-id', 'Demo_01'], 'Ungültige Laufkennung "Demo_01"'),
+                (['reset', '--run-id', 'demo-01', '--operation-id', 'Reset 1'],
+                 'Ungültige Operationskennung "Reset 1"'),
+                (['delete', '--run-id', 'a' * 62, '--count', '2'],
+                 'Ungültige Laufkennung mit Nummernzusatz')]:
+            with self.subTest(arguments=arguments):
+                result = self.invoke(arguments)
+                self.assertEqual(result.returncode, 1)
+                self.assertIn(expected, result.stderr)
+                self.assertIn('Beispiel: demo-01', result.stderr)
+                self.assertEqual(result.stdout, '')
+        self.assertEqual(state.exists(), existed)
 
     def test_config_or_platform_is_required(self):
         result = self.invoke(['status', '--run-id', 'lokal-01'], config=None)

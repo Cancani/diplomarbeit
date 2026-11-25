@@ -17,6 +17,8 @@ JSON_HELP = 'Vollständige JSON-Ausgabe für Skripte und Protokolle'
 RUN_ID_HELP = 'Laufkennung: Name der Lernumgebung, bleibt für alle Befehle gleich'
 OPERATION_ID_HELP = ('Operationskennung des Auftrags; wird ohne Angabe erzeugt und nur '
                      'angegeben, um einen unterbrochenen Auftrag fortzusetzen')
+ID_RULE = ('Erlaubt sind Kleinbuchstaben, Ziffern und einzelne Bindestriche, '
+           'höchstens 63 Zeichen. Beispiel: demo-01')
 EXAMPLES = '''Begriffe:
   Laufkennung (--run-id)
       Name einer Lernumgebung. Sie bleibt für create, status, reset und delete gleich.
@@ -151,6 +153,9 @@ def run(args):
             print('--parallel darf bei KubeVirt höchstens --count sein und muss bei AWS 1 sein.',
                   file=sys.stderr)
             return 1
+        if not args.definition.is_file():
+            print(f'Ungültig: Die Datei {args.definition} wurde nicht gefunden.', file=sys.stderr)
+            return 1
         try:
             model = load_model(args.definition)
         except ModelValidationError as error:
@@ -166,13 +171,14 @@ def run(args):
     count = args.count
     operation_prefix = getattr(args, 'operation_id', None)
     suffixes = [''] if count == 1 else [f'-{index}' for index in range(1, count + 1)]
-    if count > 1:
+    for label, value in (('Laufkennung', args.run_id), ('Operationskennung', operation_prefix)):
+        if value is None:
+            continue
         try:
-            validate_id(args.run_id + suffixes[-1])
-            if operation_prefix:
-                validate_id(operation_prefix + suffixes[-1])
-        except AdapterError as error:
-            print(f'Ungültige Lauf- oder Operationskennung mit Nummernzusatz: {error}', file=sys.stderr)
+            validate_id(value + suffixes[-1])
+        except AdapterError:
+            note = ' mit Nummernzusatz' if count > 1 else ''
+            print(f'Ungültige {label}{note} "{value + suffixes[-1]}". {ID_RULE}', file=sys.stderr)
             return 1
 
     if args.operation == 'create' and args.parallel > 1:
@@ -203,6 +209,10 @@ def run(args):
             label = f'Fehler ({error.code})' if isinstance(error, AdapterError) else 'Fehler'
             if count > 1:
                 label = f'{label} für {run_id}'
+            if (isinstance(error, StateError) and args.operation != 'create'
+                    and not is_stored(config, run_id)):
+                error = (f'Für die Laufkennung "{run_id}" ist keine Umgebung gespeichert. '
+                         'Die gespeicherten Lernumgebungen zeigt status ohne --run-id.')
             print(f'{label}: {error}', file=sys.stderr)
             result = 1
             if args.operation == 'create':
@@ -211,6 +221,16 @@ def run(args):
             print('Operation unterbrochen; gespeicherten Zustand prüfen.', file=sys.stderr)
             return 130
     return result
+
+
+def is_stored(config, run_id):
+    """Nur lesend prüfen, ob die Laufkennung bekannt ist."""
+    from agent.zustand import read_runs
+
+    try:
+        return any(run['run_id'] == run_id for run in read_runs(config['stateFile']))
+    except sqlite3.Error:
+        return True  # Im Zweifel bleibt die ursprüngliche Meldung stehen.
 
 
 def overview(config, platform, json_output):

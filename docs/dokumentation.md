@@ -1329,7 +1329,7 @@ Drei Angaben kommen in fast jedem Befehl vor. Die Hilfe `python -m agent --help`
 | Operationskennung, `--operation-id` | Kennung eines einzelnen Auftrags. Der Agent erzeugt sie selbst. Sie wird nur angegeben, um einen unterbrochenen Auftrag fortzusetzen. | `reset-demo-01` |
 | Anzahl, `--count` | Mehrere gleiche Lernumgebungen aus derselben Definition. Die Laufkennungen erhalten die Endungen `-1`, `-2` und so weiter. | `--run-id demo --count 2` ergibt `demo-1` und `demo-2` |
 
-Für den normalen Ablauf genügt die Laufkennung. Nach einem Fehler nennt die Ausgabe die Operationskennung, mit der sich der Auftrag fortsetzen lässt.
+Für den normalen Ablauf genügt die Laufkennung. Nach einem Fehler nennt die Ausgabe die Operationskennung, mit der sich der Auftrag fortsetzen lässt. Eine ungültig geschriebene Kennung weist die CLI mit der Schreibregel und einem Beispiel zurück. Bei einer unbekannten Laufkennung nennt die Meldung die Kennung und verweist auf die Übersicht.
 
 #### Konfiguration
 
