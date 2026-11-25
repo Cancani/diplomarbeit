@@ -1264,7 +1264,7 @@ Die drei in Kapitel 3.2 ausgewählten LernMAAS-Profile liegen als eigene Definit
 
 Der Datenträger von m239 und m426 ist auf den Mindestwert des Modells angehoben. Dienste und Modul-Repositories der Profile bildet Modellversion 1.0 nicht ab; die drei Definitionen stellen deshalb dieselbe Ubuntu-VM mit HTTP-Testdienst bereit wie die Referenz.
 
-Der AWS-Adapter weist m426 ab, weil der festgelegte Instanztyp `t3.small` 2048 MiB bietet. Die Definitionen sind mit der Modellprüfung und den automatisierten Tests geprüft. Auf KubeVirt habe ich m426 erstellt und wieder entfernt; in der VM waren 3409 MiB Arbeitsspeicher sichtbar. Für m239 und m254 liegen keine eigenen Läufe vor.
+Der AWS-Adapter weist m426 ab, weil der festgelegte Instanztyp `t3.small` 2048 MiB bietet. Die Definitionen sind mit der Modellprüfung und den automatisierten Tests geprüft. Auf KubeVirt habe ich alle drei Profile erstellt und wieder entfernt; bei m426 waren in der VM 3409 MiB Arbeitsspeicher sichtbar. Auf AWS liegen für die Profile keine Läufe vor.
 
 #### Lokale Validierung
 
