@@ -143,6 +143,36 @@ class AgentCliTests(unittest.TestCase):
         for run_id in ('gruppe-1', 'gruppe-2', 'gruppe-3'):
             self.assertIn(f'[{run_id}] Lernumgebung wird erstellt.', output.getvalue())
 
+    def test_interrupted_parallel_create_waits_for_running_orders_and_says_so(self):
+        config = ROOT/'agent/beispiele/konfiguration.yaml'
+        args = build_parser().parse_args([
+            '--config', str(config), 'create', str(ROOT/'modell/beispiele/referenz.yaml'),
+            '--platform', 'kubevirt', '--name', 'gruppe', '--count', '4', '--parallel', '2',
+        ])
+        started = Barrier(3, timeout=5)
+        stopped = []
+
+        def create(config, run_id, operation_id, platform, model, timeout, *, cancel):
+            started.wait()
+            # Ein laufender Auftrag endet erst, wenn der Abbruch bei ihm angekommen ist.
+            self.assertTrue(cancel.wait(5))
+            stopped.append(run_id)
+            raise KeyboardInterrupt
+
+        def interrupt(*arguments, **options):
+            started.wait()
+            raise KeyboardInterrupt
+
+        stderr = StringIO()
+        with patch('agent.lebenszyklus.create', side_effect=create), \
+                patch('agent.cli.wait', side_effect=interrupt), \
+                redirect_stdout(StringIO()), redirect_stderr(stderr):
+            self.assertEqual(run(args), 130)
+        self.assertEqual(sorted(stopped), ['gruppe-1', 'gruppe-2'])
+        self.assertIn('werden angehalten', stderr.getvalue())
+        self.assertIn('Bitte warten', stderr.getvalue())
+        self.assertIn('Zustand mit status prüfen', stderr.getvalue())
+
     def test_parallel_create_cannot_exceed_remaining_capacity(self):
         config = ROOT/'agent/beispiele/konfiguration.yaml'
         model_path = ROOT/'modell/beispiele/referenz.yaml'

@@ -327,20 +327,32 @@ def create_parallel(args, config, model, suffixes):
 
     remaining = iter(suffixes)
     failed = False
-    with ThreadPoolExecutor(max_workers=args.parallel) as executor:
+    executor = ThreadPoolExecutor(max_workers=args.parallel)
+    try:
+        active = {executor.submit(create_one, next(remaining)) for _ in range(args.parallel)}
+        while active:
+            done, active = wait(active, return_when=FIRST_COMPLETED)
+            for future in done:
+                if not future.result():
+                    failed = True
+            if not failed:
+                for suffix in (next(remaining, None) for _ in done):
+                    if suffix is not None:
+                        active.add(executor.submit(create_one, suffix))
+    except KeyboardInterrupt:
+        cancel.set()
+        print('Operation unterbrochen. Die laufenden Aufträge werden angehalten und gesichert; '
+              'das dauert einige Sekunden. Bitte warten.', file=sys.stderr)
         try:
-            active = {executor.submit(create_one, next(remaining)) for _ in range(args.parallel)}
-            while active:
-                done, active = wait(active, return_when=FIRST_COMPLETED)
-                for future in done:
-                    if not future.result():
-                        failed = True
-                if not failed:
-                    for suffix in (next(remaining, None) for _ in done):
-                        if suffix is not None:
-                            active.add(executor.submit(create_one, suffix))
+            executor.shutdown(wait=True, cancel_futures=True)
         except KeyboardInterrupt:
-            cancel.set()
-            print('Operation unterbrochen; gespeicherten Zustand prüfen.', file=sys.stderr)
-            return 130
+            # Ein zweiter Abbruch beendet sofort. Offene Aufträge übernimmt der nächste Befehl.
+            print('Abbruch erzwungen. Zustand mit status prüfen; unvollständige Maschinen '
+                  'mit delete entfernen.', file=sys.stderr)
+            sys.stdout.flush()
+            sys.stderr.flush()
+            os._exit(130)
+        print('Gespeicherten Zustand mit status prüfen.', file=sys.stderr)
+        return 130
+    executor.shutdown(wait=True)
     return int(failed)
