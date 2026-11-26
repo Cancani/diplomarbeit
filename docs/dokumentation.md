@@ -657,7 +657,7 @@ Die automatisierten Tests decken die Übersicht, die getrennte Zählung und die 
 
 ##### Schulung und Feedbackrückfluss
 
-Die Schulung richtet sich an eine Lehrperson mit Erfahrung in der bestehenden MAAS-Umgebung. Eine Lehrperson der TBZ, die MAAS bis Ende des letzten Schuljahres im Unterricht eingesetzt hat, hat ihre Teilnahme zugesagt. Vorgesehen sind 60 Minuten. Als Termin ist Donnerstag, 03.12.2026, 16:30 bis 17:30 Uhr vorgeschlagen; die Bestätigung der Experten steht noch aus. Nach einer Einführung führt die teilnehmende Person Erstellung, Statusprüfung, Reset und Abbau selbst aus. Die benötigten Zugänge werden vorbereitet. Lernziele, Ablauf und Lernerfolgskontrolle sind im Entwurf einer Instruktionsplanung festgehalten.
+Die Schulung richtet sich an eine Lehrperson mit Erfahrung in der bestehenden MAAS-Umgebung. Eine Lehrperson der TBZ, die MAAS bis Ende des letzten Schuljahres im Unterricht eingesetzt hat, hat ihre Teilnahme zugesagt. Vorgesehen sind 60 Minuten. Die Schulung ist auf Donnerstag, 03.12.2026, 16:30 bis 17:30 Uhr angesetzt. Nach einer Einführung führt die teilnehmende Person Erstellung, Statusprüfung, Reset und Abbau selbst aus. Die benötigten Zugänge werden vorbereitet. Lernziele, Ablauf und Lernerfolgskontrolle sind im Entwurf einer Instruktionsplanung festgehalten.
 
 Ich dokumentiere Schwierigkeiten, Rückfragen und Verbesserungsvorschläge. Anschliessend halte ich fest, welche Anpassungen daraus entstehen und welche Vorschläge mit Begründung zurückgestellt werden.
 
@@ -1679,7 +1679,7 @@ python -m agent create modell/beispiele/referenz.yaml --platform kubevirt \
   --name kv-parallel --count 2 --parallel 2 --operation-id create-kv-parallel
 ```
 
-Mit `status` und `delete` lassen sich beide Läufe über `--name kv-parallel --count 2` prüfen und entfernen. Bei einem Fehler wartet der Agent auf die bereits gestarteten Aufträge und startet keine weiteren. Für die Wiederaufnahme wird derselbe Erstellungsbefehl mit derselben Operationskennung verwendet.
+Mit `status` und `delete` lassen sich beide Läufe über `--name kv-parallel --count 2` prüfen und entfernen. Bei einem Fehler wartet der Agent auf die bereits gestarteten Aufträge und startet keine weiteren. Nach Ctrl+C hält er die laufenden Aufträge an und sichert ihren Zustand; das dauert einige Sekunden. Für die Wiederaufnahme wird derselbe Erstellungsbefehl mit derselben Operationskennung verwendet.
 
 ### 4.9 AWS-Adapter und EC2-Betrieb
 
@@ -2004,7 +2004,7 @@ python -m mkdocs build --strict
 
 Auf `dl380-01` habe ich eine Lernumgebung aus der Referenz-YAML erstellt, zurückgesetzt und wieder entfernt. Der Testdienst war nach der Erstellung und nach dem Reset erreichbar. Beim Reset entstand eine neue VM aus derselben Definition. Nach dem Abbau fand ich keine Ressourcen des Laufs mehr. Die Nachkontrolle bestätigte auch, dass die vier protokollierten Speichervolumes und ihre Verzeichnisse entfernt waren. Die Details stehen im [Laufauszug](messungen/laeufe/kv-normal-20261113-091803/normalablauf.txt).
 
-Auf KubeVirt lassen sich mehrere Lernumgebungen gleichzeitig erstellen. Ich habe zwei VMs parallel erstellt, die Testdienste geprüft und den Abbau beider VMs per Statusabfrage bestätigt.
+Auf KubeVirt lassen sich mehrere Lernumgebungen gleichzeitig erstellen. Ich habe zwei VMs parallel erstellt, die Testdienste geprüft und den Abbau beider VMs per Statusabfrage bestätigt. In einem weiteren Versuch habe ich 20 Lernumgebungen mit vier gleichzeitigen Starts erstellt, den Status aller 20 geprüft und sie über den Agenten wieder vollständig abgebaut. Abbau und Reset mehrerer Lernumgebungen laufen nacheinander.
 
 Weitere Funktionsprüfungen auf KubeVirt:
 
