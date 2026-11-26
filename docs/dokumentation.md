@@ -1696,13 +1696,13 @@ Der AWS-Durchstich verarbeitet unverändert `modell/beispiele/referenz.yaml`. Di
 | Mindestens 12 GiB Systemdatenträger | EBS-Volume `gp3` in der angeforderten Grösse, `DeleteOnTermination: true` |
 | Benutzer und öffentliche Schlüssel | Gemeinsame Cloud-init-Erzeugung mit gesperrter Passwortanmeldung |
 | Testdienst | Python-HTTP-Server als systemd-Dienst auf Port 8080 mit `lernumgebung bereit` |
-| Erreichbarkeit der HTTP-Prüfung | Öffentliche IPv4 der Instanz und eigene Security Group mit einer TCP-8080-Regel für die öffentliche Agentenadresse als `/32` |
+| Erreichbarkeit von HTTP-Prüfung und SSH | Öffentliche IPv4 der Instanz und eigene Security Group mit je einer Regel für TCP 8080 und TCP 22, beide nur für die öffentliche Agentenadresse als `/32` |
 
-Die unterstützten Mindestanforderungen sind durch `t3.small` begrenzt. Mehr als zwei vCPU, mehr als 2048 MiB RAM, mehr als 100 GiB Datenträger oder mehr als 16 KiB Cloud-init-Daten weist der Adapter vor einer Ressourcenerstellung ab. Die Grösse des Systemdatenträgers bleibt innerhalb dieses Bereichs aus dem Modell abgeleitet. Die gemeinsame SQLite-Datenbank reserviert pro Lauf einen VM-Platz nach der Grenze aus Kapitel 4.4.
+Die unterstützten Mindestanforderungen sind durch `t3.small` begrenzt. Mehr als zwei vCPU, mehr als 2048 MiB RAM, mehr als 100 GiB Datenträger oder mehr als 16 KiB Cloud-init-Daten weist der Adapter vor einer Ressourcenerstellung ab. Die CLI prüft dieselben Grenzen bereits vor dem Speichern des Laufs; eine unpassende Definition hinterlässt deshalb weder einen Eintrag noch einen belegten VM-Platz. Die Grösse des Systemdatenträgers bleibt innerhalb dieses Bereichs aus dem Modell abgeleitet. Die gemeinsame SQLite-Datenbank reserviert pro Lauf einen VM-Platz nach der Grenze aus Kapitel 4.4.
 
 #### Erstellung und Ressourceninventar
 
-Vor dem ersten Plattformaufruf sichert der Agent das Modell und den Auftrag. Der Adapter prüft die Subnetzzuordnung zur konfigurierten VPC und legt eine deterministisch benannte Security Group an. In einem weiteren Schritt bestätigt er die einzelne HTTP-Regel. Danach startet er genau eine Instanz mit öffentlicher IPv4, Systemdatenträger und Netzwerkschnittstelle. Der Start verlangt IMDSv2 und verwendet die CPU-Credit-Einstellung `standard`.
+Vor dem ersten Plattformaufruf sichert der Agent das Modell und den Auftrag. Der Adapter prüft die Subnetzzuordnung zur konfigurierten VPC und legt eine deterministisch benannte Security Group an. In einem weiteren Schritt setzt er die beiden Eingangsregeln für HTTP und SSH in einem Aufruf und bestätigt sie. Danach startet er genau eine Instanz mit öffentlicher IPv4, Systemdatenträger und Netzwerkschnittstelle. Der Start verlangt IMDSv2 und verwendet die CPU-Credit-Einstellung `standard`.
 
 Ein aus Lauf- und Operationskennung berechneter `ClientToken` kennzeichnet den EC2-Start. Vorhandene Ressourcen werden auf Modell, Auftrag und Startkonfiguration geprüft, und ein bereits sichtbarer passender Instanzbestand wird wiederverwendet. Diesen Wiederholungsfall prüfen die automatisierten Tests über die SDK-Schnittstelle, während der Live-Nachweis in Kapitel 5.6 einen regulären Start umfasst.
 
@@ -1718,7 +1718,7 @@ Die Tags werden beim Anlegen von Security Group, Instanz, EBS-Volume und Netzwer
 
 #### Status und Abbau
 
-Nach bestätigter Erstellung fragt der Agent den Instanzzustand und den HTTP-Testdienst ab. Erst eine laufende Instanz zusammen mit der erwarteten HTTP-Antwort führt zur gespeicherten Phase `ready`. Ein separater Statusaufruf fragt AWS und den Dienst erneut ab. Der ausgeführte Durchstich verwendet ausschliesslich die HTTP-Freigabe, die Security Group enthält keine eingehende SSH-Regel.
+Nach bestätigter Erstellung fragt der Agent den Instanzzustand und den HTTP-Testdienst ab. Erst eine laufende Instanz zusammen mit der erwarteten HTTP-Antwort führt zur gespeicherten Phase `ready`. Ein separater Statusaufruf fragt AWS und den Dienst erneut ab. Der dokumentierte Durchstich verwendete ausschliesslich die HTTP-Freigabe. Seither enthält die Security Group zusätzlich eine SSH-Regel für dieselbe Agentenadresse, und der Status nennt bei laufender Instanz die öffentliche Adresse mit Port 22. Die Anmeldung erfolgt wie auf KubeVirt vom Agentenhost aus mit dem Schlüssel der Definition.
 
 Vor einem schreibenden Werkzeugaufruf bestätigt der Adapter seine Prozesssitzung und gleicht das AWS-Konto über STS mit der Konfiguration ab. Für delete prüft er die gefundenen Ressourcen gegen Laufkennung, Modell-Hash und Region. Bekannte IDs, die in der Tag-Suche fehlen, werden zusätzlich über ihren ID-Filter gesucht. Widersprüchliche Besitzkennzeichnungen führen zu einem Fehler.
 
@@ -2056,7 +2056,7 @@ Nach delete habe ich den Bestand zusätzlich direkt mit der AWS CLI abgefragt. D
 
 Damit sind der automatische Aufbau, die Dienstbereitschaft und der Abbau im geprüften Konto und in der geprüften Region an einem echten Lauf belegt. Die direkte Nachkontrolle bestätigte auch ausserhalb der Agent-Tags den leeren Bestand der abgefragten Ressourcenarten.
 
-Die AWS-Tests prüfen die erwarteten Boto3-Aufrufe mit `botocore.stub.Stubber`. Dazu gehören Profil und Region, Ressourceninventar, der Start mit ClientToken und eingeschränkter HTTP-Regel sowie die Löschreihenfolge und Besitzprüfung. Die Aufrufe gegen das echte Learner Lab sind in den Laufnachweisen dokumentiert.
+Die AWS-Tests prüfen die erwarteten Boto3-Aufrufe mit `botocore.stub.Stubber`. Dazu gehören Profil und Region, Ressourceninventar, der Start mit ClientToken und den auf die Agentenadresse eingeschränkten Regeln für HTTP und SSH sowie die Löschreihenfolge und Besitzprüfung. Die Aufrufe gegen das echte Learner Lab sind in den Laufnachweisen dokumentiert.
 
 | Umfang des Nachweises | Einordnung |
 | --- | --- |

@@ -115,6 +115,23 @@ class DefaultConfigTests(unittest.TestCase):
                     command.assert_called_once()
                     self.assertEqual(command.call_args.args[1], run_id)
 
+    def test_definition_above_the_aws_limit_is_rejected_before_anything_is_stored(self):
+        with patch('agent.cli.default_config_path', return_value=self.source), \
+                patch('agent.lebenszyklus.create') as create:
+            result, error = self.invoke(['create', str(ROOT/'modell/beispiele/m426.yaml'),
+                                         '--platform', 'aws', '--name', 'cloud-m426'])
+            self.assertEqual(result, 1)
+            self.assertIn('aws_model_unsupported', error)
+            self.assertIn('2048 MiB', error)
+            self.assertIn('nichts gespeichert', error)
+            create.assert_not_called()
+            self.assertFalse(self.state.exists())
+            # Auf KubeVirt bleibt dieselbe Definition zulässig.
+            result, error = self.invoke(['create', str(ROOT/'modell/beispiele/m426.yaml'),
+                                         '--platform', 'kubevirt', '--name', 'lokal-m426'])
+            self.assertEqual((result, error), (0, ''))
+            create.assert_called_once()
+
     def test_without_platform_the_stored_platform_selects_the_default(self):
         store = StateStore(self.state)
         model = load_model(self.model_path)

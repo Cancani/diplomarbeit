@@ -201,6 +201,17 @@ def run(args):
             print(f'{label}{note} "{value + suffixes[-1]}". {ID_RULE}', file=sys.stderr)
             return 1
 
+    if args.operation == 'create' and args.platform == 'aws':
+        # Grenzen des AWS-Instanztyps prüfen, bevor ein Lauf gespeichert oder ein Platz belegt wird.
+        from adapter.aws import check_model
+        from adapter.kubevirt_manifest import resource_name
+
+        try:
+            check_model(resource_name(args.run_id + suffixes[-1]), model['vm'])
+        except AdapterError as error:
+            print(f'Fehler ({error.code}): {error} Es wurde nichts erstellt und nichts gespeichert.',
+                  file=sys.stderr)
+            return 1
     if args.operation == 'create' and args.parallel > 1:
         return create_parallel(args, config, model, suffixes)
 

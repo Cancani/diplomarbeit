@@ -11,7 +11,7 @@ import boto3
 from botocore.stub import ANY, Stubber
 import yaml
 
-from adapter.aws import _create_step
+from adapter.aws import _create_step, run_status
 from adapter.vertrag import AdapterError
 from agent.cli import build_parser, run as run_command
 from agent.zustand import StateStore
@@ -122,6 +122,60 @@ class AwsCreateTests(unittest.TestCase):
         self.assertIn('2048 MiB', str(caught.exception))
         stub.assert_no_pending_responses()
 
+    def test_status_reports_ssh_only_for_a_running_instance_with_public_address(self):
+        run, region, digest = 'aws-test-01', 'us-east-1', 'a' * 64
+        tags = [{'Key': 'ManagedBy', 'Value': 'diplomarbeit-agent'}, {'Key': 'RunId', 'Value': run},
+                {'Key': 'ModelHash', 'Value': digest}]
+        filters = {'Filters': [{'Name': 'tag:ManagedBy', 'Values': ['diplomarbeit-agent']},
+                               {'Name': 'tag:RunId', 'Values': [run]}]}
+        client = boto3.client('ec2', region_name=region,
+                              aws_access_key_id='test', aws_secret_access_key='test')
+        for state, address, expected in [('running', '192.0.2.10', ('192.0.2.10', 22)),
+                                         ('pending', '192.0.2.10', (None, None)),
+                                         ('running', None, (None, None))]:
+            instance = {'InstanceId': 'i-0123', 'State': {'Name': state}, 'Tags': tags}
+            if address:
+                instance['PublicIpAddress'] = address
+            with self.subTest(state=state, address=address), Stubber(client) as stub:
+                stub.add_response('describe_instances',
+                                  {'Reservations': [{'Instances': [instance]}]}, filters)
+                stub.add_response('describe_volumes', {'Volumes': []}, filters)
+                stub.add_response('describe_network_interfaces', {'NetworkInterfaces': []}, filters)
+                stub.add_response('describe_security_groups', {'SecurityGroups': []}, filters)
+                status = run_status(client, region, run)
+                self.assertEqual((status['sshHost'], status['sshPort']), expected)
+                self.assertEqual(status['httpUrl'],
+                                 'http://192.0.2.10:8080/' if expected[0] else None)
+
+    def test_group_with_only_the_http_rule_is_a_conflict(self):
+        model = load_model(Path(__file__).resolve().parents[1] / 'modell/beispiele/referenz.yaml')
+        _, digest = encode_snapshot(model)
+        run, operation, region = 'aws-test-01', 'create-test-01', 'us-east-1'
+        vpc, subnet, cidr = 'vpc-0123', 'subnet-0123', '8.8.8.8/32'
+        name = 'da-' + hashlib.sha256(run.encode()).hexdigest()[:24]
+        tags = [{'Key': key, 'Value': value} for key, value in {
+            'ManagedBy': 'diplomarbeit-agent', 'RunId': run, 'ModelHash': digest,
+            'OperationId': operation,
+            'LaunchConfig': hashlib.sha256(
+                f'{vpc}/{subnet}/{cidr}/ami-0fa5967347d08d2df'.encode()).hexdigest(),
+        }.items()]
+        filters = {'Filters': [{'Name': 'tag:ManagedBy', 'Values': ['diplomarbeit-agent']},
+                               {'Name': 'tag:RunId', 'Values': [run]}]}
+        group = {'GroupId': 'sg-0123', 'GroupName': name, 'VpcId': vpc, 'Tags': tags,
+                 'IpPermissions': [{'IpProtocol': 'tcp', 'FromPort': 8080, 'ToPort': 8080,
+                                    'IpRanges': [{'CidrIp': cidr}]}]}
+        client = boto3.client('ec2', region_name=region,
+                              aws_access_key_id='test', aws_secret_access_key='test')
+        with Stubber(client) as stub:
+            stub.add_response('describe_instances', {'Reservations': []}, filters)
+            stub.add_response('describe_volumes', {'Volumes': []}, filters)
+            stub.add_response('describe_network_interfaces', {'NetworkInterfaces': []}, filters)
+            stub.add_response('describe_security_groups', {'SecurityGroups': [group]}, filters)
+            with self.assertRaises(AdapterError) as caught:
+                _create_step(client, region, (vpc, subnet, cidr), run, operation, model)
+            self.assertEqual(caught.exception.code, 'resource_conflict')
+            stub.assert_no_pending_responses()
+
     def test_launch_saves_ids_and_reuses_one_instance_with_restricted_http(self):
         region = 'us-east-1'
         run, operation = 'aws-test-01', 'create-test-01'
@@ -140,8 +194,8 @@ class AwsCreateTests(unittest.TestCase):
         filters = {'Filters': [{'Name': 'tag:ManagedBy', 'Values': ['diplomarbeit-agent']},
                                {'Name': 'tag:RunId', 'Values': [run]}]}
         group = {'GroupId': 'sg-0123', 'GroupName': name, 'VpcId': vpc, 'Tags': tags, 'IpPermissions': []}
-        permission = {'IpProtocol': 'tcp', 'FromPort': 8080, 'ToPort': 8080,
-                      'IpRanges': [{'CidrIp': cidr}]}
+        permissions = [{'IpProtocol': 'tcp', 'FromPort': port, 'ToPort': port,
+                        'IpRanges': [{'CidrIp': cidr}]} for port in (22, 8080)]
         instance = {'InstanceId': 'i-0123', 'SubnetId': subnet, 'VpcId': vpc, 'ImageId': image,
                     'InstanceType': 't3.small', 'State': {'Name': 'pending'}, 'Tags': tags,
                     'SecurityGroups': [{'GroupId': 'sg-0123'}],
@@ -168,7 +222,7 @@ class AwsCreateTests(unittest.TestCase):
                                                                 'State': 'available'}]},
                               {'SubnetIds': [subnet]})
             stub.add_response('create_security_group', {'GroupId': 'sg-0123'}, {
-                'GroupName': name, 'Description': 'Diplomarbeit HTTP test', 'VpcId': vpc,
+                'GroupName': name, 'Description': 'Diplomarbeit HTTP and SSH test', 'VpcId': vpc,
                 'TagSpecifications': [{'ResourceType': 'security-group', 'Tags': tags}],
             })
             result = _create_step(client, region, network, run, operation, model)
@@ -177,10 +231,12 @@ class AwsCreateTests(unittest.TestCase):
 
             describe(stub, groups=[group])
             stub.add_response('authorize_security_group_ingress', {},
-                              {'GroupId': 'sg-0123', 'IpPermissions': [permission]})
+                              {'GroupId': 'sg-0123', 'IpPermissions': permissions})
             self.assertFalse(_create_step(client, region, network, run, operation, model)['complete'])
 
-            group = {**group, 'IpPermissions': [permission]}
+            # AWS liefert die Regeln ohne feste Reihenfolge und mit leeren Zusatzlisten.
+            group = {**group, 'IpPermissions': [{**rule, 'Ipv6Ranges': [], 'PrefixListIds': []}
+                                                for rule in reversed(permissions)]}
             describe(stub, groups=[group])
             stub.add_response('run_instances', {'Instances': [instance]}, {
                 'ImageId': image, 'InstanceType': 't3.small', 'MinCount': 1, 'MaxCount': 1,

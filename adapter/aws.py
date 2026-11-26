@@ -22,6 +22,8 @@ from modell.snapshot import encode_snapshot
 MANAGED_BY = 'diplomarbeit-agent'
 IMAGE_ID = 'ami-0fa5967347d08d2df'
 INSTANCE_TYPE = 't3.small'
+# Eingehend nur für die Agentenadresse: SSH und der HTTP-Testdienst.
+INGRESS_PORTS = (22, 8080)
 INSTANCE_STATES = {
     'pending': 'Provisioning', 'running': 'Running', 'shutting-down': 'Terminating',
     'stopping': 'Stopping', 'stopped': 'Stopped',
@@ -102,17 +104,31 @@ def run_status(client, region, run_id):
     state = INSTANCE_STATES[instance['State']['Name']] if instance else 'Absent'
     ready = state == 'Running'
     ip = instance.get('PublicIpAddress')
-    http_url = f'http://{IPv4Address(ip)}:8080/' if ready and ip else None
+    address = str(IPv4Address(ip)) if ready and ip else None
+    http_url = f'http://{address}:8080/' if address else None
     digest = next((entry[2] for entry in inventory.values()), None)
     return {'resources': [entry[0] for entry in inventory.values()], 'vmState': state,
             'vmiPhase': state, 'vmReady': ready, 'modelHash': digest, 'httpUrl': http_url,
-            'sshHost': None, 'sshPort': None}
+            'sshHost': address, 'sshPort': 22 if address else None}
 
 
 def _check_subnet(client, vpc_id, subnet_id):
     subnets = client.describe_subnets(SubnetIds=[subnet_id])['Subnets']
     if len(subnets) != 1 or subnets[0]['VpcId'] != vpc_id or subnets[0]['State'] != 'available':
         raise AdapterError('resource_conflict')
+
+
+def check_model(name, vm):
+    """Grenzen des festen Instanztyps prüfen und die Cloud-init-Daten liefern.
+
+    Die Prüfung braucht keinen AWS-Zugriff. Die CLI ruft sie auf, bevor ein Lauf gespeichert wird.
+    """
+    limits = vm['resources']
+    user_data = cloud_init(name, vm)
+    if (limits['minVcpus'] > 2 or limits['minMemoryMiB'] > 2048
+            or limits['minDiskGiB'] > 100 or len(user_data.encode('utf-8')) > 16384):
+        raise AdapterError('aws_model_unsupported')
+    return user_data
 
 
 def _create_step(client, region, network, run_id, operation_id, model):
@@ -123,10 +139,7 @@ def _create_step(client, region, network, run_id, operation_id, model):
     name = resource_name(run_id)
     vm = model['vm']
     limits = vm['resources']
-    user_data = cloud_init(name, vm)
-    if (limits['minVcpus'] > 2 or limits['minMemoryMiB'] > 2048
-            or limits['minDiskGiB'] > 100 or len(user_data.encode('utf-8')) > 16384):
-        raise AdapterError('aws_model_unsupported')
+    user_data = check_model(name, vm)
     launch_config = hashlib.sha256(f'{vpc_id}/{subnet_id}/{source}/{IMAGE_ID}'.encode()).hexdigest()
     expected = {'ManagedBy': MANAGED_BY, 'RunId': run_id, 'ModelHash': digest,
                 'OperationId': operation_id, 'LaunchConfig': launch_config}
@@ -146,7 +159,7 @@ def _create_step(client, region, network, run_id, operation_id, model):
         _check_subnet(client, vpc_id, subnet_id)
         try:
             group = client.create_security_group(
-                GroupName=name, Description='Diplomarbeit HTTP test', VpcId=vpc_id,
+                GroupName=name, Description='Diplomarbeit HTTP and SSH test', VpcId=vpc_id,
                 TagSpecifications=[{'ResourceType': 'security-group', 'Tags': tags}],
             )
         except ClientError as error:
@@ -160,17 +173,20 @@ def _create_step(client, region, network, run_id, operation_id, model):
     if group['VpcId'] != vpc_id or group['GroupName'] != name:
         raise AdapterError('resource_conflict')
     group_id = group['GroupId']
-    permission = {'IpProtocol': 'tcp', 'FromPort': 8080, 'ToPort': 8080, 'IpRanges': [{'CidrIp': source}]}
-    rules = [{key: value for key, value in rule.items() if value != []}
-             for rule in group.get('IpPermissions', [])]
+    permissions = [{'IpProtocol': 'tcp', 'FromPort': port, 'ToPort': port,
+                    'IpRanges': [{'CidrIp': source}]} for port in INGRESS_PORTS]
+    rules = sorted(({key: value for key, value in rule.items() if value != []}
+                    for rule in group.get('IpPermissions', [])),
+                   key=lambda rule: rule.get('FromPort', -1))
     if not rules and not instances:
         try:
-            client.authorize_security_group_ingress(GroupId=group_id, IpPermissions=[permission])
+            # Beide Regeln in einem Aufruf, damit kein Zwischenstand mit nur einer Regel entsteht.
+            client.authorize_security_group_ingress(GroupId=group_id, IpPermissions=permissions)
         except ClientError as error:
             if error.response['Error']['Code'] != 'InvalidPermission.Duplicate':
                 raise
         return {'complete': False, 'resources': resources}
-    if rules != [permission]:
+    if rules != permissions:
         raise AdapterError('resource_conflict')
     if instances:
         instance = instances[0]
