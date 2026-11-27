@@ -73,10 +73,21 @@ def output_mode(json_output=False, *, prefix=None):
         _prefix.reset(prefix_token)
 
 
+_text_written = False
+
+
 def write(message=''):
+    global _text_written
     if prefix := _prefix.get():
         message = f'[{prefix}] {message}'
     print(message, flush=True)
+    _text_written = True
+
+
+def finish_text():
+    """Textausgabe mit einer Leerzeile abschliessen, damit die Eingabezeile abgesetzt ist."""
+    if _text_written:
+        print(flush=True)
 
 
 class HumanOutput:
@@ -89,6 +100,8 @@ class HumanOutput:
 
     def context(self, data):
         if self.run != data['runId']:
+            if self.run is not None and not _prefix.get():
+                print(flush=True)  # Leerzeile zwischen zwei Maschinen
             write(f'Maschine: {data["runId"]}')
             self.run = data['runId']
         if self.operation != data['operationId']:

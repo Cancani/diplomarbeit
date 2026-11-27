@@ -330,6 +330,19 @@ class AgentCliTests(unittest.TestCase):
                 self.assertIn('status ohne --name', result.stderr)
                 self.assertEqual(result.stdout, '')
 
+    def test_text_output_ends_with_one_blank_line(self):
+        with tempfile.TemporaryDirectory() as folder:
+            config = self.temporary_config(folder)
+            overview = self.invoke(['status'], config=config)
+            self.assertEqual(overview.returncode, 0, overview.stderr)
+            self.assertTrue(overview.stdout.endswith('gespeichert.\n\n'))
+            # JSON bleibt ohne Zusatzzeile, und eine reine Fehlermeldung erzeugt keine Ausgabe.
+            data = self.invoke(['status', '--json'], config=config)
+            self.assertEqual(json.loads(data.stdout)['event'], 'overview')
+            self.assertFalse(data.stdout.endswith('\n\n'))
+            missing = self.invoke(['status', '--name', 'fehlt-01'], config=config)
+            self.assertEqual((missing.returncode, missing.stdout), (1, ''))
+
     def test_invalid_ids_name_the_rule_before_any_state_access(self):
         model = str(ROOT/'modell/beispiele/referenz.yaml')
         state = ROOT/'agent/beispiele/zustand.sqlite3'

@@ -10,7 +10,7 @@ import uuid
 
 from modell.validierung import load_model, ModelValidationError
 from agent.konfiguration import ConfigurationError, default_config_path, load_config
-from agent.ausgabe import output_mode, platform_result, run_overview
+from agent.ausgabe import finish_text, output_mode, platform_result, run_overview
 from gemeinsam import MAX_VMS
 
 
@@ -128,7 +128,10 @@ def main(argv=None):
         parser.error('--all gilt nur für die Übersicht ohne --name.')
     try:
         with output_mode(args.json):
-            return run(args)
+            result = run(args)
+        if not args.json:
+            finish_text()
+        return result
     except BrokenPipeError:
         # Der Empfänger hat die Ausgabe geschlossen, zum Beispiel head. Ohne Traceback enden.
         os.dup2(os.open(os.devnull, os.O_WRONLY), sys.stdout.fileno())

@@ -79,6 +79,22 @@ class OutputTests(unittest.TestCase):
             run_overview(runs, json_output=True)
         self.assertEqual(len(json.loads(out.getvalue())['runs']), 2)
 
+    def test_consecutive_machines_are_separated_by_a_blank_line(self):
+        fields = dict(storedPhase='ready', vmState='Running', vmiPhase='Running', vmReady=True,
+                      serviceReady=True, httpUrl=None, sshHost=None, sshPort=None, resources=[])
+        out = io.StringIO()
+        with redirect_stdout(out), output_mode():
+            emit('status', 'paar-1', 'op-1', **fields)
+            emit('status', 'paar-2', 'op-2', **fields)
+        text = out.getvalue()
+        self.assertTrue(text.startswith('Maschine: paar-1\n'))
+        self.assertIn('\n\nMaschine: paar-2\n', text)
+        self.assertEqual(text.count('\n\n'), 1)
+        out = io.StringIO()
+        with redirect_stdout(out), output_mode(prefix='paar-1'):
+            emit('status', 'paar-1', 'op-1', **fields)
+        self.assertNotIn('\n\n', out.getvalue())
+
     def test_intermediate_kubevirt_state_is_translated(self):
         out = io.StringIO()
         with redirect_stdout(out), output_mode():
