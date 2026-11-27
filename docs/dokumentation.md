@@ -17,7 +17,7 @@
 
 Ich habe eine Referenzumgebung mit derselben YAML-Datei auf KubeVirt und AWS EC2 bereitgestellt. Der Python-Agent prüft die Datei mit einem JSON-Schema und speichert die Definition sowie die Ressourcen-IDs in SQLite, die Plattformadapter spricht er über MCP an. Auf beiden Plattformen habe ich die VM erstellt, den HTTP-Testdienst geprüft, die Umgebung aus der gespeicherten Definition neu aufgebaut und die Testressourcen entfernt.
 
-Auf KubeVirt habe ich unter anderem geprüft, wie sich ein hart beendeter Agentenprozess und eine verzögerte Adapterantwort auf einen Reset auswirken. Im AWS Learner Lab habe ich einen Reset nach Ctrl+C mit derselben Operationskennung fortgesetzt. Die Nachweise stehen bei den jeweiligen [KubeVirt-](#55-funktionsprufung-des-lokalen-agenten) und [AWS-Funktionsprüfungen](#56-funktionsprufung-des-aws-agenten).
+Auf KubeVirt habe ich unter anderem geprüft, wie sich ein hart beendeter Agentenprozess und eine verzögerte Adapterantwort auf einen Reset auswirken. Im AWS Learner Lab habe ich einen Reset nach Ctrl+C mit derselben Operationskennung fortgesetzt. Mehrere Lernumgebungen lassen sich auf beiden Plattformen als Gruppe erstellen, zurücksetzen und abbauen; ein unterbrochener Gruppenauftrag wird mit der gemeinsamen Operationskennung fortgesetzt. Die Nachweise stehen bei den jeweiligen [KubeVirt-](#55-funktionsprufung-des-lokalen-agenten) und [AWS-Funktionsprüfungen](#56-funktionsprufung-des-aws-agenten).
 
 Für LernMAAS habe ich drei Basisläufe erfasst. Der Median vom Start des Aufbaus bis zur ersten erfolgreichen HTTP-Antwort betrug 692,909 s. Die [Diskussion](#6-diskussion-des-bisherigen-ergebnisses) ordnet die Funktionsnachweise und die Grenzen des Vergleichs ein.
 
@@ -648,12 +648,12 @@ Die Rückmeldungen zur Bedienung aus dem zweiten Review habe ich vor der Schulun
 
 | Rückmeldung | Umsetzung | Beschrieben in |
 | --- | --- | --- |
-| Bedienung der CLI | `status` ohne `--name` listet die vorhandenen Lernumgebungen mit Plattform, gespeichertem Zustand und letzter Änderung. Mit `--name` folgt der aktuelle Status einer einzelnen Lernumgebung. Die Plattform wird nur beim Erstellen angegeben; die übrigen Befehle lesen sie aus dem gespeicherten Lauf. | Kapitel 4.3 und 4.8 |
-| Kennungen und VM-Anzahl | Die Laufkennung wird in der CLI als frei gewählter Name mit `--name` angegeben. Die Hilfe erklärt Name, Operationskennung und `--count`. Die Beispielbefehle kommen ohne Operationskennung aus; sie wird nur angegeben, um einen unterbrochenen Auftrag fortzusetzen. | Kapitel 4.3 und 4.8 |
+| Bedienung der CLI | `status` ohne `--name` listet die vorhandenen Lernumgebungen mit Plattform, gespeichertem Zustand und letzter Änderung. Mit `--name` folgt der aktuelle Status einer einzelnen Lernumgebung. Die Übersicht ist nach Namen geordnet. Die Plattform wird nur beim Erstellen angegeben; die übrigen Befehle lesen sie aus dem gespeicherten Lauf. | Kapitel 4.3 und 4.8 |
+| Kennungen und VM-Anzahl | Die Laufkennung wird in der CLI als frei gewählter Name mit `--name` angegeben. Die Hilfe erklärt Name, Operationskennung und `--count`. Die Beispielbefehle kommen ohne Operationskennung aus; sie wird nur angegeben, um einen unterbrochenen Auftrag fortzusetzen. Mit `--count` gelten `status`, `reset` und `delete` für die ganze Gruppe. Die Aufträge einer Gruppe teilen eine Operationskennung, und beim Grundnamen ohne Nummer nennt die Meldung die vorhandenen Maschinen und die passende Anzahl. | Kapitel 4.3 und 4.8 |
 | Statusausgabe | Die Statusansicht nennt die Zahl der virtuellen Maschinen getrennt von den zugehörigen Ressourcen und gliedert diese nach Ausführung, Speicher und Netzwerk. | Kapitel 4.3 |
 | MCP und Programmaufruf | Der Start über `python -m agent`, die Stationen eines Befehls und die beiden MCP-Verbindungen sind beschrieben. Die Hilfe zeigt den Programmnamen und Beispielbefehle. | Kapitel 4.3 und 4.10 |
 
-Die automatisierten Tests decken die Übersicht, die getrennte Zählung und die Hilfe ab. Die vollständige JSON-Ausgabe der Statusabfrage einer einzelnen Lernumgebung bleibt unverändert. Die Schulung, die RASCI-Abstimmung und die formalen Messserien sind noch offen.
+Die automatisierten Tests decken die Übersicht, die getrennte Zählung, die Gruppenbefehle und die Hilfe ab. Die vollständige JSON-Ausgabe der Statusabfrage einer einzelnen Lernumgebung bleibt unverändert. Nach den Anpassungen habe ich Erstellung, Reset, Abbau, Abbruch und Wiederaufnahme auf KubeVirt und AWS erneut geprüft, für einzelne Lernumgebungen und für Gruppen. Die Ergebnisse stehen in den Kapiteln 5.5 und 5.6. Die Schulung, die RASCI-Abstimmung und die formalen Messserien sind noch offen.
 
 ##### Schulung und Feedbackrückfluss
 
@@ -1327,9 +1327,9 @@ Drei Angaben kommen in fast jedem Befehl vor. Die Hilfe `python -m agent --help`
 | --- | --- | --- |
 | Name, `--name` | Frei gewählter Name der Maschine. Er bleibt für create, status, reset und delete gleich. Intern heisst er Laufkennung; die frühere Schreibweise `--run-id` gilt weiter. | `demo-01` |
 | Operationskennung, `--operation-id` | Kennung eines einzelnen Auftrags. Der Agent erzeugt sie selbst. Sie wird nur angegeben, um einen unterbrochenen Auftrag fortzusetzen. | `reset-demo-01` |
-| Anzahl, `--count` | Mehrere gleiche Lernumgebungen aus derselben Definition. Die Namen erhalten die Endungen `-1`, `-2` und so weiter. | `--name demo --count 2` ergibt `demo-1` und `demo-2` |
+| Anzahl, `--count` | Mehrere gleiche Lernumgebungen aus derselben Definition. Die Namen erhalten die Endungen `-1`, `-2` und so weiter. Mit derselben Anzahl gelten status, reset und delete für die ganze Gruppe. | `--name demo --count 2` ergibt `demo-1` und `demo-2` |
 
-Für den normalen Ablauf genügt der Name. Nach einem Fehler nennt die Ausgabe die Operationskennung, mit der sich der Auftrag fortsetzen lässt. Eine ungültig geschriebene Kennung weist die CLI mit der Schreibregel und einem Beispiel zurück. Bei einer unbekannten Laufkennung nennt die Meldung die Kennung und verweist auf die Übersicht.
+Für den normalen Ablauf genügt der Name. Nach einem Fehler nennt die Ausgabe die Operationskennung, mit der sich der Auftrag fortsetzen lässt. Eine ungültig geschriebene Kennung weist die CLI mit der Schreibregel und einem Beispiel zurück. Bei einer unbekannten Laufkennung nennt die Meldung die Kennung und verweist auf die Übersicht. Ist unter dem angegebenen Namen eine Gruppe gespeichert, nennt die Meldung deren Maschinen und die passende Anzahl für `--count`.
 
 #### Konfiguration
 
@@ -1352,7 +1352,7 @@ python -m agent status --name cloud-01
 
 Die Plattform wird nur bei `create` gewählt. `status`, `reset` und `delete` lesen sie aus dem gespeicherten Lauf und verwenden die Standardkonfiguration dieser Plattform. Ausgangspunkt ist die Zustandsdatei der KubeVirt-Standardkonfiguration. `--platform` bleibt bei diesen Befehlen erlaubt; die Angabe muss dann zum gespeicherten Lauf passen. Bestehende Aufrufe mit `--platform` oder einer expliziten Konfiguration funktionieren unverändert.
 
-Ohne `--name` zeigt `status` eine Übersicht der vorhandenen Lernumgebungen mit Laufkennung, Plattform, gespeichertem Zustand und Zeitpunkt der letzten Änderung. Abgebaute Lernumgebungen nennt die Übersicht nur als Zahl; mit `--all` erscheinen auch sie. Mit `--platform` erscheinen nur die Läufe dieser Plattform.
+Ohne `--name` zeigt `status` eine Übersicht der vorhandenen Lernumgebungen mit Laufkennung, Plattform, gespeichertem Zustand und Zeitpunkt der letzten Änderung. Die Einträge sind nach Namen geordnet, Zahlen nach ihrem Wert. Abgebaute Lernumgebungen nennt die Übersicht nur als Zahl; mit `--all` erscheinen auch sie. Mit `--platform` erscheinen nur die Läufe dieser Plattform.
 
 ```bash
 python -m agent status
@@ -1676,10 +1676,24 @@ Mit `--count` werden mehrere Läufe aus derselben Definition erstellt. Auf KubeV
 
 ```bash
 python -m agent create modell/beispiele/referenz.yaml --platform kubevirt \
-  --name kv-parallel --count 2 --parallel 2 --operation-id create-kv-parallel
+  --name kv-parallel --count 2 --parallel 2
 ```
 
-Mit `status` und `delete` lassen sich beide Läufe über `--name kv-parallel --count 2` prüfen und entfernen. Bei einem Fehler wartet der Agent auf die bereits gestarteten Aufträge und startet keine weiteren. Nach Ctrl+C hält er die laufenden Aufträge an und sichert ihren Zustand; das dauert einige Sekunden. Für die Wiederaufnahme wird derselbe Erstellungsbefehl mit derselben Operationskennung verwendet.
+Mit derselben Anzahl gelten `status`, `reset` und `delete` für die ganze Gruppe. Eine einzelne Maschine wird über ihren Namen mit Nummer angesprochen. Reset und Abbau einer Gruppe laufen nacheinander.
+
+```bash
+python -m agent status --name kv-parallel --count 2
+python -m agent reset --name kv-parallel-2
+python -m agent reset --name kv-parallel --count 2
+python -m agent delete --name kv-parallel --count 2
+```
+
+Die Aufträge einer Gruppe erhalten eine gemeinsame Operationskennung mit der Nummer der Maschine als Endung. Bei einem Fehler wartet der Agent auf die bereits gestarteten Aufträge und startet keine weiteren. Nach Ctrl+C hält er die laufenden Aufträge an und sichert ihren Zustand; das dauert einige Sekunden. Die Ausgabe nennt danach einmal die gemeinsame Kennung. Derselbe Befehl mit dieser Kennung setzt die Gruppe fort: Abgeschlossene Aufträge werden bestätigt, unterbrochene fortgesetzt und noch nicht begonnene ausgeführt.
+
+```bash
+python -m agent create modell/beispiele/referenz.yaml --platform kubevirt \
+  --name kv-parallel --count 2 --parallel 2 --operation-id <Operationskennung>
+```
 
 ### 4.9 AWS-Adapter und EC2-Betrieb
 
@@ -1983,7 +1997,7 @@ Die Funktionsprüfung verbindet automatisierte Tests mit Aufrufen auf der lokale
 | Testbereich | Abgedecktes Verhalten |
 | --- | --- |
 | Modell und Konfiguration | Pflichtfelder, Datentypen, unbekannte Felder, YAML-Mehrdeutigkeiten, öffentliche Schlüssel, Pfadauflösung und verständliche Fehler |
-| CLI und Ausgabe | Hilfe mit Beispielbefehlen, Argumente, Exitcodes, UTF-8, Aufruf aus einem anderen Arbeitsverzeichnis, lesende Statusübersicht ohne Laufkennung, lesbare Zustandsanzeige mit getrennter Zählung von VMs und zugehörigen Ressourcen sowie explizite vollständige JSON-Ausgabe |
+| CLI und Ausgabe | Hilfe mit Beispielbefehlen, Argumente, Exitcodes, UTF-8, Aufruf aus einem anderen Arbeitsverzeichnis, lesende und nach Namen geordnete Statusübersicht ohne Laufkennung, Gruppenbefehle mit gemeinsamer Operationskennung, Hinweis beim Grundnamen einer Gruppe, lesbare Zustandsanzeige mit getrennter Zählung von VMs und zugehörigen Ressourcen sowie explizite vollständige JSON-Ausgabe |
 | SQLite | Unveränderter Snapshot, Migrationen, konkurrierende Starts, zulässige Übergänge, Kapazitätsreservierung und Inventarerhalt |
 | MCP und Prozessschutz | Tatsächlicher stdio-Transport mit Test-Provider, strukturierte Antworten, Fehler, Handshake-Timeout, harter Agentenabbruch, verbliebener Adapter, veraltete Sitzung und erforderliche Sitzungsbestätigung |
 | Erstellung und Bereitschaft | Einzelne Erstellungsschritte, Inventarsicherung, Wiederholung ohne Dubletten und HTTP-Prüfung auf Status, Inhalt, Weiterleitung, Grösse und Zeit |
@@ -2006,6 +2020,8 @@ Auf `dl380-01` habe ich eine Lernumgebung aus der Referenz-YAML erstellt, zurüc
 
 Auf KubeVirt lassen sich mehrere Lernumgebungen gleichzeitig erstellen. Ich habe zwei VMs parallel erstellt, die Testdienste geprüft und den Abbau beider VMs per Statusabfrage bestätigt. In einem weiteren Versuch habe ich 20 Lernumgebungen mit vier gleichzeitigen Starts erstellt, den Status aller 20 geprüft und sie über den Agenten wieder vollständig abgebaut. Abbau und Reset mehrerer Lernumgebungen laufen nacheinander.
 
+Den Abbruch einer Gruppe habe ich mit drei Lernumgebungen und zwei gleichzeitigen Starts geprüft. Nach Ctrl+C standen die beiden begonnenen Lernumgebungen im Zustand `error`, die dritte war noch nicht begonnen. Derselbe Befehl mit der gemeinsamen Operationskennung stellte alle drei bereit. Jede hatte genau eine VM und eine eigene Adresse. Anschliessend habe ich die Gruppe mit `reset --count` zurückgesetzt und mit `delete --count` abgebaut. Der Plattformstatus zeigte danach keine VM mehr.
+
 Weitere Funktionsprüfungen auf KubeVirt:
 
 | Ablauf | Beobachtetes Ergebnis |
@@ -2014,6 +2030,7 @@ Weitere Funktionsprüfungen auf KubeVirt:
 | Wiederholtes create | Status der bestehenden Umgebung; die direkte Kubernetes-Abfrage zeigt eine VM mit unveränderter UID |
 | Wiederholtes delete | `alreadyAbsent: true`, ohne weitere Ressourcenänderung |
 | Wiederholung derselben abgeschlossenen Reset-Kennung | Nur eine Statusmeldung; die direkte Kubernetes-Abfrage bestätigt dieselbe VM-UID |
+| Ctrl+C während create | Der Abbruch hinterlässt `error` mit bekanntem Inventar. Derselbe Befehl mit derselben Operationskennung stellt die Umgebung fertig; der Status zeigt genau eine VM |
 | Neue Reset-Kennung und Ctrl+C während des Abbaus | Neuer Auftrag beginnt. Der Abbruch hinterlässt `error` mit `interrupted` und bekanntem Inventar. Derselbe Auftrag setzt bei `deleting` fort und schliesst erfolgreich ab |
 | Timeout bei der Abfrage vor dem Abbau | Die absichtlich kurze Zeitgrenze führt zu `timeout` und erhaltenem Inventar. Mit derselben Kennung und normaler Zeitgrenze gelingt der vollständige Reset |
 | Harter Agentenabbruch während des Abbaus | Der Agent wird nach `waiting_for_deletion` mit SIGKILL beendet. Der nächste Start derselben Reset-Kennung meldet `operation_recovered`, bestätigt den Abbau und erreicht erneut HTTP-Bereitschaft |
@@ -2078,7 +2095,19 @@ Im Learner Lab habe ich mit derselben Referenz-YAML zwei weitere Funktionsläufe
 
 Nach dem abschliessenden delete meldete der Agent für beide Läufe `absent` und null beobachtete Ressourcen. Die direkte AWS-Abfrage nach IDs bestätigte für den regulären Reset beide Instanzgenerationen als `terminated`. Für die jeweiligen EBS-Volumes, Netzwerkschnittstellen und Security Groups gab es keine Treffer. Beim Abbruchlauf bestätigte die direkte Abfrage die IDs der nach der Wiederaufnahme erstellten Umgebung. Der Agent bestätigte den Abbau der ursprünglichen Ressourcen vor der Neuerstellung.
 
-Der Live-Test der Wiederaufnahme deckt Ctrl+C während des Abbaus ab. Die Fortsetzung nach Timeouts in der Abbau- und Erstellungsphase ist zusätzlich automatisiert geprüft. Beide Läufe sind Funktionsnachweise. Ihre Terminalausgaben enthalten keine durchgängigen Messmarker für die vergleichende PoC-Serie.
+Beide Läufe sind Funktionsnachweise. Ihre Terminalausgaben enthalten keine durchgängigen Messmarker für die vergleichende PoC-Serie.
+
+In weiteren Funktionsläufen habe ich den Abbruch während der Erstellung, den harten Agentenabbruch während eines Resets und die Bedienung einer Gruppe geprüft. Die Maschinen sind vom Agentenhost aus per SSH erreichbar; Adresse und Port stehen in der Statusausgabe.
+
+| Ablauf | Beobachtetes Ergebnis |
+| --- | --- |
+| Ctrl+C während create | Beim Abbruch bestand erst die Security Group, der gespeicherte Zustand war `error`. Derselbe Befehl mit derselben Operationskennung erstellte die Instanz und erreichte HTTP-Bereitschaft. Der Status zeigte genau eine Instanz. |
+| Harter Agentenabbruch während reset | Der Agent wurde während des Abbaus mit SIGKILL beendet. Der nächste Start derselben Reset-Kennung übernahm den Auftrag, bestätigte den Abbau und erreichte nach der Neuerstellung erneut HTTP-Bereitschaft. |
+| Gruppe mit zwei Lernumgebungen | Ctrl+C traf die erste Erstellung, die zweite war noch nicht begonnen. Derselbe Befehl mit der gemeinsamen Operationskennung stellte beide bereit. `reset --count` setzte beide nacheinander zurück, `delete --count` baute beide ab. Der Plattformstatus zeigte danach nur beendete Instanzen. |
+
+In einem von zwei Gruppenläufen meldete der Abbau der zweiten Lernumgebung einmal `resource_conflict`. Die anschliessende Statusabfrage zeigte eine laufende Instanz mit den erwarteten Ressourcen, und die Wiederholung von delete entfernte die Lernumgebung vollständig. Die Ursache ist nicht geklärt.
+
+Die Live-Tests der Wiederaufnahme decken damit Ctrl+C während der Erstellung und des Abbaus sowie den harten Agentenabbruch während des Abbaus ab. Die Fortsetzung nach Timeouts in der Abbau- und Erstellungsphase ist zusätzlich automatisiert geprüft. Auch diese Läufe sind Funktionsprüfungen auf Grundlage der Konsolenausgaben.
 
 ## 6 Diskussion des bisherigen Ergebnisses
 
@@ -2106,7 +2135,7 @@ Die LernMAAS-Basisserie liefert drei Aufbaudauern und drei Abbauzeiten. Auf Kube
 | MCP | Model Context Protocol; verbindet den Agenten mit dem lokal gestarteten Plattformadapter |
 | Modell-Snapshot | Unveränderte Kopie der für einen Lauf verwendeten fachlichen Definition |
 | NodePort | Kubernetes-Service, der einen Dienst über einen Port auf dem Knoten erreichbar macht |
-| Operationskennung | Kennung eines einzelnen Auftrags; der Agent erzeugt sie selbst, angegeben wird sie nur zur Fortsetzung eines unterbrochenen Auftrags |
+| Operationskennung | Kennung eines einzelnen Auftrags; der Agent erzeugt sie selbst, angegeben wird sie nur zur Fortsetzung eines unterbrochenen Auftrags. Die Aufträge einer Gruppe teilen eine Kennung mit der Nummer der Maschine als Endung |
 | PV und PVC | PersistentVolume als clusterweite Speicherressource und PersistentVolumeClaim als Speicheranforderung im Namespace |
 | Readiness | Geprüfte Nutzbarkeit: VM läuft, HTTP-Status und Antwortinhalt entsprechen der Definition |
 | Reset | Vollständiger Abbau und Neuerstellung aus derselben gespeicherten Definition |
