@@ -9,7 +9,7 @@ from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
-from agent.ausgabe import emit, output_mode, platform_result, run_overview
+from agent.ausgabe import emit, group_mode, output_mode, platform_result, run_overview
 
 
 class OutputTests(unittest.TestCase):
@@ -79,6 +79,22 @@ class OutputTests(unittest.TestCase):
             run_overview(runs, json_output=True)
         self.assertEqual(len(json.loads(out.getvalue())['runs']), 2)
 
+    def test_overview_is_ordered_by_name_with_numbers_by_value(self):
+        runs = [{'run_id': name, 'platform': 'kubevirt', 'phase': phase,
+                 'updated_at': '2026-11-27T09:00:00+00:00'}
+                for name, phase in (('klasse-10', 'ready'), ('alt-1', 'absent'), ('klasse-2', 'ready'),
+                                    ('demo-01', 'ready'), ('klasse-1', 'error'))]
+        out = io.StringIO()
+        with redirect_stdout(out):
+            run_overview(runs, show_all=True)
+        names = [line.split()[0] for line in out.getvalue().splitlines()[2:7]]
+        self.assertEqual(names, ['demo-01', 'klasse-1', 'klasse-2', 'klasse-10', 'alt-1'])
+        out = io.StringIO()
+        with redirect_stdout(out):
+            run_overview(runs, json_output=True)
+        self.assertEqual([run['runId'] for run in json.loads(out.getvalue())['runs']],
+                         [run['run_id'] for run in runs])
+
     def test_consecutive_machines_are_separated_by_a_blank_line(self):
         fields = dict(storedPhase='ready', vmState='Running', vmiPhase='Running', vmReady=True,
                       serviceReady=True, httpUrl=None, sshHost=None, sshPort=None, resources=[])
@@ -124,6 +140,24 @@ class OutputTests(unittest.TestCase):
         with redirect_stdout(out), output_mode():
             emit('error', 'run-01', 'operation-01', code='interrupted', resources=[])
         self.assertIn('denselben Befehl mit --operation-id operation-01 ausführen.', out.getvalue())
+
+    def test_group_names_its_shared_operation_id_once_after_all_machines(self):
+        out = io.StringIO()
+        with redirect_stdout(out), output_mode(), group_mode('gruppe-01'):
+            emit('error', 'klasse-1', 'gruppe-01-1', code='interrupted', resources=[])
+            emit('error', 'klasse-2', 'gruppe-01-2', code='interrupted', resources=[])
+        text = out.getvalue()
+        self.assertEqual(text.count('--operation-id'), 1)
+        self.assertTrue(text.rstrip().endswith(
+            'Zum Fortsetzen der ganzen Gruppe denselben Befehl mit --operation-id gruppe-01 ausführen.'))
+        out = io.StringIO()
+        with redirect_stdout(out), output_mode(), group_mode('gruppe-02'):
+            emit('deleted', 'klasse-1', 'gruppe-02-1', alreadyAbsent=False)
+        self.assertNotIn('--operation-id', out.getvalue())
+        out = io.StringIO()
+        with redirect_stdout(out), output_mode():
+            emit('error', 'run-01', 'operation-01', code='interrupted', resources=[])
+        self.assertIn('--operation-id operation-01 ausführen.', out.getvalue())
 
     def test_json_retains_full_events_and_output_context_is_restored_after_exception(self):
         out = io.StringIO()

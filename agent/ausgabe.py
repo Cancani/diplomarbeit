@@ -3,6 +3,7 @@ from contextlib import contextmanager
 from contextvars import ContextVar
 from datetime import datetime, timezone
 import json
+import re
 from threading import Lock
 import time
 
@@ -74,6 +75,22 @@ def output_mode(json_output=False, *, prefix=None):
 
 
 _text_written = False
+_group = None  # Gemeinsame Operationskennung, solange ein Befehl mehrere Maschinen bearbeitet.
+_group_failed = False
+
+
+@contextmanager
+def group_mode(operation_id):
+    """Den Fortsetzungshinweis einer Gruppe einmal am Schluss statt pro Maschine nennen."""
+    global _group, _group_failed
+    _group, _group_failed = operation_id, False
+    try:
+        yield
+    finally:
+        if _group_failed:
+            write('Zum Fortsetzen der ganzen Gruppe denselben Befehl mit '
+                  f'--operation-id {operation_id} ausführen.')
+        _group, _group_failed = None, False
 
 
 def write(message=''):
@@ -176,8 +193,13 @@ class HumanOutput:
         elif event == 'error':
             write('Gespeicherter Zustand: Fehler')
             write(f'Bekannte Ressourcen zur weiteren Prüfung: {len(data["resources"])}')
-            write('Bestand mit status prüfen. Zum Fortsetzen denselben Befehl mit '
-                  f'--operation-id {data["operationId"]} ausführen.')
+            if _group:
+                global _group_failed
+                _group_failed = True
+                write('Bestand mit status prüfen.')
+            else:
+                write('Bestand mit status prüfen. Zum Fortsetzen denselben Befehl mit '
+                      f'--operation-id {data["operationId"]} ausführen.')
 
 
 def run_overview(runs, json_output=False, show_all=False):
@@ -195,6 +217,9 @@ def run_overview(runs, json_output=False, show_all=False):
         write('Es sind keine Lernumgebungen gespeichert.')
         return
     shown = runs if show_all else [run for run in runs if run['phase'] != 'absent']
+    # Nach Namen ordnen, Zahlen nach ihrem Wert: klasse-2 steht vor klasse-10.
+    shown = sorted(shown, key=lambda run: (run['phase'] == 'absent', [
+        int(part) if part.isdigit() else part for part in re.split('([0-9]+)', run['run_id'])]))
     removed = len(runs) - len(shown)
     if show_all:
         write(f'Gespeicherte Lernumgebungen: {len(runs)}')

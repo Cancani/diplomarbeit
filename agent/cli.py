@@ -1,6 +1,7 @@
 """Lernumgebungen mit persistentem Zustand und Plattformadaptern steuern."""
 import argparse
 import os
+import re
 from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
 from pathlib import Path
 import sqlite3
@@ -10,7 +11,7 @@ import uuid
 
 from modell.validierung import load_model, ModelValidationError
 from agent.konfiguration import ConfigurationError, default_config_path, load_config
-from agent.ausgabe import finish_text, output_mode, platform_result, run_overview
+from agent.ausgabe import finish_text, group_mode, output_mode, platform_result, run_overview
 from gemeinsam import MAX_VMS
 
 
@@ -30,6 +31,7 @@ EXAMPLES = '''Begriffe:
       angegeben, um einen unterbrochenen Auftrag fortzusetzen.
   Anzahl (--count)
       Mehrere gleiche Lernumgebungen. Die Namen erhalten die Endungen -1, -2 usw.
+      Mit derselben Anzahl gelten status, reset und delete für die ganze Gruppe.
 
 Beispiele:
   python -m agent create modell/beispiele/referenz.yaml --platform kubevirt --name demo-01
@@ -37,6 +39,11 @@ Beispiele:
   python -m agent status --name demo-01
   python -m agent reset --name demo-01
   python -m agent delete --name demo-01
+
+Beispiele für eine Gruppe:
+  python -m agent create modell/beispiele/referenz.yaml --platform kubevirt --name klasse --count 3
+  python -m agent reset --name klasse-2
+  python -m agent delete --name klasse --count 3
 
 Die Plattform wird nur bei create gewählt. Die übrigen Befehle lesen sie aus der
 gespeicherten Lernumgebung.
@@ -96,10 +103,9 @@ def build_parser():
                                  help='Optional; ohne Angabe gilt die gespeicherte Plattform. '
                                       'Mit Angabe wird sie geprüft'
                                       + (', in der Übersicht gefiltert.' if name == 'status' else '.'))
-        if name in ('create', 'status', 'delete'):
-            command.add_argument('--count', type=vm_count, default=1,
-                                 help='Anzahl gleicher Lernumgebungen; ab 2 erhalten die '
-                                      'Namen die Endungen -1, -2 usw. (Standard: 1)')
+        command.add_argument('--count', type=vm_count, default=1,
+                             help='Anzahl gleicher Lernumgebungen; ab 2 erhalten die '
+                                  'Namen die Endungen -1, -2 usw. (Standard: 1)')
         if name == 'create':
             command.add_argument('definition', type=Path, help='YAML-Datei der Lernumgebung')
             command.add_argument('--platform', required=True, choices=('kubevirt', 'aws'),
@@ -187,8 +193,6 @@ def run(args):
 
     from adapter.kubevirt_manifest import validate_id
     from adapter.vertrag import AdapterError
-    from agent.lebenszyklus import create, status, reset, delete
-    from agent.zustand import StateError, StateStore
 
     count = args.count
     operation_prefix = getattr(args, 'operation_id', None)
@@ -215,9 +219,23 @@ def run(args):
             print(f'Fehler ({error.code}): {error} Es wurde nichts erstellt und nichts gespeichert.',
                   file=sys.stderr)
             return 1
-    if args.operation == 'create' and args.parallel > 1:
-        return create_parallel(args, config, model, suffixes)
+    if count > 1 and operation_prefix is None and args.operation != 'status':
+        # Eine gemeinsame Kennung, damit derselbe Befehl die ganze Gruppe fortsetzen kann.
+        operation_prefix = args.operation_id = uuid.uuid4().hex
+    with group_mode(operation_prefix if count > 1 else None):
+        if args.operation == 'create' and args.parallel > 1:
+            return create_parallel(args, config, model, suffixes)
+        return run_each(args, config, model if args.operation == 'create' else None,
+                        suffixes, operation_prefix)
 
+
+def run_each(args, config, model, suffixes, operation_prefix):
+    """Den Befehl für jede Maschine der Reihe nach ausführen."""
+    from adapter.vertrag import AdapterError
+    from agent.lebenszyklus import create, status, reset, delete
+    from agent.zustand import StateError, StateStore
+
+    count = len(suffixes)
     result = 0
     for suffix in suffixes:
         run_id = args.run_id + suffix
@@ -259,7 +277,8 @@ def run(args):
             if (isinstance(error, StateError) and args.operation != 'create'
                     and not is_stored(config, run_id)):
                 error = (f'Unter dem Namen "{run_id}" ist keine Umgebung gespeichert. '
-                         'Die vorhandenen Lernumgebungen zeigt status ohne --name.')
+                         + ((group_note(config, run_id) if count == 1 else None)
+                            or 'Die vorhandenen Lernumgebungen zeigt status ohne --name.'))
             print(f'{label}: {error}', file=sys.stderr)
             result = 1
             if args.operation == 'create':
@@ -278,6 +297,26 @@ def is_stored(config, run_id):
         return any(run['run_id'] == run_id for run in read_runs(config['stateFile']))
     except sqlite3.Error:
         return True  # Im Zweifel bleibt die ursprüngliche Meldung stehen.
+
+
+def group_note(config, base):
+    """Vorhandene Maschinen nennen, die als Gruppe unter diesem Grundnamen gespeichert sind."""
+    from agent.zustand import read_runs
+
+    try:
+        runs = read_runs(config['stateFile'])
+    except sqlite3.Error:
+        return None
+    pattern = re.compile(re.escape(base) + r'-([1-9][0-9]*)')
+    numbers = sorted(int(match.group(1)) for run in runs if run['phase'] != 'absent'
+                     and (match := pattern.fullmatch(run['run_id'])))
+    if not numbers:
+        return None
+    if len(numbers) == 1:
+        return f'Vorhanden ist {base}-{numbers[0]}; diesen Namen angeben.'
+    return (f'Vorhanden ist die Gruppe {base}-{numbers[0]} bis {base}-{numbers[-1]}. '
+            f'Für die ganze Gruppe --count {numbers[-1]} anhängen, '
+            'für eine einzelne Maschine den Namen mit Nummer angeben.')
 
 
 def stored_platform(config, run_id):

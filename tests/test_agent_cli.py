@@ -93,6 +93,45 @@ class AgentCliTests(unittest.TestCase):
                     self.assertEqual([call.args[2] for call in command.call_args_list],
                                      [f'{prefix}-{index}' for index in range(1, 6)])
 
+    def test_group_without_operation_id_shares_one_generated_prefix(self):
+        config = ROOT/'agent/beispiele/konfiguration.yaml'
+        model = str(ROOT/'modell/beispiele/referenz.yaml')
+        for operation, extra in (
+            ('create', [model, '--platform', 'kubevirt']),
+            ('create', [model, '--platform', 'kubevirt', '--parallel', '3']),
+            ('reset', []),
+            ('delete', []),
+        ):
+            with self.subTest(operation=operation, extra=extra[2:]), \
+                    patch(f'agent.lebenszyklus.{operation}') as command, redirect_stdout(StringIO()):
+                args = build_parser().parse_args([
+                    '--config', str(config), operation, '--name', 'klasse', '--count', '3', *extra])
+                self.assertEqual(run(args), 0)
+                operations = sorted(call.args[2] for call in command.call_args_list)
+                prefix = operations[0][:-2]
+                self.assertRegex(prefix, '^[0-9a-f]{32}$')
+                self.assertEqual(operations, [f'{prefix}-{index}' for index in range(1, 4)])
+
+    def test_base_name_of_a_group_names_its_machines_and_the_count(self):
+        model = load_model(ROOT/'modell/beispiele/referenz.yaml')
+        with tempfile.TemporaryDirectory() as folder:
+            config = self.temporary_config(folder)
+            store = StateStore(Path(folder)/'state.sqlite3')
+            for name in ('klasse-1', 'klasse-2', 'klasse-3', 'klasse-b', 'einzel-7'):
+                store.start_create(name, f'create-{name}', 'kubevirt', model)
+            for operation, name, expected in (
+                ('status', 'klasse', 'Gruppe klasse-1 bis klasse-3. Für die ganze Gruppe --count 3 anhängen'),
+                ('reset', 'klasse', '--count 3 anhängen'),
+                ('delete', 'klasse', '--count 3 anhängen'),
+                ('status', 'einzel', 'Vorhanden ist einzel-7; diesen Namen angeben.'),
+                ('status', 'andere', 'status ohne --name'),
+            ):
+                with self.subTest(operation=operation, name=name):
+                    result = self.invoke([operation, '--name', name], config=config)
+                    self.assertEqual(result.returncode, 1)
+                    self.assertIn(f'Unter dem Namen "{name}" ist keine Umgebung gespeichert.', result.stderr)
+                    self.assertIn(expected, result.stderr)
+
     def test_create_batch_stops_at_existing_vm_capacity_limit(self):
         model_path = ROOT/'modell/beispiele/referenz.yaml'
         model = load_model(model_path)
