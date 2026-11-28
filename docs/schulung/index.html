@@ -3,162 +3,161 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Schulung Lernumgebungen | Diplomarbeit ITCNE24</title>
-<meta name="description" content="Schulungsseite zum Proof of Concept der Diplomarbeit ITCNE24: Lernumgebungen mit dem Agenten auf KubeVirt und AWS bereitstellen.">
+<title>Schulung Lernumgebungen, Diplomarbeit ITCNE24</title>
+<meta name="description" content="Schulungsseite für Lehrpersonen: Lernumgebungen mit dem Agenten auf KubeVirt und AWS bereitstellen.">
 <link rel="icon" href="data:,">
 <style>
-:root{color-scheme:light;
---bg:#ffffff;--surf:#ffffff;--ink:#000000;--mute:#595959;--line:#bfbfbf;--field:#767676;--soft:#e9e9e9;--code:#f0f0f0;--term:#f2f2f2;
---red:#bf142e;--reddark:#97162a;--tint:#f9e8eb}
+:root{color-scheme:light;--red:#be142e;--red-dark:#9a1025;--ink:#222;--mute:#5f6368;--rule:#d9d9d9;--pale:#f3f4f4;--field:#767676}
 *{box-sizing:border-box;min-width:0}
 [hidden]{display:none!important}
-html{scroll-padding-top:64px;background:#fff}
-body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.6 Arial,Helvetica,sans-serif;overflow-x:clip}
+html{background:#fff;scroll-padding-top:64px}
+@media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
+body{margin:0;background:#fff;color:var(--ink);font:17px/1.6 Arial,Helvetica,sans-serif;-webkit-text-size-adjust:100%}
 code,pre{font-family:Consolas,Menlo,"Courier New",monospace}
-code{font-size:.9em;background:var(--code);padding:1px 5px}
+code{font-size:.88em;background:#000;color:#fff;padding:2px 6px;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+code.ausgabe{background:var(--pale);color:var(--ink)}
 .tok{white-space:nowrap}
-a{color:var(--red)}
-.wrap{max-width:1180px;margin:0 auto;padding-inline:max(5vw,16px)}
+a{color:var(--red);text-underline-offset:3px}
+a:hover{color:var(--red-dark)}
+.wrap{max-width:1160px;margin:0 auto;padding-inline:clamp(18px,5vw,48px)}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
-.top{border-bottom:1px solid var(--line)}
-.topin{display:flex;justify-content:space-between;align-items:center;gap:16px;padding-block:14px;font-size:15px}
-.mark{font-weight:700;display:flex;align-items:center;gap:10px;white-space:nowrap}
-.mark i{width:14px;height:14px;background:var(--red);flex:none}
-.top a{color:var(--ink);text-decoration:none;white-space:nowrap}
-.top a:hover{color:var(--red)}
-.short{display:none}
-.hero{padding-top:clamp(36px,6vw,76px)}
-.kicker{font-weight:700;color:var(--red);margin:0 0 12px;font-size:16px}
-h1{font-size:clamp(36px,5.4vw,62px);font-weight:400;line-height:1.08;letter-spacing:-.01em;margin:0 0 20px;max-width:15em;text-wrap:balance}
-.lead{margin:0;max-width:62ch;font-size:19px}
-.routeband{margin-top:clamp(84px,8vw,104px);background:linear-gradient(to bottom,var(--bg) 0 34%,var(--red) 34% 100%);padding-bottom:clamp(32px,5vw,64px)}
-.routewrap{position:relative}
-.route{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px}
-.st{position:relative;background:var(--surf);border:1px solid var(--line);border-top:5px solid var(--ink);padding:20px 20px 20px;display:flex;flex-direction:column;gap:6px;min-height:240px}
-.st:not(:last-child)::after{content:"→";position:absolute;right:-25px;top:50%;transform:translateY(-50%);width:30px;height:30px;display:grid;place-items:center;background:var(--red);color:#fff;font-weight:700;font-size:17px;z-index:2}
-.st .n{font-size:44px;line-height:1;color:var(--red)}
-.st b{font-size:21px;margin-top:6px}
-.st .t{color:var(--mute);font-size:15px;line-height:1.45}
-.st code{align-self:flex-start;margin-top:auto}
-.st .chips{margin-top:auto}
-.chips{display:flex;gap:6px;flex-wrap:wrap}
-.chip{font:700 15px Arial,Helvetica,sans-serif;min-height:40px;padding:0 14px;border:1px solid var(--ink);background:var(--surf);color:var(--ink);cursor:pointer}
-.chip[aria-pressed=true]{background:var(--red);border-color:var(--red);color:#fff}
-.stoerer{position:absolute;right:max(5vw,16px);top:-66px;z-index:3;background:var(--red);color:#fff;font-weight:700;font-size:16px;line-height:1.3;padding:10px 14px;text-decoration:none;transform:rotate(-3deg);box-shadow:0 6px 16px rgba(0,0,0,.18)}
-.stoerer:hover{background:var(--reddark)}
-.nav{position:sticky;top:0;z-index:5;background:var(--surf);border-bottom:1px solid var(--line)}
-.nav .wrap{display:flex;gap:2px;overflow-x:auto}
-.nav a{flex:none;text-decoration:none;color:var(--ink);font-size:15px;padding:14px 12px 12px;border-bottom:3px solid transparent}
-.nav a:hover{color:var(--red);border-bottom-color:var(--red)}
-h2{font-size:clamp(26px,3vw,34px);font-weight:700;line-height:1.15;margin:0 0 16px}
-h3{font-size:18px;font-weight:700;line-height:1.3;margin:0 0 6px}
-.sec{padding-block:clamp(34px,5vw,58px);border-bottom:1px solid var(--line)}
-.two{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:32px;align-items:start}
-.note{background:var(--soft);border-left:5px solid var(--red);padding:16px 20px;margin:16px 0}
-.note b{color:var(--red)}
-.warn{border:2px solid var(--red);padding:14px 18px;margin:20px 0 0;background:var(--surf)}
-.warn b{color:var(--red)}
-.cycle{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:6px 0 20px}
-.cycle span{padding:6px 12px;background:var(--soft);font-weight:700;font-size:15px;white-space:nowrap}
-.cycle i{font-style:normal;color:var(--red);font-family:Consolas,Menlo,"Courier New",monospace;font-size:15px;white-space:nowrap}
-.tool{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px;align-items:start;margin-top:20px}
-.panel{background:var(--surf);border:1px solid var(--line);padding:20px}
-.field{margin-bottom:16px}
-.lab{display:block;font-weight:700;font-size:15px;margin-bottom:6px}
-.seg{display:flex;flex-wrap:wrap;gap:6px}
-.seg button{font:16px Arial,Helvetica,sans-serif;min-height:44px;padding:0 16px;border:1px solid var(--field);background:var(--surf);color:var(--ink);cursor:pointer}
-.seg button:hover{border-color:var(--red)}
-.seg button[aria-pressed=true]{background:var(--red);border-color:var(--red);color:#fff;font-weight:700}
-input[type=text],input[type=number],select{font:17px Arial,Helvetica,sans-serif;width:100%;min-height:46px;padding:8px 12px;border:1px solid var(--field);border-radius:0;background:var(--surf);color:var(--ink)}
-input:disabled{opacity:.5}
-.row2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;align-items:end}
-.check{display:flex;align-items:center;gap:10px;min-height:44px;cursor:pointer}
-.check input{width:20px;height:20px;accent-color:var(--red);flex:none}
-.err{font-size:15px;color:var(--red);margin-top:4px;font-weight:700}
-.err:empty{display:none}
-.out{position:sticky;top:76px}
-.cmd{background:var(--term);color:#000;border:1px solid var(--line);border-left:5px solid var(--red);padding:18px 20px;font-size:15px;line-height:1.65;white-space:normal;overflow-x:auto;margin:0 0 12px;min-height:90px}
-.cmd .p{color:var(--red);user-select:none}
-button.copy{font:700 16px Arial,Helvetica,sans-serif;min-height:46px;padding:0 18px;border:0;background:var(--red);color:#fff;cursor:pointer}
-button.copy:hover{background:var(--reddark)}
-button.copy:disabled{opacity:.4;cursor:not-allowed}
-button.small{min-height:36px;padding:0 12px;font-size:14px;background:var(--surf);color:var(--ink);border:1px solid var(--ink)}
-button.small:hover{background:var(--surf);border-color:var(--red);color:var(--red)}
-.what{margin:12px 0 0;padding:0;list-style:none}
-.what li{padding:9px 0;border-top:1px solid var(--line);font-size:15px}
-.scroll{overflow-x:auto}
-table{width:100%;border-collapse:collapse;font-size:16px}
-th{text-align:left;padding:10px 12px;border-bottom:3px solid var(--red);font-weight:700}
-td{padding:11px 12px;border-bottom:1px solid var(--line);vertical-align:top}
-td.c{white-space:nowrap}
-.status{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);border:1px solid var(--line);background:var(--surf);margin-bottom:28px}
-.srow{display:contents}
-.status .l{font-family:Consolas,Menlo,"Courier New",monospace;font-size:14px;padding:10px 14px;background:var(--term);color:#000;border-bottom:1px solid var(--line);overflow-wrap:anywhere}
-.status .r{font-size:16px;padding:10px 14px;border-bottom:1px solid var(--line)}
-.status .key .l{color:var(--red);font-weight:700}
-.status .key .r{background:var(--tint);font-weight:700;box-shadow:inset 5px 0 0 var(--red)}
-.steps{counter-reset:s;list-style:none;margin:0;padding:0;display:grid;gap:22px}
-.steps li{counter-increment:s;display:grid;grid-template-columns:52px minmax(0,1fr);gap:12px;align-items:start}
-.steps li::before{content:counter(s);font-size:42px;line-height:.9;color:var(--red)}
-.cmdline{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px}
-.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:18px}
-.card{background:var(--surf);border:1px solid var(--line);padding:18px 20px}
-.list{margin:0;padding:0;list-style:none}
-.list li{display:flex;gap:12px;align-items:flex-start;padding:11px 0;border-bottom:1px solid var(--line)}
-.list input{width:22px;height:22px;margin-top:2px;accent-color:var(--red);flex:none}
-.gcmd{padding:12px 0;border-bottom:1px solid var(--line)}
-.gcmd:last-child{border-bottom:0}
-.gcmd .gt{font-weight:700;font-size:15px;margin-bottom:2px}
-footer{background:#fff;color:var(--mute);font-size:15px;padding-block:28px 44px;border-top:4px solid var(--red)}
-footer a{color:var(--ink)}
 :focus-visible{outline:3px solid var(--red);outline-offset:2px}
-@media (max-width:900px){.tool,.two{grid-template-columns:minmax(0,1fr)}.out{position:static}}
-@media (max-width:760px){.route{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.st:not(:last-child)::after{display:none}
-.routeband{background:var(--red);padding-top:28px;margin-top:40px}.stoerer{position:static;display:inline-block;margin:0 0 22px;transform:rotate(-2deg);background:#fff;color:var(--red)}.stoerer:hover{background:#fff;color:var(--reddark)}
-#befehle thead{display:none}#befehle table,#befehle tbody,#befehle tr,#befehle td{display:block}#befehle tr{padding:10px 0;border-bottom:1px solid var(--line)}#befehle td{border:0;padding:3px 0}}
-@media (max-width:600px){body{font-size:16px}.full{display:none}.short{display:inline}.route{grid-template-columns:minmax(0,1fr)}.st{min-height:0}
-.status{grid-template-columns:minmax(0,1fr)}.status .r{border-bottom:2px solid var(--line)}.row2{grid-template-columns:minmax(0,1fr)}table{font-size:15px}.lead{font-size:17px}}
-@media print{.nav,.stoerer,#baukasten,button,.top a{display:none!important}
-.routeband{background:none;padding-bottom:0}.st::after{display:none}.sec{padding-block:18px}
-.st,.card,.steps li,.srow,tr,.note,.warn,.gcmd{break-inside:avoid}h2,h3{break-after:avoid}}
+.top{border-top:6px solid var(--red);border-bottom:1px solid var(--rule)}
+.top .wrap{display:flex;justify-content:space-between;align-items:center;gap:16px;min-height:58px;font-size:15px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700}
+.brand i{width:14px;height:14px;background:var(--red);flex:none}
+.top a{color:var(--ink)}
+.top a:hover{color:var(--red)}
+.hero{padding-block:clamp(40px,6vw,76px) clamp(40px,5vw,64px)}
+.hero-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:clamp(28px,4vw,56px);align-items:center}
+.kind{margin:0 0 12px;color:var(--red);font-weight:700;font-size:16px}
+h1{font-size:clamp(36px,4.6vw,54px);line-height:1.08;letter-spacing:-.015em;margin:0 0 20px}
+.lead{margin:0;font-size:19px;max-width:34em}
+.run{margin:0;background:var(--pale);border-left:4px solid var(--red);padding:22px 24px 18px}
+.run code{font-size:14px;line-height:2}
+.log{margin:14px 0 0;font-size:14px;line-height:1.65;white-space:pre-wrap;overflow-wrap:anywhere}
+.log .skip{color:var(--mute)}
+.run figcaption{margin-top:12px;font-size:13px;color:var(--mute)}
+.flow{list-style:none;margin:clamp(40px,5vw,60px) 0 0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0 28px;border-top:2px solid var(--red)}
+.flow li{position:relative;padding-top:20px;display:flex;flex-direction:column;gap:2px}
+.flow li::before{content:"";position:absolute;top:-7px;left:0;width:12px;height:12px;background:var(--red)}
+.flow b{font-size:18px}
+.flow span{color:var(--mute);font-size:15px;line-height:1.45}
+.nav{position:sticky;top:0;z-index:5;background:#fff;border-block:1px solid var(--rule)}
+.nav .wrap{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}
+.nav a{flex:none;color:var(--ink);text-decoration:none;font-size:15px;padding:13px 10px 11px;border-bottom:3px solid transparent}
+.nav a:hover,.nav a[aria-current]{color:var(--red);border-bottom-color:var(--red)}
+.sec{padding-block:clamp(44px,6vw,72px);border-bottom:1px solid var(--rule)}
+.sec:last-child{border-bottom:0}
+h2{font-size:clamp(26px,2.8vw,32px);line-height:1.2;letter-spacing:-.005em;margin:0 0 16px}
+h3{font-size:18px;line-height:1.3;margin:0 0 4px}
+p{margin:0 0 14px;max-width:72ch}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(28px,4vw,48px);align-items:start}
+.tool{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:clamp(24px,3vw,40px);align-items:start;margin-top:24px}
+.panel{border:1px solid var(--rule);padding:clamp(18px,2.4vw,28px)}
+.field{margin-bottom:18px}
+.lab{display:block;font-weight:700;font-size:15px;margin-bottom:6px}
+.seg{display:flex;flex-wrap:wrap;padding:0 1px 1px 0}
+.seg button{position:relative;font:16px Arial,Helvetica,sans-serif;min-height:44px;padding:0 16px;margin:0 -1px -1px 0;border:1px solid var(--field);background:#fff;color:var(--ink);cursor:pointer}
+.seg.mono button{font:15px Consolas,Menlo,"Courier New",monospace;padding:0 13px}
+.seg button:hover{z-index:1;border-color:var(--red);color:var(--red)}
+.seg button[aria-pressed=true]{z-index:2;background:var(--red);border-color:var(--red);color:#fff;font-weight:700}
+input[type=text],input[type=number],select{font:17px Arial,Helvetica,sans-serif;width:100%;min-height:46px;padding:8px 12px;border:1px solid var(--field);border-radius:0;background:#fff;color:var(--ink)}
+input:disabled{background:var(--pale);color:var(--mute)}
+.row2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;align-items:start}
+.check{display:flex;align-items:center;gap:10px;min-height:44px;cursor:pointer}
+.check input{width:20px;height:20px;margin:0;accent-color:var(--red);flex:none}
+.err{font-size:15px;color:var(--red);margin-top:6px;font-weight:700}
+.err:empty{display:none}
+.hint{font-size:14px;color:var(--mute);margin-top:6px}
+.out{position:sticky;top:76px}
+.cmd{background:#000;color:#fff;padding:18px 20px;font-size:15px;line-height:1.7;white-space:normal;margin:0 0 14px;min-height:96px}
+.cmd .p{color:#9aa0a6;user-select:none}
+.copy{font:700 16px Arial,Helvetica,sans-serif;min-height:46px;padding:0 20px;border:0;background:var(--red);color:#fff;cursor:pointer}
+.copy:hover{background:var(--red-dark)}
+.copy:disabled{opacity:.4;cursor:not-allowed}
+.desc{max-width:none;margin:16px 0 0;padding-top:12px;border-top:1px solid var(--rule);font-size:15px;color:var(--mute)}
+.what{margin:10px 0 0;padding:0;list-style:none}
+.small{font:14px Arial,Helvetica,sans-serif;min-height:34px;padding:0 12px;background:#fff;color:var(--ink);border:1px solid var(--ink);cursor:pointer}
+.small:hover{border-color:var(--red);color:var(--red)}
+.steps{list-style:none;counter-reset:s;margin:24px 0 22px;padding:0;border-bottom:1px solid var(--rule)}
+.steps>li{counter-increment:s;display:grid;grid-template-columns:56px minmax(0,1fr);gap:12px;padding:20px 0;border-top:1px solid var(--rule)}
+.steps>li::before{content:counter(s);color:var(--red);font-weight:700;font-size:30px;line-height:1}
+.steps p{margin:0}
+.cmdline{display:grid;grid-template-columns:minmax(0,max-content) auto;justify-content:start;align-items:start;gap:8px;margin-top:10px}
+.cmdline code{display:block;padding:5px 9px;line-height:1.5}
+table{width:100%;border-collapse:collapse;margin:8px 0 22px}
+th{background:var(--pale);text-align:left;font-size:14px;padding:10px 14px;border-bottom:2px solid var(--red)}
+td{padding:10px 14px;border-bottom:1px solid var(--rule);vertical-align:top}
+.stat td:first-child{font:14px/1.55 Consolas,Menlo,"Courier New",monospace;width:48%;overflow-wrap:anywhere}
+.stat tr.key td{font-weight:700}
+.stat tr.key td:first-child{box-shadow:inset 4px 0 var(--red)}
+.cases td:first-child{font-weight:700;width:30%}
+.gcmd{padding:14px 0;border-top:1px solid var(--rule)}
+.gcmd:first-child{border-top:0;padding-top:0}
+.gcmd:last-child{padding-bottom:0}
+.gcmd .gt{font-weight:700;font-size:15px}
+.callout{background:var(--pale);border-left:4px solid var(--red);padding:14px 18px;max-width:none;margin:6px 0 0}
+.callout b{color:var(--red)}
+.foot{border-top:1px solid var(--rule);color:var(--mute);font-size:15px;padding-block:28px 44px}
+.foot p{margin:0 0 10px}
+.foot a{color:var(--ink);margin-right:20px}
+.foot a:hover{color:var(--red)}
+@media (max-width:960px){.hero-grid,.tool,.two{grid-template-columns:minmax(0,1fr)}.out{position:static}.flow{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px;border-top:0}.flow li{border-top:2px solid var(--red)}}
+@media (max-width:600px){body{font-size:16px}.lead{font-size:17px}.flow,.row2{grid-template-columns:minmax(0,1fr)}.steps>li{grid-template-columns:40px minmax(0,1fr)}.steps>li::before{font-size:26px}.top .wrap{font-size:14px}.cmdline{grid-template-columns:minmax(0,max-content)}.cmdline .small{justify-self:start}
+  .stat thead,.cases thead{display:none}.stat tr,.cases tr{display:block;padding:10px 0;border-bottom:1px solid var(--rule)}.stat td,.cases td{display:block;width:auto!important;padding:2px 0;border:0}
+  .stat tr.key{box-shadow:inset 4px 0 var(--red);padding-left:12px}.stat tr.key td:first-child{box-shadow:none}}
+@media print{.nav,#baukasten,button{display:none!important}code{background:none!important;color:#000!important;border:1px solid #767676}.run{background:none;border:1px solid #767676;border-left:4px solid var(--red)}.hero-grid{grid-template-columns:minmax(0,1fr)}.sec{padding-block:16px}.steps>li,tr,.gcmd,.flow li{break-inside:avoid}h2,h3{break-after:avoid}}
 </style>
 </head>
 <body>
-<header class="top"><div class="wrap topin">
-  <span class="mark"><i aria-hidden="true"></i>Diplomarbeit ITCNE24</span>
-  <a href="https://cancani.com/diplomarbeit/"><span class="full">Projektdokumentation</span><span class="short">Doku</span> →</a>
+<header class="top"><div class="wrap">
+  <span class="brand"><i aria-hidden="true"></i>Diplomarbeit ITCNE24</span>
+  <a href="https://cancani.com/diplomarbeit/">Projektdokumentation</a>
 </div></header>
 
-<section class="hero" aria-labelledby="titel">
-  <div class="wrap">
-    <p class="kicker">Schulung für Lehrpersonen</p>
-    <h1 id="titel">Lernumgebungen mit dem Agenten bereitstellen</h1>
-    <p class="lead">Sie beschreiben die Maschine in einer YAML-Datei und erstellen sie mit einem Befehl, auf KubeVirt genauso wie auf AWS. Auf dieser Seite stellen Sie die Befehle zusammen und kopieren sie direkt ins Terminal. Die Hintergründe stehen in der Lernunterlage zur Schulung.</p>
-  </div>
-  <div class="routeband">
-    <div class="wrap routewrap">
-      <a class="stoerer" href="#baukasten">Befehle zusammenstellen<br>und kopieren →</a>
-      <ol class="route" aria-label="Weg von der Definition zur Maschine">
-        <li class="st"><span class="n">1</span><b>Definition</b><span class="t">Eine YAML-Datei beschreibt, was die Maschine braucht.</span><code>referenz.yaml</code></li>
-        <li class="st"><span class="n">2</span><b>Agent</b><span class="t">Prüft die Definition, führt den Auftrag aus und merkt sich den Zustand.</span><code>python -m agent</code></li>
-        <li class="st"><span class="n">3</span><b>Plattform</b><span class="t">Lokal auf KubeVirt oder in der Public Cloud.</span><span class="chips"><button class="chip" type="button" data-plat="kubevirt" aria-pressed="true">KubeVirt</button><button class="chip" type="button" data-plat="aws" aria-pressed="false">AWS</button></span></li>
-        <li class="st"><span class="n">4</span><b>Maschine</b><span class="t">Bereit, sobald der Testdienst antwortet. Zugang über HTTP und SSH.</span><code>HTTP-Dienst: Bereit</code></li>
-      </ol>
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <p class="kind">Schulung für Lehrpersonen</p>
+      <h1>Lernumgebungen mit dem Agenten bereitstellen</h1>
+      <p class="lead">Sie beschreiben die Maschine in einer YAML-Datei und erstellen sie mit einem Befehl, auf KubeVirt genauso wie auf AWS. Auf dieser Seite stellen Sie die Befehle zusammen und kopieren sie ins Terminal. Hintergründe stehen in der Lernunterlage zur Schulung.</p>
     </div>
+    <figure class="run">
+      <code>python -m agent create modell/beispiele/referenz.yaml --platform kubevirt --name demo-01</code>
+      <pre class="log">Maschine: demo-01
+Auftrag: 8e3b41c7f02a49d5b6c1e97a04d23f6b
+Lernumgebung wird erstellt.
+<span class="skip">…</span>
+VM- und HTTP-Bereitschaft werden geprüft.
+VM läuft. HTTP-Dienst noch nicht bestätigt. Zeitlimit in 14 min 33 s.
+<b>Lernumgebung erfolgreich erstellt. VM und HTTP-Dienst sind bereit.</b>
+HTTP: http://192.0.2.10:31119/
+SSH: 192.0.2.10, Port 32718</pre>
+      <figcaption>Ausgabe von create, gekürzt. Adresse, Ports und Kennung sind Platzhalter.</figcaption>
+    </figure>
+  </div>
+  <div class="wrap">
+    <ol class="flow" aria-label="Von der Definition zur Maschine">
+      <li><b>Definition</b><span>Eine YAML-Datei beschreibt die Maschine.</span></li>
+      <li><b>Agent</b><span>Prüft die Definition und führt den Auftrag aus.</span></li>
+      <li><b>Plattform</b><span>KubeVirt auf dem lokalen Server oder AWS.</span></li>
+      <li><b>Maschine</b><span>Bereit, sobald der Testdienst antwortet.</span></li>
+    </ol>
   </div>
 </section>
 
 <nav class="nav" aria-label="Abschnitte"><div class="wrap">
-  <a href="#baukasten">Baukasten</a><a href="#befehle">Befehle</a><a href="#status">Status lesen</a><a href="#beispiel">Beispiel</a><a href="#gruppe">Gruppen</a><a href="#minicheck">Mini-Check</a><a href="#probleme">Probleme</a><a href="#grenzen">Grenzen</a>
+  <a href="#baukasten">Baukasten</a><a href="#ablauf">Ablauf</a><a href="#status">Status</a><a href="#gruppe">Gruppen</a><a href="#probleme">Probleme</a><a href="#grenzen">Grenzen</a>
 </div></nav>
 
 <main>
 <section class="sec" id="baukasten"><div class="wrap">
   <h2>Befehlsbaukasten</h2>
-  <p>Wählen Sie Aktion, Plattform und Name, daneben entsteht der passende Befehl. Alle Befehle laufen auf dem Agentenhost im Verzeichnis <code>~/diplomarbeit</code>, nachdem Sie die Python-Umgebung mit <code>source .venv/bin/activate</code> aktiviert haben.</p>
+  <p>Wählen Sie Aktion, Plattform und Name. Der Baukasten setzt daraus den passenden Befehl zusammen. Alle Befehle laufen auf dem Agentenhost im Verzeichnis <code>~/diplomarbeit</code>, nachdem Sie die Python-Umgebung mit <code>source .venv/bin/activate</code> aktiviert haben.</p>
   <div class="tool">
     <form class="panel" id="form" autocomplete="off">
-      <div class="field"><span class="lab">Aktion</span><div class="seg" id="act" role="group" aria-label="Aktion">
+      <div class="field"><span class="lab">Aktion</span><div class="seg mono" id="act" role="group" aria-label="Aktion">
         <button type="button" data-v="create" aria-pressed="true">create</button><button type="button" data-v="status" aria-pressed="false">status</button><button type="button" data-v="reset" aria-pressed="false">reset</button><button type="button" data-v="delete" aria-pressed="false">delete</button><button type="button" data-v="platform-status" aria-pressed="false">platform-status</button>
       </div></div>
       <div class="field" id="f-scope"><span class="lab">Umfang</span><div class="seg" id="scope" role="group" aria-label="Umfang">
@@ -168,110 +167,89 @@ footer a{color:var(--ink)}
         <button type="button" data-v="kubevirt" aria-pressed="true">KubeVirt</button><button type="button" data-v="aws" aria-pressed="false">AWS</button>
       </div></div>
       <div class="field" id="f-def"><label class="lab" for="def">Definition</label><select id="def">
-        <option value="referenz">referenz.yaml (Grundgrösse)</option><option value="m239">m239.yaml (Modulprofil)</option><option value="m254">m254.yaml (Modulprofil)</option><option value="m426">m426.yaml (mehr Arbeitsspeicher, nur KubeVirt)</option>
+        <option value="referenz">referenz.yaml (Grundgrösse)</option><option value="m239">m239.yaml (Modulprofil)</option><option value="m254">m254.yaml (Modulprofil)</option><option value="m426">m426.yaml (nur KubeVirt)</option>
       </select></div>
       <div class="field" id="f-name"><label class="lab" for="name">Name der Maschine</label><input type="text" id="name" value="demo-01" spellcheck="false" autocapitalize="off"><div class="err" id="e-name" aria-live="polite"></div></div>
       <div class="row2" id="f-num">
         <div class="field"><label class="lab" for="count">Anzahl Maschinen</label><input type="number" id="count" min="1" max="30" value="1"><div class="err" id="e-count" aria-live="polite"></div></div>
-        <div class="field" id="f-par"><label class="lab" for="par">Davon gleichzeitig (nur KubeVirt)</label><input type="number" id="par" min="1" max="30" value="1"></div>
+        <div class="field" id="f-par"><label class="lab" for="par">Davon gleichzeitig</label><input type="number" id="par" min="1" max="30" value="1" aria-describedby="h-par"><div class="hint" id="h-par">Nur auf KubeVirt</div></div>
       </div>
       <label class="check" id="f-all"><input type="checkbox" id="all">Auch abgebaute Maschinen zeigen</label>
       <label class="check" id="f-resume"><input type="checkbox" id="resume">Unterbrochenen Auftrag fortsetzen</label>
       <div class="field" id="f-op"><label class="lab" for="op">Operationskennung aus der Meldung oder der Zeile «Auftrag»</label><input type="text" id="op" spellcheck="false" autocapitalize="off" placeholder="zum Beispiel 8e3b41c7f02a49d5b6c1e97a04d23f6b"><div class="err" id="e-op" aria-live="polite"></div></div>
     </form>
     <div class="out">
-      <pre class="cmd" id="cmd"></pre>
+      <span class="lab" id="cmd-lab">Ihr Befehl</span>
+      <pre class="cmd" id="cmd" aria-labelledby="cmd-lab"></pre>
       <button type="button" class="copy" id="copy">Befehl kopieren</button>
+      <p class="desc" id="desc" aria-live="polite"></p>
       <ul class="what" id="what"></ul>
     </div>
   </div>
 </div></section>
 
-<section class="sec" id="befehle"><div class="wrap">
-  <h2>Die wichtigsten Befehle</h2>
-  <div class="cycle" aria-label="Lebenszyklus einer Maschine"><span>Nicht vorhanden</span><i>create →</i><span>Bereit</span><i>reset →</i><span>Bereit, neu erstellt</span><i>delete →</i><span>Abgebaut</span></div>
-  <div class="scroll"><table>
-    <thead><tr><th>Befehl</th><th>Wozu</th><th>Beispiel</th><th><span class="sr">Kopieren</span></th></tr></thead>
-    <tbody id="cmds"></tbody>
-  </table></div>
-  <div class="note"><b>Merke:</b> Die Plattform geben Sie nur beim Erstellen an, alle anderen Befehle finden sie im gespeicherten Zustand. Zu jedem Befehl gibt es eine Hilfe, zum Beispiel <code>python -m agent reset --help</code>.</div>
+<section class="sec" id="ablauf"><div class="wrap">
+  <h2>Ablauf für eine Lektion</h2>
+  <p>Für eine Lektion mit einer Testmaschine gehen Sie so vor.</p>
+  <ol class="steps" id="steps"></ol>
+  <p>Die Plattform geben Sie nur bei <code>create</code> an, die übrigen Befehle lesen sie aus dem gespeicherten Zustand. Eine kurze Hilfe zu jedem Befehl zeigt zum Beispiel <code>python -m agent reset --help</code>.</p>
 </div></section>
 
 <section class="sec" id="status"><div class="wrap">
   <h2>Den Status lesen</h2>
-  <p><code>status --name</code> zeigt zwei Dinge: was der Agent gespeichert hat und was die Plattform gerade meldet. Ob die Lernenden arbeiten können, entscheidet die hervorgehobene Zeile. Adresse, Ports und Kennung im Beispiel sind Platzhalter.</p>
-  <div class="status" id="stat"></div>
-  <div class="two">
-    <div><h3>Zugang in die Maschine</h3><p>Den Zugang öffnen Sie vom Agentenhost aus, Host und Port stehen in der Zeile SSH: <code>ssh -i &lt;privater Schlüssel&gt; -p &lt;Port&gt; ubuntu@&lt;Host&gt;</code>. Auf AWS gilt Port 22, dort lassen Sie <code>-p &lt;Port&gt;</code> weg. Nach einem Reset können sich Adresse und Port ändern.</p></div>
-    <div class="note"><b>Praxisfrage:</b> Die Ausgabe zeigt «VM: Läuft», aber noch nicht «HTTP-Dienst: Bereit». Können die Lernenden schon mit der Maschine arbeiten?</div>
-  </div>
-</div></section>
-
-<section class="sec" id="beispiel"><div class="wrap">
-  <h2>Beispiel: Eine Maschine für eine Lektion</h2>
-  <ol class="steps" id="steps"></ol>
+  <p><code>status --name</code> zeigt, was der Agent gespeichert hat, und fragt gleichzeitig die Plattform nach dem aktuellen Zustand. Adresse, Ports und Kennung im Beispiel sind Platzhalter.</p>
+  <table class="stat"><thead><tr><th scope="col">Zeile in der Ausgabe</th><th scope="col">Bedeutung</th></tr></thead><tbody id="stat"></tbody></table>
+  <p>Eine laufende VM heisst noch nicht, dass die Lernenden arbeiten können. Massgebend ist die Zeile HTTP-Dienst.</p>
+  <h3>Zugang in die Maschine</h3>
+  <p>Den Zugang öffnen Sie vom Agentenhost aus, Host und Port stehen in der Zeile SSH: <code>ssh -i &lt;privater Schlüssel&gt; -p &lt;Port&gt; ubuntu@&lt;Host&gt;</code>. Auf AWS gilt Port 22, dort entfällt <code>-p &lt;Port&gt;</code>. Nach einem Reset können sich Adresse und Port ändern.</p>
 </div></section>
 
 <section class="sec" id="gruppe"><div class="wrap two">
   <div>
     <h2>Mehrere Maschinen als Gruppe</h2>
-    <p>Mit <code>--count</code> entstehen mehrere gleiche Maschinen auf einmal. Aus <code>--name klasse --count 3</code> werden <code>klasse-1</code>, <code>klasse-2</code> und <code>klasse-3</code>. Auf KubeVirt startet <code>--parallel</code> mehrere Erstellungen gleichzeitig.</p>
-    <p>Mit derselben Anzahl wirken auch <code>status</code>, <code>reset</code> und <code>delete</code> auf die ganze Gruppe. Reset und Abbau laufen dabei nacheinander. Eine einzelne Maschine sprechen Sie mit ihrem vollen Namen an.</p>
-    <p>Bricht eine Gruppe ab, nennt die Meldung eine gemeinsame Kennung. Mit dieser Kennung setzt derselbe Befehl die ganze Gruppe fort.</p>
+    <p>Mit <code>--count</code> entstehen mehrere gleiche Maschinen. Aus <code>--name klasse --count 3</code> werden <code>klasse-1</code>, <code>klasse-2</code> und <code>klasse-3</code>, auf KubeVirt mit <code>--parallel</code> auch gleichzeitig.</p>
+    <p>Mit derselben Anzahl gelten <code>status</code>, <code>reset</code> und <code>delete</code> für die ganze Gruppe. Reset und Abbau bearbeiten die Maschinen dabei nacheinander. Eine einzelne Maschine sprechen Sie mit ihrem vollen Namen an.</p>
+    <p>Bricht eine Gruppe ab, nennt die Meldung eine gemeinsame Kennung. Mit ihr setzt derselbe Befehl die ganze Gruppe fort.</p>
   </div>
   <div class="panel" id="groupcmds"></div>
 </div></section>
 
-<section class="sec" id="minicheck"><div class="wrap two">
-  <div>
-    <h2>Mini-Check vor dem Unterricht</h2>
-    <button type="button" class="copy small" id="resetcheck">Haken zurücksetzen</button>
-  </div>
-  <ul class="list" id="checks"></ul>
-</div></section>
-
 <section class="sec" id="probleme"><div class="wrap">
   <h2>Wenn etwas nicht klappt</h2>
-  <div class="cards" id="cards"></div>
-  <div class="warn"><b>Wichtig:</b> Löschen Sie Maschinen nie von Hand in KubeVirt oder AWS, sondern immer mit <code>delete</code>. Sonst stimmt der gespeicherte Zustand nicht mehr mit dem tatsächlichen Bestand überein.</div>
+  <p>Bricht ein Befehl ab, lesen Sie zuerst mit <code>status --name</code> den Zustand. Danach lässt sich der Auftrag fortsetzen, ohne dass eine zweite Maschine entsteht.</p>
+  <table class="cases"><thead><tr><th scope="col">Situation</th><th scope="col">Vorgehen</th></tr></thead><tbody id="cases"></tbody></table>
+  <p class="callout"><b>Wichtig:</b> Löschen Sie Maschinen nie direkt in KubeVirt oder AWS, sondern immer mit <code>delete</code>. Sonst stimmt der gespeicherte Zustand nicht mehr mit dem tatsächlichen Bestand überein.</p>
 </div></section>
 
 <section class="sec" id="grenzen"><div class="wrap">
   <h2>Grenzen des Proof of Concept</h2>
-  <p class="lead">Die Maschinen enthalten Ubuntu und den Testdienst, aber noch keine Modulsoftware. AWS läuft im AWS Academy Learner Lab, dessen Sitzungen zeitlich begrenzt sind. Bevor der Agent im Unterricht eingesetzt werden kann, müssen Zuständigkeiten, Berechtigungen und das Aufräumen nicht mehr benötigter Maschinen geregelt werden.</p>
+  <p>Die Maschinen enthalten Ubuntu und den Testdienst, aber noch keine Modulsoftware. AWS läuft im AWS Academy Learner Lab, dessen Sitzungen zeitlich begrenzt sind. Bevor der Agent im Unterricht eingesetzt werden kann, müssen Zuständigkeiten, Berechtigungen und das Aufräumen nicht mehr benötigter Maschinen geregelt sein.</p>
 </div></section>
 </main>
 
-<footer><div class="wrap">
-  Schulungsunterlage zur Diplomarbeit ITCNE24 «Agentenbasierte Hybrid-Cloud-Bereitstellung von Lernumgebungen mit Kubernetes, KubeVirt und MCP» von Efekan Demirci, Technische Berufsschule Zürich. Stand 28.11.2026, Befehle im Repository-Stand vom 27.11.2026.<br>
-  <a href="https://cancani.com/diplomarbeit/">Projektdokumentation</a> | <a href="https://github.com/Cancani/diplomarbeit">Repository</a>
+<footer class="foot"><div class="wrap">
+  <p>Schulungsunterlage zur Diplomarbeit ITCNE24 «Agentenbasierte Hybrid-Cloud-Bereitstellung von Lernumgebungen mit Kubernetes, KubeVirt und MCP» von Efekan Demirci, Technische Berufsschule Zürich. Stand 28.11.2026, Befehle gemäss Repository vom 27.11.2026.</p>
+  <p><a href="https://cancani.com/diplomarbeit/">Projektdokumentation</a><a href="https://github.com/Cancani/diplomarbeit">Repository</a></p>
 </div></footer>
 <div class="sr" id="live" aria-live="polite"></div>
 
 <script>
 (() => {
-// Hilfsfunktionen: Element holen, HTML maskieren, `code` in Texten umsetzen
 const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
+const tokens = s => String(s).split(' ').map(t => (t.length > 24 ? t.split('/') : [t]).map(u => `<span class="tok">${esc(u)}</span>`).join('/<wbr>')).join(' ');
 const fmt = s => esc(s).replace(/`([^`]+)`/g, '<code>$1</code>');
-// Befehle in Wörter zerlegen, damit sie nur an Leerzeichen umbrechen
-const tokens = s => String(s).split(' ').map(t => `<span class="tok">${esc(t)}</span>`).join(' ');
+const A = 'python -m agent ';
+const ID = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
 function tokenize() {
-  for (const el of document.querySelectorAll('main code, .hero code')) {
+  for (const el of document.querySelectorAll('code')) {
     if (el.dataset.tok) continue;
     el.dataset.tok = '1';
     el.innerHTML = tokens(el.textContent);
   }
 }
-const A = 'python -m agent ';
-const ID = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
-// localStorage kann gesperrt sein, deshalb immer mit try/catch
-const store = {
-  get(key, fallback) { try { const v = localStorage.getItem(key); return v === null ? fallback : JSON.parse(v) } catch (e) { return fallback } },
-  set(key, value) { try { localStorage.setItem(key, JSON.stringify(value)) } catch (e) {} }
-};
 
-// Kopieren: zuerst Clipboard-API, sonst Fallback über ein verstecktes Textfeld
 async function copyText(text, button) {
   let ok = false;
   try { await navigator.clipboard.writeText(text); ok = true } catch (e) {}
@@ -294,17 +272,11 @@ document.addEventListener('click', e => {
   const b = e.target.closest('button[data-copy]');
   if (b && !b.disabled) copyText(b.dataset.copy, b);
 });
-const copyButton = (text, label = 'Kopieren') => `<button type="button" class="copy small" data-copy="${esc(text)}">${label}</button>`;
+const line = cmd => `<div class="cmdline"><code>${esc(cmd)}</code><button type="button" class="small" data-copy="${esc(cmd)}">Kopieren</button></div>`;
 
-// Befehlsbaukasten: Zustand der Auswahl und Aufbau des Befehls
 const S = {act: 'create', plat: 'kubevirt', scope: 'one'};
 const CHANGING = ['create', 'reset', 'delete'];
 const press = (id, v) => { for (const b of $(id).querySelectorAll('button')) b.setAttribute('aria-pressed', String(b.dataset.v === v)) };
-function setPlat(v) {
-  S.plat = v; press('plat', v);
-  for (const c of document.querySelectorAll('.chip')) c.setAttribute('aria-pressed', String(c.dataset.plat === v));
-  build();
-}
 function normalize() {
   const count = Math.min(30, Math.max(1, parseInt($('count').value, 10) || 1));
   $('count').value = count;
@@ -352,88 +324,91 @@ function build() {
     if (count > 1) c += ' --count ' + count;
     if (parOn && par > 1) c += ' --parallel ' + par;
     if (resume) c += ' --operation-id ' + (op || '<Kennung>');
-    if (act === 'create' && def === 'm426' && !kv) errs.push('m426.yaml braucht mehr Arbeitsspeicher, als der AWS-Instanztyp bietet. Auf KubeVirt verwenden.');
+    if (act === 'create' && def === 'm426' && !kv) errs.push('m426.yaml läuft nur auf KubeVirt. Auf AWS lehnt der Agent den Befehl ab.');
   }
   $('cmd').innerHTML = '<span class="p" aria-hidden="true">$ </span>' + tokens(c);
   $('copy').dataset.copy = c;
   $('copy').disabled = Boolean(nameErr || countErr || opErr || errs.length);
   $('what').innerHTML = errs.map(e => `<li class="err">${esc(e)}</li>`).join('');
+
+  const DESC = {
+    'create': 'Legt die Maschine aus der Definition an und wartet, bis der Testdienst antwortet. Das dauert einige Minuten.',
+    'status': 'Zeigt Zustand und Zugang der Maschine. Der Befehl ändert nichts.',
+    'reset': 'Erstellt die Maschine aus der gespeicherten Definition neu. Daten in der Maschine gehen dabei verloren.',
+    'delete': 'Baut die Maschine vollständig ab. In der Übersicht erscheint sie danach nicht mehr.',
+    'platform-status': 'Prüft die Verbindung zur Plattform, ohne etwas zu ändern.'};
+  let d = overview ? 'Zeigt alle vorhandenen Maschinen, nach Namen sortiert.' + ($('all').checked ? ' Abgebaute Maschinen erscheinen ebenfalls.' : '') : DESC[act];
+  if (named && count > 1 && name && !nameErr) d += ` Die Gruppe umfasst ${name}-1 bis ${name}-${count}.`;
+  if (resume) d += ' Mit der Kennung setzt der Agent den unterbrochenen Auftrag fort, ohne eine zweite Maschine anzulegen.';
+  $('desc').textContent = d;
 }
 $('act').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; S.act = b.dataset.v; press('act', S.act); build() });
 $('scope').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; S.scope = b.dataset.v; press('scope', S.scope); build() });
-$('plat').addEventListener('click', e => { const b = e.target.closest('button'); if (b) setPlat(b.dataset.v) });
-for (const chip of document.querySelectorAll('.chip')) chip.addEventListener('click', () => setPlat(chip.dataset.plat));
+$('plat').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; S.plat = b.dataset.v; press('plat', S.plat); build() });
 $('form').addEventListener('input', build);
 $('form').addEventListener('change', e => { if (e.target.id === 'count' || e.target.id === 'par') normalize(); build() });
 $('form').addEventListener('submit', e => e.preventDefault());
 
-// Inhalte der übrigen Abschnitte
-const CMDS = [
-  ['create', 'Maschine aus einer Definition erstellen', 'create modell/beispiele/referenz.yaml --platform kubevirt --name demo-01'],
-  ['status', 'Übersicht der vorhandenen Maschinen, nach Namen sortiert', 'status'],
-  ['status --name', 'Zustand und Zugang einer Maschine', 'status --name demo-01'],
-  ['reset', 'Maschine aus der gespeicherten Definition neu erstellen', 'reset --name demo-01'],
-  ['delete', 'Maschine vollständig abbauen', 'delete --name demo-01'],
-  ['platform-status', 'Plattform prüfen, ohne etwas zu ändern', 'platform-status --platform kubevirt']];
-$('cmds').innerHTML = CMDS.map(r => `<tr><td class="c"><code>${esc(r[0])}</code></td><td>${esc(r[1])}</td><td><code>${esc(A + r[2])}</code></td><td>${copyButton(A + r[2])}</td></tr>`).join('');
+const STEPS = [
+  ['Vorbereiten', 'Python-Umgebung aktivieren, die Plattform prüfen und nachsehen, ob der gewünschte Name noch frei ist.',
+    ['cd ~/diplomarbeit && source .venv/bin/activate', A + 'platform-status --platform kubevirt', A + 'status']],
+  ['Erstellen', 'Der Agent wartet, bis der Testdienst antwortet. Das dauert einige Minuten.',
+    [A + 'create modell/beispiele/referenz.yaml --platform kubevirt --name demo-01']],
+  ['Prüfen', 'Die Ausgabe muss «HTTP-Dienst: Bereit» zeigen und nennt die Adressen für HTTP und SSH.',
+    [A + 'status --name demo-01']],
+  ['Zurücksetzen, falls nötig', 'Die Maschine wird neu erstellt, Daten darin gehen verloren.',
+    [A + 'reset --name demo-01']],
+  ['Abbauen', 'Nach dem Unterricht entfernt `delete` die Maschine vollständig.',
+    [A + 'delete --name demo-01']]];
+$('steps').innerHTML = STEPS.map(s => `<li><div><h3>${esc(s[0])}</h3><p>${fmt(s[1])}</p>${s[2].map(line).join('')}</div></li>`).join('');
 
 const STAT = [
   ['Maschine: demo-01', 'Der Name, den Sie beim Erstellen gewählt haben.'],
-  ['Auftrag: 8e3b41c7f02a49d5b6c1e97a04d23f6b', 'Kennung des letzten Auftrags. Nur nötig, um nach einem Abbruch fortzusetzen.'],
-  ['Gespeicherter Zustand: Bereit', 'Was der Agent zuletzt festgehalten hat, zum Beispiel Bereit, Wird erstellt oder Fehler.'],
+  ['Auftrag: 8e3b41c7f02a49d5b6c1e97a04d23f6b', 'Kennung des letzten Auftrags, nur zum Fortsetzen nach einem Abbruch nötig.'],
+  ['Gespeicherter Zustand: Bereit', 'Was der Agent zuletzt festgehalten hat, etwa Bereit, Wird erstellt oder Fehler.'],
   ['VM: Läuft', 'Zustand der virtuellen Maschine auf der Plattform.'],
   ['VM-Bereitschaft: Ja', 'Die Plattform meldet die VM als bereit.'],
-  ['HTTP-Dienst: Bereit', 'Der Testdienst in der Maschine antwortet wie erwartet. Erst jetzt können die Lernenden arbeiten.', true],
-  ['Virtuelle Maschinen: 1', 'Anzahl VMs, normalerweise 1.'],
+  ['HTTP-Dienst: Bereit', 'Der Testdienst antwortet, die Maschine ist bereit.', true],
+  ['Virtuelle Maschinen: 1', 'Anzahl VMs, im Normalfall 1.'],
   ['Zugehörige Ressourcen: 7 (Ausführung 2, Speicher 3, Netzwerk 2)', 'Weitere Ressourcen für Ausführung, Speicher und Netzwerk.'],
   ['HTTP: http://192.0.2.10:31119/', 'Adresse des Testdienstes.'],
-  ['SSH: 192.0.2.10, Port 32718', 'Host und Port für den Zugang in die Maschine.']];
-$('stat').innerHTML = STAT.map(r => `<div class="srow${r[2] ? ' key' : ''}"><div class="l">${esc(r[0])}</div><div class="r">${esc(r[1])}</div></div>`).join('');
-
-const STEPS = [
-  ['Anmelden und Umgebung aktivieren', 'Auf dem Agentenhost ins Projektverzeichnis wechseln und die Python-Umgebung aktivieren.', 'cd ~/diplomarbeit && source .venv/bin/activate'],
-  ['Maschine erstellen', 'Der Agent wartet, bis der HTTP-Dienst bereit ist. Das dauert ein paar Minuten.', A + 'create modell/beispiele/referenz.yaml --platform kubevirt --name demo-01'],
-  ['Zustand prüfen', 'Die Ausgabe zeigt «HTTP-Dienst: Bereit» sowie die Adressen für HTTP und SSH.', A + 'status --name demo-01'],
-  ['Bei Bedarf zurücksetzen', 'Die Maschine wird neu erstellt, Daten darin gehen verloren. Adresse und Port danach neu aus status lesen.', A + 'reset --name demo-01'],
-  ['Nach dem Unterricht abbauen', 'Entfernt die Maschine vollständig. Danach führt status sie nicht mehr unter den vorhandenen Maschinen.', A + 'delete --name demo-01']];
-$('steps').innerHTML = STEPS.map(s => `<li><div><h3>${esc(s[0])}</h3><div>${esc(s[1])}</div><div class="cmdline"><code>${esc(s[2])}</code>${copyButton(s[2])}</div></div></li>`).join('');
+  ['SSH: 192.0.2.10, Port 32718', 'Host und Port für den Zugang.']];
+$('stat').innerHTML = STAT.map(r => `<tr${r[2] ? ' class="key"' : ''}><td>${esc(r[0])}</td><td>${esc(r[1])}</td></tr>`).join('');
 
 const GROUP = [
-  ['Drei Maschinen erstellen, alle gleichzeitig', 'create modell/beispiele/referenz.yaml --platform kubevirt --name klasse --count 3 --parallel 3'],
+  ['Drei Maschinen gleichzeitig erstellen', 'create modell/beispiele/referenz.yaml --platform kubevirt --name klasse --count 3 --parallel 3'],
   ['Zustand der Gruppe', 'status --name klasse --count 3'],
-  ['Eine einzelne Maschine zurücksetzen', 'reset --name klasse-2'],
+  ['Eine Maschine zurücksetzen', 'reset --name klasse-2'],
   ['Alle zurücksetzen', 'reset --name klasse --count 3'],
   ['Alle abbauen', 'delete --name klasse --count 3']];
-$('groupcmds').innerHTML = GROUP.map(g => `<div class="gcmd"><div class="gt">${esc(g[0])}</div><div class="cmdline"><code>${esc(A + g[1])}</code>${copyButton(A + g[1])}</div></div>`).join('');
+$('groupcmds').innerHTML = GROUP.map(g => `<div class="gcmd"><div class="gt">${esc(g[0])}</div>${line(A + g[1])}</div>`).join('');
 
-const CHECKS = [
-  'Die Python-Umgebung ist aktiv, die Eingabezeile beginnt mit (.venv).',
-  '`platform-status` meldet keine Fehler.',
-  'Der gewünschte Name ist noch frei, `status` zeigt ihn nicht an.',
-  'Nach dem Erstellen zeigt `status --name` «HTTP-Dienst: Bereit».',
-  'Nach dem Unterricht ist die Maschine mit `delete` abgebaut.'];
-let done = store.get('schulung-lernumgebungen-checks', []);
-if (!Array.isArray(done)) done = [];
-const drawChecks = () => { $('checks').innerHTML = CHECKS.map((t, i) => `<li><input type="checkbox" id="ck${i}" data-i="${i}"${done.includes(i) ? ' checked' : ''}><label for="ck${i}">${fmt(t)}</label></li>`).join(''); tokenize() };
-drawChecks();
-$('checks').addEventListener('change', e => {
-  const i = Number(e.target.dataset.i);
-  done = e.target.checked ? [...new Set([...done, i])] : done.filter(x => x !== i);
-  store.set('schulung-lernumgebungen-checks', done);
-});
-$('resetcheck').addEventListener('click', () => { done = []; store.set('schulung-lernumgebungen-checks', done); drawChecks() });
+const CASES = [
+  ['Der Name ist unbekannt', '`status` zeigt alle vorhandenen Maschinen. Gehört der Name zu einer Gruppe, nennt die Meldung die passende Anzahl für `--count`.'],
+  ['Abbruch mit Ctrl+C', 'Denselben Befehl mit `--operation-id` und der Kennung aus der Meldung wiederholen.'],
+  ['Verbindung abgebrochen', 'Die Kennung steht bei `status --name` in der Zeile «Auftrag». Mit ihr den Befehl neu starten, der Agent setzt den Auftrag fort.'],
+  ['Gruppe abgebrochen', 'Die Meldung nennt eine gemeinsame Kennung, mit der derselbe Befehl die ganze Gruppe fortsetzt. Alternativ die Gruppe mit `delete --count` abbauen und neu erstellen.'],
+  ['Meldung resource_conflict', 'Den Befehl wiederholen. Tritt die Meldung erneut auf, den Informatikdienst kontaktieren.'],
+  ['m426.yaml auf AWS abgelehnt', 'Die Definition läuft nur auf KubeVirt. Auf AWS wurde nichts erstellt.']];
+$('cases').innerHTML = CASES.map(c => `<tr><td>${esc(c[0])}</td><td>${fmt(c[1])}</td></tr>`).join('');
 
-const CARDS = [
-  ['Der Name ist unbekannt', '`status` zeigt alle vorhandenen Maschinen. Ist unter dem Namen eine Gruppe gespeichert, nennt die Meldung die passende Anzahl für `--count`.'],
-  ['Ein Befehl wurde mit Ctrl+C abgebrochen', 'Lesen Sie zuerst `status --name`. Wiederholen Sie dann denselben Befehl mit `--operation-id` und der Kennung aus der Meldung. Es entsteht dabei keine zweite Maschine.'],
-  ['Die Verbindung ist abgebrochen', 'Die Kennung steht bei `status --name` in der Zeile «Auftrag». Starten Sie denselben Befehl damit neu, der Agent setzt den Auftrag fort.'],
-  ['Eine Gruppe wurde abgebrochen', 'Die Meldung nennt eine gemeinsame Kennung für die ganze Gruppe. Mit dieser Kennung setzt derselbe Befehl die Gruppe fort. Sie können die Gruppe auch mit `delete --count` abbauen und neu erstellen.'],
-  ['Die Meldung lautet resource_conflict', '`status --name` lesen und den Befehl wiederholen. Kommt die Meldung wieder, melden Sie sich beim Informatikdienst.'],
-  ['m426.yaml wird auf AWS abgelehnt', 'Die Definition braucht mehr Arbeitsspeicher, als der AWS-Instanztyp bietet. Verwenden Sie KubeVirt, erstellt wurde nichts.']];
-$('cards').innerHTML = CARDS.map(c => `<div class="card"><h3>${esc(c[0])}</h3><div>${fmt(c[1])}</div></div>`).join('');
+const links = [...document.querySelectorAll('.nav a')];
+const targets = links.map(a => document.querySelector(a.getAttribute('href')));
+let pending = false;
+function markNav() {
+  pending = false;
+  let current = null;
+  for (const t of targets) if (t.getBoundingClientRect().top <= 96) current = t;
+  if (innerHeight + scrollY >= document.documentElement.scrollHeight - 4) current = targets[targets.length - 1];
+  for (const [i, a] of links.entries()) {
+    if (targets[i] === current) a.setAttribute('aria-current', 'location'); else a.removeAttribute('aria-current');
+  }
+}
+addEventListener('scroll', () => { if (!pending) { pending = true; requestAnimationFrame(markNav) } }, {passive: true});
 
 build();
 tokenize();
+markNav();
 })();
 </script>
 </body>

@@ -78,6 +78,7 @@ markdown_extensions:
 nav:
   - Dokumentation: dokumentation.md
   - Einstieg: index.md
+  - Schulung: /diplomarbeit/schulung/
 
 extra:
   social:
